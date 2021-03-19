@@ -40,25 +40,16 @@ fclose(fileID);
 c_gma=reshape(c_gma{1},variables_gma,size(c_gma{1},1)/(variables_gma));
 iterations=size(c_gma,2)
 
-fileID=fopen('p.txt')
-p=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'})
-fclose(fileID)
-p=reshape(p{1},variables_p,clusters,size(p{1},1)/variables_p/clusters);
 
-posterior=textread('posterior.txt');
+iterations=min([size(c_gma,2) size(c_tr,2)])
 
-iterations=min([size(c_gma,2) size(p,3) size(c_tr,2)])
-
-figure(1)
-burn=500000
-plot(posterior(burn:end,1))
-
+burn=200
 
 
 
 %% Histogram from distribution of variables governing transitions
 
-c_l=2
+c_l=1
 c_l2=2
 ind=c_l+(c_l2-1)*c_l2;
 figure(2)
@@ -114,7 +105,7 @@ for e_l=1:types
 end 
 end
 
-colors = { [0.8500    0.3250    0.0980] [0.4660    0.6740    0.1880] [0.9290    0.6940    0.1250]   };
+colors = {[0.4660    0.6740    0.1880]  [0.8500    0.3250    0.0980] [0.9290    0.6940    0.1250]   };
 pattern = {'none' 'o' 's' '^'};
 pattern = {'-' '--'};
 figure(7)
@@ -154,7 +145,7 @@ end
 f(4).Position(1) = 0.25;
 f(5).Position(1) = 0.55;
 
-I=legend('Detrimental','Protective','Location','northwest','orientation','horizontal')
+I=legend('Protective','Detrimental','Location','northwest','orientation','horizontal')
 legend('boxoff')
 I.FontSize=FS
 newPosition = [0.45 0.93 0.1 0.1];
@@ -166,140 +157,7 @@ print('C:\Users\jbueren\Google Drive\endo_health\draft\figures\health_behaviors'
 
 
 
-%% Histogram from distributions of bernouilli distributions in ADLs
 
-cl=2
-v1=1
-v2=2
-v3=3
-v4=4
-v5=5
-v6=6
-figure(4)
-subplot(2,6,1)
-plot(squeeze(p(v1,cl,burn:iterations))')
-grid on
-title('Diff walk')
-subplot(2,6,2)
-plot(squeeze(p(v2,cl,burn:iterations))')
-grid on
-title('Diff dress')
-subplot(2,6,3)
-plot(squeeze(p(v3,cl,burn:iterations))')
-grid on
-title('Diff bath')
-subplot(2,6,4)
-plot(squeeze(p(v4,cl,burn:iterations))')
-grid on
-title('Diff eat')
-subplot(2,6,5)
-plot(squeeze(p(v5,cl,burn:iterations))')
-grid on
-title('Diff bed')
-subplot(2,6,6)
-plot(squeeze(p(v6,cl,burn:iterations))')
-grid on
-title('Diff toilet')
-subplot(2,6,7)
-hist(squeeze(p(v1,cl,burn:iterations))')
-subplot(2,6,8)
-hist(squeeze(p(v2,cl,burn:iterations))')
-subplot(2,6,9)
-hist(squeeze(p(v3,cl,burn:iterations))')
-subplot(2,6,10)
-hist(squeeze(p(v4,cl,burn:iterations))')
-subplot(2,6,11)
-hist(squeeze(p(v5,cl,burn:iterations))')
-subplot(2,6,12)
-hist(squeeze(p(v6,cl,burn:iterations))')
-
-%% Histogram from distributions of bernouilli distributions in iADLs
-cl=2
-v1=7
-v2=8
-v3=9
-v4=10
-v5=11
-v6=12
-
-figure(5)
-subplot(2,6,1)
-plot(squeeze(p(v1,cl,burn:iterations))')
-grid on
-title('Diff map')
-subplot(2,6,2)
-plot(squeeze(p(v2,cl,burn:iterations))')
-grid on
-title('Diff phone')
-subplot(2,6,3)
-plot(squeeze(p(v3,cl,burn:iterations))')
-grid on
-title('Diff money')
-subplot(2,6,4)
-plot(squeeze(p(v4,cl,burn:iterations))')
-grid on
-title('Diff medic')
-subplot(2,6,5)
-plot(squeeze(p(v5,cl,burn:iterations))')
-grid on
-title('Diff shop')
-subplot(2,6,6)
-plot(squeeze(p(v6,cl,burn:iterations))')
-grid on
-title('Diff meals')
-subplot(2,6,7)
-hist(squeeze(p(v1,cl,burn:iterations))')
-subplot(2,6,8)
-hist(squeeze(p(v2,cl,burn:iterations))')
-subplot(2,6,9)
-hist(squeeze(p(v3,cl,burn:iterations))')
-subplot(2,6,10)
-hist(squeeze(p(v4,cl,burn:iterations))')
-subplot(2,6,11)
-hist(squeeze(p(v5,cl,burn:iterations))')
-subplot(2,6,12)
-hist(squeeze(p(v6,cl,burn:iterations))')
-
-%% Median of all variables across clusters
-FS=11 %font size
-FS2=9
-MS=25 %marker size
-for cl=1:clusters
-for vl=1:variables_p
-    p50v(cl,vl)=mean(p(vl,cl,burn:iterations))*100;
-end
-end
-
-colors = {[0    0.4470    0.7410] [0.8500    0.3250    0.0980] [0.9290    0.6940    0.1250] [0.4940    0.1840    0.5560] [0.4660    0.6740    0.1880]};
-pattern = {'o' '^' 'x' 's' '>'};
-
-g=figure(6)
-set(6,'position',[50    150    700    325*0.75])
-for j=1:clusters
-    hold on
-    scatter(1:variables_p,[p50v(j,2)';p50v(j,6)';p50v(j,3)';p50v(j,5)';p50v(j,1)';p50v(j,4)'; ...
-                                            p50v(j,12)';p50v(j,11)';p50v(j,9)';p50v(j,10)';p50v(j,8)';p50v(j,7)';],MS,pattern{j},'MarkerEdgeColor',colors{j},'LineWidth',1.5)
-end
-hold off
-
-set(gca,'Xtick',1:variables_p,'XTickLabel',{'DRESS','TOILET','BATH',' BED','WALK','EAT','MEALS','SHOP','MONEY','MEDS','PHONE','MAP'})
-set(gcf,'color','w')
-xlim([0.5,variables_p+0.5])
-ylim([-5,105])
-box on
-grid off
-% yrule = ax.YAxis;
-% yrule.FontSize = FS;
-grid on
-I=legend('Good health','Bad health','Location','northwest','orientation','horizontal')
-legend('boxoff')
-I.FontSize=FS
-newPosition = [0.45 0.92 0.1 0.1];
-    newUnits = 'normalized';
-    set(I,'Position', newPosition,'Units', newUnits);
-grid off
-set(gca,'FontName','Times New Roman','FontSize',FS2);
-print('C:\Users\jbueren\Google Drive\endo_health\draft\figures\health_states','-depsc')
 
 %% Plot Life expectancy for the different groups
 

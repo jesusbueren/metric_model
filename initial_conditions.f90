@@ -5,96 +5,32 @@ module global_ini
     integer,dimension(indv,1)::y_ini
 end module
     
-subroutine initial_conditions(p,beta,gamma,y)
+subroutine initial_conditions(beta,gamma,y)
     use global_var; use nrtype; use global_ini
     implicit none
-    real(DP),dimension(adls,clusters),intent(out)::p
     real(DP),dimension(covariates,clusters,clusters+1),intent(out)::beta
     real(DP),dimension(covariates_habits,habits,types),intent(out)::gamma
-    real(DP),dimension(indv,generations,clusters)::gamma_ik
     integer,dimension(indv,1),intent(in)::y
     
-    !Initial conditions for p (MLE)
-    call initial_conditions_p(p,gamma_ik)
     !Assign individuals to clusters
-    call cluster_rand_assign(gamma_ik,sample_k_ini)
+    call cluster_assign(sample_k_ini)
     !Initial conditions for y is set by a random number generator
     y_ini=y
     !Posterior distribution of transition parameters given the sampled health states & health types
     call initial_conditions_tr(beta)  
     !Posterior distribution of the habits given the sampled health states
     call initial_conditions_habits(gamma)
-    
-    
+      
 end subroutine
     
-subroutine initial_conditions_p(p,gamma_ik)
-    use global_var; use nrtype 
-    implicit none
-    real(DP),dimension(adls,clusters),intent(out)::p
-    real(DP),dimension(indv,generations,clusters),intent(out)::gamma_ik
-    real(DP)::indv_all,E_L_new,E_L_old,crit,stop_rule=1.0e-12
-    integer::i_l,g_l,c_l,it
-    real(DP),dimension(clusters)::pi_k
-    
-    !EM algortihm for finding the MLE of p
-    indv_all=0.0d0
-    do i_l=1,indv; do g_l=first_age(i_l),last_age(i_l)
-        if (data_adls(i_l,1,g_l)/=-1) then
-            indv_all=indv_all+1.0d0
-        end if
-    end do; end do
-    
-    do c_l=1,clusters
-        p(:,c_l)=1/(dble(clusters)+1)*c_l
-    end do
-        
-    pi_k=1/(dble(clusters))
-    
-    E_L_new=-999999999
-    crit=1.0
-    it=0
-    do while (crit>stop_rule)
-        it=it+1
-        E_L_old=E_L_new
-        call E_part(p,pi_k,gamma_ik,E_L_new)  
-        call M_part(indv_all,gamma_ik,p,pi_k)
-        crit=abs(E_L_old-E_L_new)/abs(E_L_new)
-        print*,'crit',crit
-        print*,'E_L_new',E_L_new
-        print*,''
-        if (E_L_old>E_L_new) then
-            print*,'error'
-        end if
-    end do
-    
-end subroutine
-    
-subroutine cluster_rand_assign(gamma_ik,sample_k)
+subroutine cluster_assign(sample_k)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(indv,generations,clusters),intent(in)::gamma_ik
     integer,dimension(indv,generations),intent(out)::sample_k
     real(DP)::u
     integer::i_l,g_l,ind
     
-    sample_k=0
-    do i_l=1,indv; do g_l=generations,1,-1
-        if (data_adls(i_l,1,g_l)==-1 .and. g_l>=first_age(i_l) .and. g_l<=last_age(i_l)) then  !Dead
-            sample_k(i_l,g_l)=clusters+1
-        elseif (g_l<first_age(i_l) .or. g_l>last_age(i_l)) then !Not interviewed
-            sample_k(i_l,g_l)=-1
-        else
-            call RANDOM_NUMBER(u)
-            ind=1
-            do while (sample_k(i_l,g_l)==0)
-            if (u<sum(gamma_ik(i_l,g_l,1:ind))) then
-                sample_k(i_l,g_l)=ind
-            end if
-            ind=ind+1
-            end do
-        end if
-    end do; end do
+    sample_k=data_shlt
     
 end subroutine
     

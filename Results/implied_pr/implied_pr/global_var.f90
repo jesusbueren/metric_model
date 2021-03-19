@@ -3,7 +3,7 @@ module global_var
     implicit none
     !Define number of health clusters and health behavior types
     integer,parameter::clusters=2,types=2
-    integer,parameter::adls=12,habits=5, indv=32940, generations=25, initial_age=50,L_gender=2,covariates_habits=3,L_educ=3
+    integer,parameter::adls=12,habits=5, indv=25990, generations=25, initial_age=50,L_gender=2,covariates_habits=3,L_educ=3
     integer,parameter::covariates=13
     integer,dimension(indv,adls,generations)::data_adls
     integer,dimension(indv,habits,generations)::data_habits
