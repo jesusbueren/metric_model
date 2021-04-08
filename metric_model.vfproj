@@ -27,6 +27,7 @@
 		<Filter Name="Header Files" Filter="fi;fd;h;inc">
 		<File RelativePath=".\C_random_walk.f90"/>
 		<File RelativePath=".\charge_data.f90"/>
+		<File RelativePath=".\compute_init.f90"/>
 		<File RelativePath=".\EM_algorithm.f90"/>
 		<File RelativePath=".\filtration.f90"/>
 		<File RelativePath=".\full_posterior.f90"/>

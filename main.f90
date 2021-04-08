@@ -2,7 +2,6 @@ program main
     use global_var;use nrtype
     implicit none
     integer,dimension(1)::seed=254 
-    real(DP),dimension(adls,clusters)::p
     real(DP),dimension(covariates,clusters,clusters+1)::beta
     real(DP),dimension(covariates_habits,habits,types)::gamma
     integer,dimension(indv,1)::y
@@ -25,15 +24,15 @@ program main
     end do
     
     !Initial conditions
-    call initial_conditions(p,beta,gamma,y)
+    call initial_conditions(beta,gamma,y)
     open(unit=9,file=path_s//'initial_conditions.txt')
-        write(9,'(F20.10)') p,beta,gamma
+        write(9,'(F20.10)') beta,gamma
     close(9)
     
     !Full posterior
     open(unit=9,file=path_s//'initial_conditions.txt')
-        read(9,'(F20.10)') p,beta,gamma
+        read(9,'(F20.10)') beta,gamma
     close(9)
-    call full_posterior(p,beta,gamma,y)
+    call full_posterior(beta,gamma,y)
     
 end program

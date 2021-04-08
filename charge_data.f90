@@ -33,9 +33,13 @@ subroutine charge_data()
                 data_shlt(i_l,g_l)=1
             elseif (data_shlt(i_l,g_l)>=4 .and. data_shlt(i_l,g_l)<=5) then
                 data_shlt(i_l,g_l)=2
+            elseif (data_shlt(i_l,g_l)>=6) then
+                data_shlt(i_l,g_l)=3
             end if                
         end do    
     end do
+    
+    
     
     do i_l=1,indv
         do g_l=1,generations 
