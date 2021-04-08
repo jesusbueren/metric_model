@@ -4,7 +4,7 @@ subroutine load_high_density(c_mean,gamma_mean)
     double precision,dimension(covariates,clusters,clusters+1),intent(out)::c_mean
     real(DP),dimension(covariates_habits,habits,types),intent(out)::gamma_mean
     integer,parameter::burn=200
-    integer,parameter::iterations=4505
+    integer,parameter::iterations=58640
     double precision,dimension(clusters**2*covariates,iterations)::c_vec
     double precision,dimension(covariates_habits*habits*types,iterations)::gamma_vec
         
