@@ -29,8 +29,8 @@ end subroutine
 subroutine sample_beta(beta)
     use global_var
     implicit none
-    real(DP),dimension(covariates,clusters,clusters+1),intent(out)::beta
-    integer::h_l2,h_l,c_l
+    real(DP),dimension(covariates,types,clusters,clusters+1),intent(out)::beta
+    integer::h_l2,h_l,c_l,t_l
     real(DP),dimension(covariates,1)::z
     real(DP),dimension(covariates,covariates)::Sigma,inv_Sigma,A
     interface
@@ -40,16 +40,16 @@ subroutine sample_beta(beta)
     end interface
 
     beta=0.0_dp
-    do h_l=1,clusters;do h_l2=1,clusters
+    do h_l=1,clusters;do h_l2=1,clusters;do t_l=1,types
         do c_l=1,covariates
             z(c_l,1)=c4_normal_01(  )
         end do
-        Sigma=matmul(transpose(big_X_h(1:counter_big_X_h(h_l),h_l,:)),big_X_h(1:counter_big_X_h(h_l),h_l,:))
+        Sigma=matmul(transpose(big_X_h(1:counter_big_X_h(h_l,t_l),h_l,t_l,:)),big_X_h(1:counter_big_X_h(h_l,t_l),h_l,t_l,:))
         call inverse(Sigma,inv_Sigma,covariates)
         A=inv_Sigma
         call choldc(A,covariates)
-        beta(:,h_l,h_l2)=matmul(inv_Sigma,matmul(transpose(big_X_h(1:counter_big_X_h(h_l),h_l,:)),big_Y_h(1:counter_big_X_h(h_l),h_l,h_l2)))+matmul(A,z(:,1))
-    end do;end do
+        beta(:,t_l,h_l,h_l2)=matmul(inv_Sigma,matmul(transpose(big_X_h(1:counter_big_X_h(h_l,t_l),h_l,t_l,:)),big_Y_h(1:counter_big_X_h(h_l,t_l),h_l,t_l,h_l2)))+matmul(A,z(:,1))
+    end do;end do;end do
         
 end subroutine    
     
