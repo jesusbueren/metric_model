@@ -15,7 +15,7 @@ subroutine sample_y(gamma,y,fraction_t)
         do h_l=1,habits;do c_l=1,clusters; do g_l=1,generations
             age=initial_age+(g_l-1)*2-70
             health_d=c_l-1
-            x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp)/)
+            x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),dble(health_d)/)
             alphas(h_l,g_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*gamma(:,h_l,e_l))/sqrt(2.0_dp)))
         end do;end do; end do
     end do

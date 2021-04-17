@@ -2,7 +2,7 @@ clc
 clear all
 
 clusters=2
-covariates_habits=3
+covariates_habits=4
 habits=5
 types=3
 educ=3
@@ -97,23 +97,25 @@ for it=1:max
     it
 gamma=reshape(c_gma(:,iterations-it),covariates_habits,habits,types);
 for e_l=1:types
-    for h_l=1:habits; for g_l=1:generations
+    for h_l=1:habits; for g_l=1:generations;for h_l2=1:clusters
+        h_d=h_l2-1
         age=initial_age+(g_l-1)*2-70;
-        x(:,1)=[1.0,age,age^2-1];
-        alphas(h_l,g_l,e_l,it)=(1-normcdf(0,sum(x(:,1).*gamma(:,h_l,e_l)),1))*100;
-    end ;end 
+        x(:,1)=[1.0,age,age^2-1,h_d];
+        alphas(h_l,g_l,e_l,h_l2,it)=(1-normcdf(0,sum(x(:,1).*gamma(:,h_l,e_l)),1))*100;
+    end ;end; end 
 end 
 end
 
 colors = { [0.4660    0.6740    0.1880] [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980]  };
 pattern = {'none' 'o' 's' '^'};
 pattern = { '-' '-' '--'};
-figure(7)
-set(7,'position',[50    150    700    325*0.75*2])
+figure(8)
+set(8,'position',[50    150    700    325*0.75*2])
+h_l2=2
 for h_l=1:5
     f(h_l)=subplot(2,3,h_l)
     for p_l=1:types
-        plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,:),50,4)),'Color',colors{p_l},'linewidth',2,'linestyle',pattern{p_l})
+        plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,h_l2,:),50,5)),'Color',colors{p_l},'linewidth',2,'linestyle',pattern{p_l})
         hold on
 %         plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,:),97.5,4)),'--','Color',colors{p_l})
 %         plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,:),2.5,4)),'--','Color',colors{p_l})
