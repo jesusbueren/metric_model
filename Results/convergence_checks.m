@@ -4,10 +4,10 @@ clear all
 clusters=2
 covariates_habits=3
 habits=5
-types=2
+types=3
 educ=3
-covariates=13
-variables_tr=clusters^2*covariates
+covariates=9
+variables_tr=clusters^2*covariates*types
 variables_gma=covariates_habits*habits*types
 variables_LE=types*2*(clusters+1)*educ;
 variables_p=12
@@ -25,14 +25,14 @@ iterations=size(c_tr,2)
 fileID=fopen('LE.txt');
 LE=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-LE=reshape(LE{1},variables_LE,size(LE{1},1)/(variables_LE));
-iterations=size(LE,2)
+LE=reshape(LE{1},types,2,educ,clusters+1,size(LE{1},1)/(types*2*educ*(clusters+1)));
+iterations=size(LE,5)
 
 fileID=fopen('fraction_t.txt');
 fraction_t=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-fraction_t=reshape(fraction_t{1},educ*types*2,size(fraction_t{1},1)/(educ*types*2));
-iterations=size(fraction_t,2)
+fraction_t=reshape(fraction_t{1},types,2,educ,size(fraction_t{1},1)/(educ*types*2));
+iterations=size(fraction_t,4)
 
 fileID=fopen('c_habits.txt');
 c_gma=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
@@ -43,14 +43,14 @@ iterations=size(c_gma,2)
 
 iterations=min([size(c_gma,2) size(c_tr,2)])
 
-burn=200
+burn=100
 
 
 
 %% Histogram from distribution of variables governing transitions
 
-c_l=1
-c_l2=2
+c_l=2
+c_l2=1
 ind=c_l+(c_l2-1)*c_l2;
 figure(2)
 for c_l=1:covariates
@@ -66,7 +66,7 @@ end
 %% Histogram from distribution of variables governing habits
 
 c_l=1 %habits
-c_l2=2 %types
+c_l2=3 %types
 
 ind=1+(c_l-1)*covariates_habits+(c_l2-1)*(covariates_habits*habits);
 figure(3)
@@ -91,7 +91,7 @@ hist(c_gma(ind+2,burn:iterations))
 
 
 %%
-max=500
+max=50
 alphas=zeros(habits,generations,types,max);
 for it=1:max
     it
@@ -105,9 +105,9 @@ for e_l=1:types
 end 
 end
 
-colors = {[0.4660    0.6740    0.1880]  [0.8500    0.3250    0.0980] [0.9290    0.6940    0.1250]   };
+colors = { [0.4660    0.6740    0.1880] [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980]  };
 pattern = {'none' 'o' 's' '^'};
-pattern = {'-' '--'};
+pattern = { '-' '-' '--'};
 figure(7)
 set(7,'position',[50    150    700    325*0.75*2])
 for h_l=1:5
@@ -145,7 +145,7 @@ end
 f(4).Position(1) = 0.25;
 f(5).Position(1) = 0.55;
 
-I=legend('Protective','Detrimental','Location','northwest','orientation','horizontal')
+I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
 legend('boxoff')
 I.FontSize=FS
 newPosition = [0.45 0.93 0.1 0.1];
@@ -161,16 +161,23 @@ print('C:\Users\jbueren\Google Drive\endo_health\draft\figures\health_behaviors'
 
 %% Plot Life expectancy for the different groups
 
-ind=26
-LE=mean(LE(:,burn:end),2)
-LE_table=[LE(ind:-1:ind-1,end); LE(ind+4:-1:ind+3,end);LE(ind+8:-1:ind+7,end);LE(ind+2:-1:ind+1,end); LE(ind+6:-1:ind+5,end);LE(ind+10:-1:ind+9,end)]
-ind=2
-HLE_table=[LE(ind:-1:ind-1,end); LE(ind+4:-1:ind+3,end);LE(ind+8:-1:ind+7,end);LE(ind+2:-1:ind+1,end); LE(ind+6:-1:ind+5,end);LE(ind+10:-1:ind+9,end)]
-ind=14
-ULE_table=[LE(ind:-1:ind-1,end); LE(ind+4:-1:ind+3,end);LE(ind+8:-1:ind+7,end);LE(ind+2:-1:ind+1,end); LE(ind+6:-1:ind+5,end);LE(ind+10:-1:ind+9,end)]
-ind=2
-fraction_t=mean(fraction_t(:,burn:end),2)
-fraction=[fraction_t(ind:-1:ind-1,end); fraction_t(ind+4:-1:ind+3,end);fraction_t(ind+8:-1:ind+7,end);fraction_t(ind+2:-1:ind+1,end); fraction_t(ind+6:-1:ind+5,end);fraction_t(ind+10:-1:ind+9,end)]
-fraction=fraction.*100
+%males
+for ge_l=1:2
+for e_l=1:educ
+    [sum(fraction_t(:,ge_l,e_l,:),4)/size(fraction_t,4) sum(LE(:,ge_l,e_l,clusters+1,:),5)/size(LE,5) sum(LE(:,ge_l,e_l,1,:),5)/size(LE,5) sum(LE(:,ge_l,e_l,2,:),5)/size(LE,5)]
+end
+end
 
-[fraction LE_table HLE_table ULE_table]
+% ind=26
+% LE=mean(LE(:,burn:end),2)
+% LE_table=[LE(ind:-1:ind-1,end); LE(ind+4:-1:ind+3,end);LE(ind+8:-1:ind+7,end);LE(ind+2:-1:ind+1,end); LE(ind+6:-1:ind+5,end);LE(ind+10:-1:ind+9,end)]
+% ind=2
+% HLE_table=[LE(ind:-1:ind-1,end); LE(ind+4:-1:ind+3,end);LE(ind+8:-1:ind+7,end);LE(ind+2:-1:ind+1,end); LE(ind+6:-1:ind+5,end);LE(ind+10:-1:ind+9,end)]
+% ind=14
+% ULE_table=[LE(ind:-1:ind-1,end); LE(ind+4:-1:ind+3,end);LE(ind+8:-1:ind+7,end);LE(ind+2:-1:ind+1,end); LE(ind+6:-1:ind+5,end);LE(ind+10:-1:ind+9,end)]
+% ind=2
+% fraction_t=mean(fraction_t(:,burn:end),2)
+% fraction=[fraction_t(ind:-1:ind-1,end); fraction_t(ind+4:-1:ind+3,end);fraction_t(ind+8:-1:ind+7,end);fraction_t(ind+2:-1:ind+1,end); fraction_t(ind+6:-1:ind+5,end);fraction_t(ind+10:-1:ind+9,end)]
+% fraction=fraction.*100
+% 
+% [fraction LE_table HLE_table ULE_table]

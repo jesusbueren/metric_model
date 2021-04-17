@@ -8,7 +8,7 @@ end module
 subroutine initial_conditions(beta,gamma,y)
     use global_var; use nrtype; use global_ini
     implicit none
-    real(DP),dimension(covariates,clusters,clusters+1),intent(out)::beta
+    real(DP),dimension(covariates,types,clusters,clusters+1),intent(out)::beta
     real(DP),dimension(covariates_habits,habits,types),intent(out)::gamma
     integer,dimension(indv,1),intent(in)::y
     
@@ -17,8 +17,10 @@ subroutine initial_conditions(beta,gamma,y)
     !Initial conditions for y is set by a random number generator
     y_ini=y
     !Posterior distribution of transition parameters given the sampled health states & health types
+    print*,'initial_conditions_tr'
     call initial_conditions_tr(beta)  
     !Posterior distribution of the habits given the sampled health states
+    print*,'initial_conditions_habits'
     call initial_conditions_habits(gamma)
       
 end subroutine
@@ -37,7 +39,7 @@ end subroutine
 subroutine initial_conditions_tr(beta)
 use global_var; use nrtype; use global_ini
 implicit none
-real(DP),dimension(covariates,clusters,clusters+1),intent(out)::beta
+real(DP),dimension(covariates,types,clusters,clusters+1),intent(out)::beta
 real(DP),dimension(covariates*clusters**2,1)::c_tr
 real(DP),dimension(clusters,generations,types,L_gender)::dist_init
 integer::it

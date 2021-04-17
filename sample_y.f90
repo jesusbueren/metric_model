@@ -24,10 +24,13 @@ subroutine sample_y(gamma,y,fraction_t)
     fraction_t=0.0d0
     do i_l=1,indv;
         pr=1.0_dp
+        !ind=-1
         do g_l=first_age(i_l),last_age(i_l);do h_l=1,habits
             do e_l=1,types
                 if (data_habits(i_l,h_l,g_l)==1) then
                     pr(e_l)=pr(e_l)*alphas(h_l,g_l,e_l)
+                elseif (data_habits(i_l,h_l,g_l)==0) then
+                    pr(e_l)=pr(e_l)*(1.0d0-alphas(h_l,g_l,e_l))
                 end if
             end do
         end do; end do

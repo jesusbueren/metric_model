@@ -2,10 +2,10 @@ program main
     use global_var;use nrtype
     implicit none
     integer,dimension(1)::seed=254 
-    real(DP),dimension(covariates,clusters,clusters+1)::beta
+    real(DP),dimension(covariates,types,clusters,clusters+1)::beta
     real(DP),dimension(covariates_habits,habits,types)::gamma
     integer,dimension(indv,1)::y
-    integer::i_l
+    integer::i_l,ind
     real(DP)::u
     
     call random_seed(PUT=seed)
@@ -14,13 +14,17 @@ program main
     call charge_data()
     
     !Original types are sampled at random
+    y=-1
     do i_l=1,indv
         call RANDOM_NUMBER(u)
-        if (u<0.5)then
-            y(i_l,1)=1
-        else
-            y(i_l,1)=2
-        end if
+        ind=1
+        do while (y(i_l,1)==-1)
+            if (u<1.0d0/dble(types)*dble(ind))then
+                y(i_l,1)=ind
+            else
+                ind=ind+1
+            end if
+        end do
     end do
     
     !Initial conditions

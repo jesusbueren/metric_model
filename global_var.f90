@@ -2,9 +2,9 @@ module global_var
     use nrtype
     implicit none
     !Define number of health clusters and health behavior types
-    integer,parameter::clusters=2,types=2
+    integer,parameter::clusters=2,types=3
     integer,parameter::adls=12,habits=5, indv=27090, generations=25, initial_age=50,L_gender=2,covariates_habits=3,L_educ=3
-    integer,parameter::covariates=13
+    integer,parameter::covariates=9
     integer,dimension(indv,generations)::data_shlt
     integer,dimension(indv,adls,generations)::data_adls
     integer,dimension(indv,habits,generations)::data_habits
@@ -12,9 +12,9 @@ module global_var
     real(DP),dimension(indv*generations,types,habits)::big_Y
     integer,dimension(types,habits)::counter_big_X
     
-    real(DP),dimension(indv*generations,clusters,covariates)::big_X_h
-    real(DP),dimension(indv*generations,clusters,clusters+1)::big_Y_h
-    integer,dimension(clusters)::counter_big_X_h
+    real(DP),dimension(indv*generations,clusters,types,covariates)::big_X_h
+    real(DP),dimension(indv*generations,clusters,types,clusters+1)::big_Y_h
+    integer,dimension(clusters,types)::counter_big_X_h
     
     integer,dimension(indv)::first_age,last_age,gender,high_school,college,educ
     character(LEN=42)::path="C:\Users\jbueren\Google Drive\endo_health\"  

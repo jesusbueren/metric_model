@@ -34,12 +34,15 @@ end subroutine
 subroutine sample_h_star(beta,type_i,sample_k)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(covariates,clusters,clusters+1),intent(in)::beta
+    real(DP),dimension(covariates,types,clusters,clusters+1),intent(in)::beta
     integer,dimension(indv,1),intent(in)::type_i
     integer,dimension(indv,generations),intent(in)::sample_k
     real(DP),dimension(covariates,1)::x
     integer::h_l,c_l,g_l,ge_l,age,ge_d,it,i_l,health_d,d_l
     real(DP),dimension(clusters+1)::h_star1
+    double precision,dimension(L_educ-1)::educ_d
+    double precision,dimension(types-1)::type_d
+    real(DP)::gender_d
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -48,36 +51,26 @@ subroutine sample_h_star(beta,type_i,sample_k)
     
     counter_big_X_h=0
     do i_l=1,indv;do g_l=first_age(i_l),last_age(i_l)-1
+        x=-9.0d0
         age=initial_age+(g_l-1)*2-70
-        ge_d=gender(i_l)-1
-        x(1:5,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),dble(ge_d),dble(age*ge_d)/)
-        x(6:7,1)=0.0d0
-        if (type_i(i_l,1)==2)then
-            x(6,1)=1.0
-            x(7,1)=dble(age)
+        gender_d=dble(gender(i_l)-1)
+        x(1:5,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),gender_d,dble(age)*gender_d/)
+        educ_d=0.0d0
+        if (educ(i_l)>1) then
+            educ_d(educ(i_l)-1)=1.0d0
         end if
-        x(8:13,1)=0.0d0
-        if (high_school(i_l)==1) then
-            x(8,1)=1.0d0
-            x(9,1)=dble(age)
-        elseif (college(i_l)==1) then
-            x(10,1)=1.0d0
-            x(11,1)=dble(age)
-        end if
-        if (type_i(i_l,1)==2 .and. high_school(i_l)==1) then
-            x(12,1)=1.0d0
-        elseif (type_i(i_l,1)==2 .and. college(i_l)==1) then
-            x(13,1)=1.0d0
-        end if
+        x(6:7,1)=educ_d
+        x(8:9,1)=educ_d*dble(age)
+
         if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then
-            counter_big_X_h(sample_k(i_l,g_l))=counter_big_X_h(sample_k(i_l,g_l))+1
-            big_X_h(counter_big_X_h(sample_k(i_l,g_l)),sample_k(i_l,g_l),:)=x(:,1)
+            counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1))=counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1))+1
+            big_X_h(counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1)),sample_k(i_l,g_l),type_i(i_l,1),:)=x(:,1)
             !Sample latent h
 1           do h_l=1,clusters+1
-                h_star1(h_l)=c4_normal_01()+sum(x(:,1)*beta(:,sample_k(i_l,g_l),h_l))
+                h_star1(h_l)=c4_normal_01()+sum(x(:,1)*beta(:,type_i(i_l,1),sample_k(i_l,g_l),h_l))
             end do
             if (maxloc(h_star1,1)==sample_k(i_l,g_l+1)) then
-                big_Y_h(counter_big_X_h(sample_k(i_l,g_l)),sample_k(i_l,g_l),:)=h_star1
+                big_Y_h(counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1)),sample_k(i_l,g_l),type_i(i_l,1),:)=h_star1
             else
                 go to 1
             end if

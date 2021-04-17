@@ -1,17 +1,17 @@
 subroutine save_results(beta,gamma,LE,fraction_t,it)
     use global_var; use nrtype
     implicit none
-    real(dp),dimension(covariates,clusters,clusters+1),intent(in)::beta
+    real(dp),dimension(covariates,types,clusters,clusters+1),intent(in)::beta
     real(dp),dimension(covariates_habits,habits,types),intent(in)::gamma
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(in)::LE
     integer,intent(in)::it
     real(DP),dimension(types,L_gender,L_educ),intent(in)::fraction_t
-    real(dp),dimension(clusters**2*covariates,1)::c_tr
+    real(dp),dimension(clusters**2*covariates*types,1)::c_tr
     real(dp),dimension(covariates_habits*habits*types,1)::c_habits
     real(DP),dimension(types*L_gender*L_educ*(clusters+1),1)::LE_v
     real(DP),dimension(types*L_gender*L_educ,1)::fraction_t_v
     
-    c_tr=reshape(beta(:,:,1:clusters),(/covariates*clusters*clusters,1/))
+    c_tr=reshape(beta(:,:,:,1:clusters),(/covariates*types*clusters*clusters,1/))
     c_habits=reshape(gamma,(/covariates_habits*habits*types,1/))
     LE_v=reshape(LE,(/types*L_gender*L_educ*(clusters+1),1/))
     fraction_t_v=reshape(fraction_t,(/types*L_gender*L_educ,1/))

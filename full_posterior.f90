@@ -1,7 +1,7 @@
 subroutine full_posterior(beta,gamma,y)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(covariates,clusters,clusters+1),intent(inout)::beta
+    real(DP),dimension(covariates,types,clusters,clusters+1),intent(inout)::beta
     real(DP),dimension(covariates_habits,habits,types),intent(inout)::gamma
     integer,dimension(indv,1),intent(inout)::y
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H,H_g 

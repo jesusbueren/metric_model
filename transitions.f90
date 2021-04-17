@@ -1,12 +1,12 @@
 subroutine transitions(beta,init_cond,H,LE)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(covariates,clusters,clusters+1),intent(in)::beta
+    real(DP),dimension(covariates,types,clusters,clusters+1),intent(in)::beta
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ),intent(out)::H
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(out)::LE
     real(DP),dimension(clusters,types,L_gender,L_educ),intent(in)::init_cond
-    integer::e_l,c_l,c_l2,g_l,ge_l,age,ge_d,it,max_loc,d_l,c_l3,t_l
-    integer,dimension(types-1)::e_d
+    integer::e_l,c_l,c_l2,g_l,ge_l,age,it,max_loc,d_l,c_l3,t_l
+    double precision,dimension(L_educ-1)::educ_d
     real(DP),dimension(covariates,1)::x
     real(DP),dimension(clusters,clusters,generations,types,L_gender,L_educ)::H_new
     integer,parameter::sims=1000
@@ -17,6 +17,7 @@ subroutine transitions(beta,init_cond,H,LE)
     real(DP),dimension(nodes):: xs=(/0.117581320211778,	1.0745620124369,	3.08593744371755,	6.41472973366203,	11.8071894899717/), &
                                 weight=(/1.22172526747065,	0.480277222164629,	0.0677487889109621,	0.00268729149356246,	1.52808657104652E-05/),prod1,prod2
     integer::ind
+    real(DP)::gender_d
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -27,26 +28,16 @@ subroutine transitions(beta,init_cond,H,LE)
     !!$OMP  DO collapse(4)
     do t_l=1,types; do c_l=1,clusters; do g_l=1,generations; do ge_l=1,2;do e_l=1,L_educ
         age=initial_age+(g_l-1)*2-70
-        ge_d=ge_l-1
-        x(1:5,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),dble(ge_d),dble(age*ge_d)/)
-        x(6:9,1)=0.0d0
-        if (t_l==2)then
-            x(6,1)=1.0
-            x(7,1)=dble(age)
-        end if
-        x(8:13,1)=0.0d0
-        if (e_l==2) then
-            x(8,1)=1.0d0
-            x(9,1)=dble(age)
-        elseif (e_l==3) then
-            x(10,1)=1.0d0
-            x(11,1)=dble(age)
-        end if
-        if (t_l==2 .and. e_l==2) then
-            x(12,1)=1.0d0
-        elseif (t_l==2 .and. e_l==3) then
-            x(13,1)=1.0d0
-        end if
+        gender_d=ge_l-1
+        x(1:5,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),gender_d,dble(age)*gender_d/)
+        educ_d=0.0d0
+        if (e_l>1) then
+            educ_d(e_l-1)=1.0d0
+        end if        
+        x(6:7,1)=educ_d
+        x(8:9,1)=educ_d*dble(age)
+
+        
         !By simulation
         !counter_h=0
         !do it=1,sims
@@ -63,7 +54,7 @@ subroutine transitions(beta,init_cond,H,LE)
         !H(c_l,:,g_l,e_l,ge_l)=(dble(counter_h))/dble(sims)
         !By numerical integration
         do c_l2=1,clusters+1
-            h_star(c_l2)=sum(x(:,1)*beta(:,c_l,c_l2))
+            h_star(c_l2)=sum(x(:,1)*beta(:,t_l,c_l,c_l2))
         end do
         do c_l2=1,clusters+1
             prod1=1
