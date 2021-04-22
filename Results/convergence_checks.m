@@ -3,16 +3,16 @@ clear all
 
 clusters=2
 covariates_habits=3
-habits=5
+habits=6
 types=3
 educ=3
-covariates=9
+covariates=8
 variables_tr=clusters^2*covariates*types
 variables_gma=covariates_habits*habits*types
 variables_LE=types*2*(clusters+1)*educ;
 variables_p=12
-generations=25
-initial_age=50
+generations=37
+initial_age=26
 
 cd('C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health')
 
@@ -65,7 +65,7 @@ end
 
 %% Histogram from distribution of variables governing habits
 
-c_l=1 %habits
+c_l=6 %habits
 c_l2=3 %types
 
 ind=1+(c_l-1)*covariates_habits+(c_l2-1)*(covariates_habits*habits);
@@ -91,7 +91,7 @@ hist(c_gma(ind+2,burn:iterations))
 
 
 %%
-max=50
+max=100
 alphas=zeros(habits,generations,types,max);
 for it=1:max
     it
@@ -105,55 +105,64 @@ for e_l=1:types
 end 
 end
 
-colors = { [0.4660    0.6740    0.1880] [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980]  };
+colors = {  [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980] [0.9290    0.6940    0.1250] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {'none' 'o' 's' '^'};
-pattern = { '-' '-' '--'};
+pattern = {  '--' ':' '-'  '-.' '-'};
+    FS=8 %font size
 figure(7)
-set(7,'position',[50    150    700    325*0.75*2])
-for h_l=1:5
-    f(h_l)=subplot(2,3,h_l)
+set(7,'position',[150    150    550    250])
+ind=0
+for h_l=[1 4 5 2 3 6]
+    ind=ind+1
+    f(h_l)=subplot(2,3,ind)
     for p_l=1:types
-        plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,:),50,4)),'Color',colors{p_l},'linewidth',2,'linestyle',pattern{p_l})
+        plot(50:2:100,squeeze(mean(alphas(h_l,12:end,p_l,:),4)),'Color',colors{p_l},'linewidth',1.5,'linestyle',pattern{p_l})
         hold on
 %         plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,:),97.5,4)),'--','Color',colors{p_l})
 %         plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,:),2.5,4)),'--','Color',colors{p_l})
         ylim([-0.1 1])
-        xlim([48 100])
+        
     % hold off
     end
 
     if h_l==1
-    title('Cancer test')
+    title('Cancer test','FontWeight','normal','fontsize',FS)
     elseif h_l==2
-        title('Drinking')
+        title('Drinking','FontWeight','normal','fontsize',FS)
     elseif h_l==3
-         title('Smoking')
+         title('Smoking','FontWeight','normal','fontsize',FS)
     elseif h_l==4
-        title('Cholesterol test')
+        title('Cholesterol test','FontWeight','normal','fontsize',FS)
     elseif h_l==5
-        title('Flu shot') 
+        title('Flu shot','FontWeight','normal','fontsize',FS) 
+    elseif h_l==6
+        title('Extreme Obesity','FontWeight','normal','fontsize',FS)
     end 
+    yticks([0:25:100])
+    xlim([49 100])
+    xticks([50:10:100])
+%     xlim([26 100])
+%     xticks([26:10:100])
     set(gcf,'color','w')
     ylim([-5,105])
     xlabel('Age')
-    FS=11 %font size
-FS2=10
-MS=25 %marker size
-set(gca,'FontName','Times New Roman','FontSize',FS2);
+    MS=25 %marker size
+set(gca,'FontName','Times New Roman','FontSize',FS);
 end
 
-f(4).Position(1) = 0.25;
-f(5).Position(1) = 0.55;
+% f(4).Position(1) = 0.25;
+% f(5).Position(1) = 0.55;
 
-I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+I=legend('Protective','Harmful','Detrimental','Location','northwest','orientation','horizontal')
 legend('boxoff')
 I.FontSize=FS
 newPosition = [0.45 0.93 0.1 0.1];
     newUnits = 'normalized';
     set(I,'Position', newPosition,'Units', newUnits);
 grid off
-set(gca,'FontName','Times New Roman','FontSize',FS2);
-print('C:\Users\jbueren\Google Drive\endo_health\draft\figures\health_behaviors','-depsc')
+set(gca,'FontName','Times New Roman','FontSize',FS);
+
+print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\health_behaviors','-depsc')
 
 
 

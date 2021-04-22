@@ -2,7 +2,7 @@ program main
     use global_var;use nrtype
     implicit none
     integer,dimension(1)::seed=789 
-    real(DP),dimension(covariates,clusters,clusters+1)::beta
+    real(DP),dimension(covariates,types,clusters,clusters+1)::beta
     real(DP),dimension(covariates_habits,habits,types)::gamma
     double precision,dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H
     real(DP),dimension(clusters,types,L_gender,L_educ)::init_cond 
@@ -54,7 +54,7 @@ program main
 
     open(unit=9,file=path_s//'pr_type.txt',status='replace')
     do i_l=1,indv; do g_l=1,generations;
-        write(9,'(I5,I3,F6.3,F6.3)'), i_l,g_l,type_pr(i_l,1),type_pr(i_l,2)
+        write(9,'(I5,I3,<types>F6.3)'), i_l,g_l,type_pr(i_l,:)
     end do;end do
     close(9)
     

@@ -29,13 +29,13 @@ subroutine transitions(beta,init_cond,H,LE)
     do t_l=1,types; do c_l=1,clusters; do g_l=1,generations; do ge_l=1,2;do e_l=1,L_educ
         age=initial_age+(g_l-1)*2-70
         gender_d=ge_l-1
-        x(1:5,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),gender_d,dble(age)*gender_d/)
+        x(1:4,1)=(/1.0_dp,dble(age),gender_d,dble(age)*gender_d/)
         educ_d=0.0d0
         if (e_l>1) then
             educ_d(e_l-1)=1.0d0
         end if        
-        x(6:7,1)=educ_d
-        x(8:9,1)=educ_d*dble(age)
+        x(5:6,1)=educ_d
+        x(7:8,1)=educ_d*dble(age)
 
         
         !By simulation

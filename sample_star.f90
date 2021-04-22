@@ -54,13 +54,13 @@ subroutine sample_h_star(beta,type_i,sample_k)
         x=-9.0d0
         age=initial_age+(g_l-1)*2-70
         gender_d=dble(gender(i_l)-1)
-        x(1:5,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),gender_d,dble(age)*gender_d/)
+        x(1:4,1)=(/1.0_dp,dble(age),gender_d,dble(age)*gender_d/)
         educ_d=0.0d0
         if (educ(i_l)>1) then
             educ_d(educ(i_l)-1)=1.0d0
         end if
-        x(6:7,1)=educ_d
-        x(8:9,1)=educ_d*dble(age)
+        x(5:6,1)=educ_d
+        x(7:8,1)=educ_d*dble(age)
 
         if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then
             counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1))=counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1))+1

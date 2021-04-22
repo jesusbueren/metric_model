@@ -1,31 +1,44 @@
 subroutine charge_data()
     use global_var
     implicit none 
-    integer,dimension(indv*adls*generations)::data_vec_adls
-    integer,dimension(indv*habits*generations)::data_vec_habits
-    integer,dimension(indv*2)::ages
+    integer,dimension(indv_HRS*habits*generations)::data_vec_habits
+    integer,dimension(2,indv)::ages
+    integer,dimension(generations,indv_HRS)::data_shlt_srh
+    integer,dimension(generations,indv_psid)::data_shlt_psid
+    
     integer::i_l,g_l,index
-    integer,dimension(generations,indv)::data_shlt_rsh
+    
     
     open(unit=10,file=path//"data\ages_all.csv")
-        read(10,*) ages
+        read(10,*) ages(:,1:indv_HRS)
+    close(10)
+    open(unit=10,file=path//"data\ages_all_psid.csv")
+        read(10,*) ages(:,indv_HRS+1:indv)
     close(10)
     open(unit=10,file=path//"data\gender_all.csv")
-        read(10,*) gender
+        read(10,*) gender(1:indv_HRS)
     close(10)
-    open(unit=10,file=path//"Data\adls.csv")
-        read(10,*) data_vec_adls
+    open(unit=10,file=path//"data\gender_all_psid.csv")
+        read(10,*) gender(indv_HRS+1:indv)
     close(10)
     open(unit=10,file=path//"Data\habits.csv")
         read(10,*) data_vec_habits
     close(10)
     open(unit=10,file=path//"data\educ_all.csv")
-        read(10,*) educ
+        read(10,*) educ(1:indv_HRS)
+    close(10)
+    open(unit=10,file=path//"data\educ_all_psid.csv")
+        read(10,*) educ(indv_HRS+1:indv)
     close(10)
     open(unit=10,file=path//"Data\shlt.csv")
-        read(10,*) data_shlt_rsh
+        read(10,*) data_shlt_srh
     close(10)
-    data_shlt=reshape(data_shlt_rsh,(/indv,generations/),order=(/2,1/))
+    open(unit=10,file=path//"Data\shlt_psid.csv")
+        read(10,*) data_shlt_psid
+    close(10)
+    
+    data_shlt(1:indv_HRS,:)=reshape(data_shlt_srh,(/indv_HRS,generations/),order=(/2,1/))
+    data_shlt(indv_HRS+1:indv,:)=reshape(data_shlt_psid,(/indv_psid,generations/),order=(/2,1/))
     
     do i_l=1,indv
         do g_l=1,generations 
@@ -40,27 +53,22 @@ subroutine charge_data()
     end do
     
     
-    
     do i_l=1,indv
-        do g_l=1,generations 
-            index=(i_l-1)*(generations*adls)+(g_l-1)*adls+1
-            data_adls(i_l,:,g_l)=data_vec_adls(index:index+adls-1)
-        end do
+        if (i_l<=indv_HRS) then
+            do g_l=1,generations 
+                index=(i_l-1)*(generations*habits)+(g_l-1)*habits+1
+                data_habits(i_l,:,g_l)=data_vec_habits(index:index+habits-1)
+            end do
+        else
+            data_habits(i_l,:,:)=-9
+        end if
     end do
-    
-    do i_l=1,indv
-        do g_l=1,generations 
-            index=(i_l-1)*(generations*habits)+(g_l-1)*habits+1
-            data_habits(i_l,:,g_l)=data_vec_habits(index:index+habits-1)
-        end do
-    end do
-    
+
     high_school=0
     college=0
     do i_l=1,indv
-        index=(i_l-1)*2+1
-        first_age(i_l)=ages(index)
-        last_age(i_l)=ages(index+1)
+        first_age(i_l)=ages(1,i_l)
+        last_age(i_l)=ages(2,i_l)
         if (educ(i_l)==2) then
             high_school(i_l)=1
         elseif (educ(i_l)==3) then
