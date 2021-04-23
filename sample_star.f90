@@ -69,10 +69,18 @@ subroutine sample_h_star(beta,type_i,sample_k)
 1           do h_l=1,clusters+1
                 h_star1(h_l)=c4_normal_01()+sum(x(:,1)*beta(:,type_i(i_l,1),sample_k(i_l,g_l),h_l))
             end do
-            if (maxloc(h_star1,1)==sample_k(i_l,g_l+1)) then
-                big_Y_h(counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1)),sample_k(i_l,g_l),type_i(i_l,1),:)=h_star1
+            if (i_l<=indv_HRS) then
+                if (maxloc(h_star1,1)==sample_k(i_l,g_l+1)) then
+                    big_Y_h(counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1)),sample_k(i_l,g_l),type_i(i_l,1),:)=h_star1
+                else
+                    go to 1
+                end if
             else
-                go to 1
+                if (maxloc(h_star1(1:clusters),1)==sample_k(i_l,g_l+1)) then
+                    big_Y_h(counter_big_X_h(sample_k(i_l,g_l),type_i(i_l,1)),sample_k(i_l,g_l),type_i(i_l,1),:)=h_star1
+                else
+                    go to 1
+                end if
             end if
         end if
     end do;end do
