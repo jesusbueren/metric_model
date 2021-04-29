@@ -5,15 +5,11 @@ module global_var
     integer,parameter::clusters=2,types=3
     integer,parameter::adls=12,habits=6,indv_HRS=27090,indv_PSID=8519,generations=37,initial_age=26,L_gender=2,covariates_habits=3,L_educ=3,indv=indv_HRS+indv_PSID
     integer,parameter::covariates=8
+    integer,parameter::g_max=10
     integer,dimension(indv,generations)::data_shlt
     integer,dimension(indv,habits,generations)::data_habits
-    real(DP),dimension(indv*generations,types,habits,covariates_habits)::big_X
-    real(DP),dimension(indv*generations,types,habits)::big_Y
-    integer,dimension(types,habits)::counter_big_X
+
     
-    real(DP),dimension(indv*generations,clusters,types,covariates)::big_X_h
-    real(DP),dimension(indv*generations,clusters,types,clusters+1)::big_Y_h
-    integer,dimension(clusters,types)::counter_big_X_h
     
     integer,dimension(indv)::first_age,last_age,gender,high_school,college,educ
     character(LEN=42)::path="C:\Users\jbueren\Google Drive\endo_health\"  

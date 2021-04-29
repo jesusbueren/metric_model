@@ -1,9 +1,10 @@
-subroutine full_posterior(beta,gamma,y)
+subroutine full_posterior(beta_h,beta_d,gamma,y)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(covariates,types,clusters,clusters+1),intent(inout)::beta
+    real(DP),dimension(covariates,types,clusters,clusters),intent(inout)::beta_h
     real(DP),dimension(covariates_habits,habits,types),intent(inout)::gamma
     integer,dimension(indv,1),intent(inout)::y
+    real(DP),dimension(covariates,types,clusters),intent(inout)::beta_d
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H,H_g 
     real(DP),dimension(clusters,types,L_gender,L_educ)::init_cond 
     integer::c_l,c_l2,it3,it2,chg_mu,it,burn=100,v_l,ind
@@ -36,25 +37,25 @@ subroutine full_posterior(beta,gamma,y)
         it2=it2+1 
         it3=it3+1 
         !Sample health behavior type
-        call sample_y(gamma,y,fraction_t)        
+        call sample_y(gamma,y,fraction_t) 
+        !!Sample h* given beta
+        !call sample_d_star(beta_d,y,sample_k)
+        !!Sample beta given h_star
+        !call sample_beta_d(beta_d)
         !Sample h* given beta
-        call sample_h_star(beta,y,sample_k)
-        !Sample beta given h_star
-        call sample_beta(beta)
+        call sample_beta_h(beta_h,y,sample_k)
+        call sample_beta_d(beta_d,y,sample_k)
         !Sample y* given gamma
-        call sample_y_star(gamma,y,sample_k,y_star)
-        !Sample gamma given y*
-        call sample_gamma(y,y_star,gamma)
+        call sample_gamma_y(gamma,y,sample_k) 
         !Compute share of indv in each group
         call compute_init(sample_k,y,init_cond)        
         !Compute life-expectancy
-        call transitions(beta,init_cond,H,LE)
+        call transitions(beta_h,beta_d,init_cond,H,LE)
         !Save results
-        call save_results(beta,gamma,LE,fraction_t,it)
+        call save_results(beta_h,beta_d,gamma,LE,fraction_t,it)
     end do
     
-    
-    end subroutine
+end subroutine
     
 subroutine tick(t)
     integer, intent(OUT) :: t

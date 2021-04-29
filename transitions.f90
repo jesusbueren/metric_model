@@ -1,7 +1,8 @@
-subroutine transitions(beta,init_cond,H,LE)
+subroutine transitions(beta_h,beta_d,init_cond,H,LE)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(covariates,types,clusters,clusters+1),intent(in)::beta
+    real(DP),dimension(covariates,types,clusters,clusters),intent(in)::beta_h
+    real(DP),dimension(covariates,types,clusters),intent(in)::beta_d
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ),intent(out)::H
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(out)::LE
     real(DP),dimension(clusters,types,L_gender,L_educ),intent(in)::init_cond
@@ -11,7 +12,7 @@ subroutine transitions(beta,init_cond,H,LE)
     real(DP),dimension(clusters,clusters,generations,types,L_gender,L_educ)::H_new
     integer,parameter::sims=1000
     integer,dimension(clusters+1)::counter_h
-    real(DP),dimension(clusters+1)::h_star
+    real(DP),dimension(clusters)::h_star
     double precision,dimension(clusters+1,generations)::p
     integer,parameter::nodes=5
     real(DP),dimension(nodes):: xs=(/0.117581320211778,	1.0745620124369,	3.08593744371755,	6.41472973366203,	11.8071894899717/), &
@@ -37,36 +38,29 @@ subroutine transitions(beta,init_cond,H,LE)
         x(5:6,1)=educ_d
         x(7:8,1)=educ_d*dble(age)
 
-        
-        !By simulation
-        !counter_h=0
-        !do it=1,sims
-        !    do c_l2=1,clusters+1
-        !        h_star(c_l2)=sum(x(:,1)*beta(:,c_l,c_l2))+c4_normal_01( )
-        !    end do
-        !    max_loc=maxloc(h_star,1)
-        !    do c_l2=1,clusters+1
-        !        if (c_l2==max_loc)then
-        !            counter_h(c_l2)=counter_h(c_l2)+1
-        !        end if
-        !    end do
-        !end do
-        !H(c_l,:,g_l,e_l,ge_l)=(dble(counter_h))/dble(sims)
-        !By numerical integration
-        do c_l2=1,clusters+1
-            h_star(c_l2)=sum(x(:,1)*beta(:,t_l,c_l,c_l2))
-        end do
-        do c_l2=1,clusters+1
-            prod1=1
-            prod2=1
-            do c_l3=1,clusters+1
-                if (c_l2/=c_l3) then
-                    prod1=prod1*0.5d0*(1.0d0+erf((-sqrt(2.0d0*xs)-(h_star(c_l3)-h_star(c_l2)))/sqrt(2.0d0)))
-                    prod2=prod2*0.5d0*(1.0d0+erf(( sqrt(2.0d0*xs)-(h_star(c_l3)-h_star(c_l2)))/sqrt(2.0d0)))
-                end if
+        if (clusters==2) then
+            H(c_l,1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_h(:,t_l,c_l,1))/sqrt(2.0_dp)))
+            H(c_l,2,g_l,t_l,ge_l,e_l)=0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_h(:,t_l,c_l,1))/sqrt(2.0_dp)))
+        else
+            !By numerical integration
+            do c_l2=1,clusters
+                h_star(c_l2)=sum(x(:,1)*beta_h(:,t_l,c_l,c_l2))
             end do
-            H(c_l,c_l2,g_l,t_l,ge_l,e_l)=0.5d0/sqrt(pi)*sum(weight*(prod1+prod2))
-        end do
+            do c_l2=1,clusters
+                prod1=1
+                prod2=1
+                do c_l3=1,clusters
+                    if (c_l2/=c_l3) then
+                        prod1=prod1*0.5d0*(1.0d0+erf((-sqrt(2.0d0*xs)-(h_star(c_l3)-h_star(c_l2)))/sqrt(2.0d0)))
+                        prod2=prod2*0.5d0*(1.0d0+erf(( sqrt(2.0d0*xs)-(h_star(c_l3)-h_star(c_l2)))/sqrt(2.0d0)))
+                    end if
+                end do
+                H(c_l,c_l2,g_l,t_l,ge_l,e_l)=0.5d0/sqrt(pi)*sum(weight*(prod1+prod2))
+            end do
+            
+        end if
+        H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_d(:,t_l,c_l))/sqrt(2.0_dp)))
+        H(c_l,1:clusters,g_l,t_l,ge_l,e_l)=H(c_l,1:2,g_l,t_l,ge_l,e_l)/sum(H(c_l,1:clusters,g_l,t_l,ge_l,e_l))*(1.0d0-H(c_l,clusters+1,g_l,t_l,ge_l,e_l))
     end do; end do; end do; end do;end do
     !!$OMP END DO
     !!$OMP END PARALLEL
