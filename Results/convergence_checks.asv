@@ -99,7 +99,7 @@ gamma=reshape(c_gma(:,iterations-it),covariates_habits,habits,types);
 for e_l=1:types
     for h_l=1:habits; for g_l=1:generations
         age=initial_age+(g_l-1)*2-70;
-        x(:,1)=[1.0,age,age^2-1,0];
+        x(:,1)=[1.0,age,age^2-1,1];
         alphas(h_l,g_l,e_l,it)=(1-normcdf(0,sum(x(:,1).*gamma(:,h_l,e_l)),1))*100;
     end ;end 
 end 

@@ -37,7 +37,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y)
         it2=it2+1 
         it3=it3+1 
         !Sample health behavior type
-        call sample_y(gamma,y,fraction_t) 
+        call sample_y(gamma,y,fraction_t,sample_k) 
         !Sample h* given beta 
         call sample_beta_h(beta_h,y,sample_k)
         !Sample d* given beta 

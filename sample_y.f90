@@ -1,12 +1,14 @@
-subroutine sample_y(gamma,y,fraction_t)
+subroutine sample_y(gamma,y,fraction_t,sample_k)
     use nrtype; use global_var
     implicit none
     integer,dimension(indv,1),intent(out)::y
     real(DP),dimension(covariates_habits,habits,types),intent(in)::gamma
+    integer,dimension(indv,generations),intent(in)::sample_k
     real(DP),dimension(covariates_habits,1)::x
-    integer::h_l,c_l,g_l,e_d,age,ge_d,it,i_l,e_l,health_d,ind
+    integer::h_l,c_l,g_l,e_d,age,ge_d,it,i_l,e_l,ind
+    real(dp)::health_d
     real(dp)::d,p,u
-    real(DP),dimension(habits,generations,types)::alphas
+    real(DP),dimension(habits,generations,types,clusters)::alphas
     real(DP),dimension(types)::pr
     real(DP),dimension(types,L_gender,L_educ),intent(out)::fraction_t
     real(DP),dimension(L_gender,L_educ)::counter
@@ -14,9 +16,9 @@ subroutine sample_y(gamma,y,fraction_t)
     do e_l=1,types
         do h_l=1,habits;do c_l=1,clusters; do g_l=1,generations
             age=initial_age+(g_l-1)*2-70
-            health_d=c_l-1
-            x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp)/)
-            alphas(h_l,g_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*gamma(:,h_l,e_l))/sqrt(2.0_dp)))
+            health_d=dble(c_l-1)
+            x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),health_d/)
+            alphas(h_l,g_l,e_l,c_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*gamma(:,h_l,e_l))/sqrt(2.0_dp)))
         end do;end do; end do
     end do
     
@@ -27,10 +29,10 @@ subroutine sample_y(gamma,y,fraction_t)
         !ind=-1
         do g_l=first_age(i_l),last_age(i_l);do h_l=1,habits
             do e_l=1,types
-                if (data_habits(i_l,h_l,g_l)==1) then
-                    pr(e_l)=pr(e_l)*alphas(h_l,g_l,e_l)
-                elseif (data_habits(i_l,h_l,g_l)==0) then
-                    pr(e_l)=pr(e_l)*(1.0d0-alphas(h_l,g_l,e_l))
+                if (data_habits(i_l,h_l,g_l)==1 .and. sample_k(i_l,g_l)/=-1) then
+                    pr(e_l)=pr(e_l)*alphas(h_l,g_l,e_l,sample_k(i_l,g_l))
+                elseif (data_habits(i_l,h_l,g_l)==0 .and. sample_k(i_l,g_l)/=-1) then
+                    pr(e_l)=pr(e_l)*(1.0d0-alphas(h_l,g_l,e_l,sample_k(i_l,g_l))) !sample_k(i_l,:)
                 end if
             end do
         end do; end do
