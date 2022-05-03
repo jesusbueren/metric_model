@@ -1,21 +1,3 @@
-module global_var
-    use nrtype
-    implicit none
-    !Define number of health clusters and health behavior types
-    integer,parameter::clusters=2,types=3
-    integer,parameter::adls=12,habits=6,indv_HRS=27090,indv_PSID=8519,generations=37,initial_age=26,L_gender=2,covariates_habits=3,L_educ=3,indv=indv_HRS+indv_PSID
-    integer,parameter::covariates=8
-    integer,parameter::g_max=10
-    integer,dimension(indv,generations)::data_shlt
-    integer,dimension(indv,habits,generations)::data_habits
-
-    
-    
-    integer,dimension(indv)::first_age,last_age,gender,high_school,college,educ
-    character(LEN=42)::path="C:\Users\jbueren\Google Drive\endo_health\"  
-    character(LEN=71)::path_s="C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health\"
-end module
-    
 MODULE nrtype
 	INTEGER, PARAMETER :: I4B = SELECTED_INT_KIND(9)
 	INTEGER, PARAMETER :: I2B = SELECTED_INT_KIND(4)
@@ -46,3 +28,21 @@ MODULE nrtype
 		INTEGER(I4B), DIMENSION(:), POINTER :: jcol
 	END TYPE sprs2_dp
 END MODULE nrtype
+    
+module global_var
+    use nrtype
+    implicit none
+    !Define number of health clusters and health behavior types
+    integer,parameter::clusters=2,types=3
+    integer,parameter::adls=12,habits=6,indv_HRS=27090,indv_PSID=7207,generations=37,initial_age=26,L_gender=2,covariates_habits=3,L_educ=3,indv=indv_HRS+indv_PSID
+    integer,parameter::covariates=8
+    integer,parameter::g_max=10
+    integer,dimension(indv,generations)::data_shlt
+    integer,dimension(indv,habits,generations)::data_habits
+
+    
+    integer,dimension(indv)::first_age,last_age,gender,high_school,college,educ
+    character(LEN=42)::path="C:\Users\jbueren\Google Drive\endo_health\"  
+    character(LEN=71)::path_s="C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health\"
+end module global_var
+    

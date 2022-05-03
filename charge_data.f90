@@ -2,6 +2,7 @@ subroutine charge_data()
     use global_var
     implicit none 
     integer,dimension(indv_HRS*habits*generations)::data_vec_habits
+    integer,dimension(indv_psid*habits*generations)::data_vec_habits_psid
     integer,dimension(2,indv)::ages
     integer,dimension(generations,indv_HRS)::data_shlt_srh
     integer,dimension(generations,indv_psid)::data_shlt_psid
@@ -23,6 +24,9 @@ subroutine charge_data()
     close(10)
     open(unit=10,file=path//"Data\habits.csv")
         read(10,*) data_vec_habits
+    close(10)
+    open(unit=10,file=path//"Data\habits_psid.csv")
+        read(10,*) data_vec_habits_psid
     close(10)
     open(unit=10,file=path//"data\educ_all.csv")
         read(10,*) educ(1:indv_HRS)
@@ -60,7 +64,10 @@ subroutine charge_data()
                 data_habits(i_l,:,g_l)=data_vec_habits(index:index+habits-1)
             end do
         else
-            data_habits(i_l,:,:)=-9
+            do g_l=1,generations 
+                index=(i_l-1-indv_HRS)*(generations*habits)+(g_l-1)*habits+1
+                data_habits(i_l,:,g_l)=data_vec_habits_psid(index:index+habits-1)
+            end do
         end if
     end do
 
@@ -75,4 +82,5 @@ subroutine charge_data()
             college(i_l)=1
         end if
     end do
+    
 end subroutine

@@ -17,7 +17,7 @@ subroutine initial_conditions(beta_h,beta_d,gamma,y)
     call cluster_assign(sample_k_ini)
     !Initial conditions for y is set by a random number generator
     y_ini=y
-    !Posterior distribution of transition parameters given the sampled health states & health types
+    !Posterior distribution of transition parameters given the sampled health states & health behavior type types
     print*,'initial_conditions_survival'
     call initial_conditions_sur(beta_d) 
     print*,'initial_conditions_tr'

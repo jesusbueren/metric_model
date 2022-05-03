@@ -56,8 +56,7 @@ subroutine transitions(beta_h,beta_d,init_cond,H,LE)
                     end if
                 end do
                 H(c_l,c_l2,g_l,t_l,ge_l,e_l)=0.5d0/sqrt(pi)*sum(weight*(prod1+prod2))
-            end do
-            
+            end do   
         end if
         H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_d(:,t_l,c_l))/sqrt(2.0_dp)))
         H(c_l,1:clusters,g_l,t_l,ge_l,e_l)=H(c_l,1:2,g_l,t_l,ge_l,e_l)/sum(H(c_l,1:clusters,g_l,t_l,ge_l,e_l))*(1.0d0-H(c_l,clusters+1,g_l,t_l,ge_l,e_l))

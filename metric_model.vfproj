@@ -5,7 +5,7 @@
 	<Configurations>
 		<Configuration Name="Debug|Win32">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarnInterfaces="true" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebugDLL"/>
-				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole" StackReserveSize="10000000"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -38,8 +38,8 @@
 		<File RelativePath=".\mean_variance.f90"/>
 		<File RelativePath=".\posterior_fct.f90"/>
 		<File RelativePath=".\proposal.f90"/>
-		<File RelativePath=".\sample_beta_h.f90"/>
 		<File RelativePath=".\sample_beta_d.f90"/>
+		<File RelativePath=".\sample_beta_h.f90"/>
 		<File RelativePath=".\sample_gamma_y.f90"/>
 		<File RelativePath=".\sample_y.f90"/>
 		<File RelativePath=".\save_results.f90"/>

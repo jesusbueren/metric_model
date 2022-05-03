@@ -105,7 +105,11 @@ for e_l=1:types
 end 
 end
 
-colors = {  [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980] [0.9290    0.6940    0.1250] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+alphas(1,1:12,:,:)=NaN;
+alphas(4,1:12,:,:)=NaN;
+alphas(5,1:12,:,:)=NaN;
+
+colors = { [0.8500    0.3250    0.0980] [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {'none' 'o' 's' '^'};
 pattern = {  '--' ':' '-'  '-.' '-'};
     FS=8 %font size
@@ -115,8 +119,8 @@ ind=0
 for h_l=[1 4 5 2 3 6]
     ind=ind+1
     f(h_l)=subplot(2,3,ind)
-    for p_l=1:types
-        plot(50:2:100,squeeze(mean(alphas(h_l,12:end,p_l,:),4)),'Color',colors{p_l},'linewidth',1.5,'linestyle',pattern{p_l})
+    for p_l=1:types 
+        plot(26:2:98,squeeze(mean(alphas(h_l,:,p_l,:),4)),'Color',colors{p_l},'linewidth',1.5,'linestyle',pattern{p_l})
         hold on
 %         plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,:),97.5,4)),'--','Color',colors{p_l})
 %         plot(50:2:98,squeeze(prctile(alphas(h_l,:,p_l,:),2.5,4)),'--','Color',colors{p_l})
@@ -139,10 +143,8 @@ for h_l=[1 4 5 2 3 6]
         title('Extreme Obesity','FontWeight','normal','fontsize',FS)
     end 
     yticks([0:25:100])
-    xlim([49 100])
-    xticks([50:10:100])
-%     xlim([26 100])
-%     xticks([26:10:100])
+    xlim([25 100])
+    xticks([25:10:100])
     set(gcf,'color','w')
     ylim([-5,105])
     xlabel('Age')
@@ -153,7 +155,7 @@ end
 % f(4).Position(1) = 0.25;
 % f(5).Position(1) = 0.55;
 
-I=legend('Protective','Harmful','Detrimental','Location','northwest','orientation','horizontal')
+I=legend('Harmful','Protective','Detrimental','Location','northwest','orientation','horizontal')
 legend('boxoff')
 I.FontSize=FS
 newPosition = [0.45 0.93 0.1 0.1];
