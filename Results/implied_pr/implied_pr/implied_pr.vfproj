@@ -15,7 +15,7 @@
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" RuntimeLibrary="rtMultiThreadedDLL"/>
-				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole" StackReserveSize="100000000"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -26,14 +26,33 @@
 	<Files>
 		<Filter Name="Header Files" Filter="fi;fd;h;inc">
 		<File RelativePath="..\..\..\charge_data.f90"/>
+		<File RelativePath=".\estimate_mixture_income.f90"/>
+		<File RelativePath=".\estimate_mixture_wealth.f90"/>
 		<File RelativePath="..\..\..\filtration.f90"/>
 		<File RelativePath="..\..\..\global_var.f90"/>
+		<File RelativePath=".\income_process.f90"/>
+		<File RelativePath=".\kalman_FS.f90"/>
 		<File RelativePath="..\..\..\likelihoods.f90"/>
 		<File RelativePath=".\load_high_density.f90"/>
+		<File RelativePath=".\log_normal_dist.f90"/>
 		<File RelativePath=".\main.f90"/>
+		<File RelativePath=".\pr_of_zero_wealth.f90"/>
+		<File RelativePath=".\pr_zero_income.f90"/>
+		<File RelativePath=".\pr_zero_income_dynamic.f90"/>
+		<File RelativePath=".\quantile_wealth_hat.f90"/>
+		<File RelativePath=".\sample_health_behavior.f90"/>
+		<File RelativePath=".\sample_mean_p.f90"/>
+		<File RelativePath=".\sample_probit_p.f90"/>
+		<File RelativePath=".\sample_rho_nu.f90"/>
+		<File RelativePath=".\sample_s2w.f90"/>
+		<File RelativePath=".\sample_var_p.f90"/>
 		<File RelativePath="..\..\..\sample_y.f90"/>
 		<File RelativePath="..\..\..\smoothing.f90"/>
-		<File RelativePath="..\..\..\transitions.f90"/></Filter>
-		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
+		<File RelativePath="..\..\..\transitions.f90"/>
+		<File RelativePath=".\zero_pr_hat.f90"/></Filter>
+		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+		<File RelativePath=".\ranlib.f90"/>
+		<File RelativePath=".\rnglib.f90"/>
+		<File RelativePath=".\truncated_normal.f90"/></Filter>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl"/></Files>
 	<Globals/></VisualStudioProject>

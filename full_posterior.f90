@@ -1,19 +1,22 @@
-subroutine full_posterior(beta_h,beta_d,gamma,y)
+subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(covariates,types,clusters,clusters),intent(inout)::beta_h
+    real(DP),dimension(covariates_mixture,L_gender,L_educ,types),intent(inout)::delta
+    real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(inout)::beta_h
     real(DP),dimension(covariates_habits,habits,types),intent(inout)::gamma
     integer,dimension(indv,1),intent(inout)::y
-    real(DP),dimension(covariates,types,clusters),intent(inout)::beta_d
+    real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(inout)::beta_d
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H,H_g 
-    real(DP),dimension(clusters,types,L_gender,L_educ)::init_cond 
-    integer::c_l,c_l2,it3,it2,chg_mu,it,burn=100,v_l,ind
+ 
+    real(DP),dimension(types,L_gender,L_educ)::fraction_t
+    integer::g_l,it3,it2,chg_mu,it,v_l,ind,ge_l,e_l,i_l,burn
     real(DP)::prior_H
     integer,dimension(indv,generations)::sample_k
     real(DP)::u
     real(DP),dimension(indv,habits,generations)::y_star
     real(DP),dimension(types,L_gender,L_educ,clusters+1)::LE
-    real(DP),dimension(types,L_gender,L_educ)::fraction_t
+    real(DP),dimension(generations,clusters,L_gender,L_educ,types)::weights,joint_yh
+    real(DP),dimension(clusters,L_gender,L_educ)::share_h
     !Timer
     integer::calc
     real::calctime
@@ -26,30 +29,45 @@ subroutine full_posterior(beta_h,beta_d,gamma,y)
 
     character::continue_program
     
+    !Compute share of indv in good and bad health in the initial period across education and gender
+    call fraction_h_e_g(share_h)
+    
     sample_k=data_shlt
+    H=1/dble(clusters+1)
+    burn=1
+    
     
     it2=-1
     it3=-1
     chg_mu=0
+
     !call tick(calc)
-    do it=0,100000000
+    do it=1,2000+burn
         print*,it
         it2=it2+1 
         it3=it3+1 
-        !Sample health behavior type
-        call sample_y(gamma,y,fraction_t,sample_k) 
         !Sample h* given beta 
+        !print*,'2'
         call sample_beta_h(beta_h,y,sample_k)
         !Sample d* given beta 
+        !print*,'3'
         call sample_beta_d(beta_d,y,sample_k)
         !Sample y* given gamma
+        !print*,'4'
         call sample_gamma_y(gamma,y,sample_k) 
-        !Compute share of indv in each group
-        call compute_init(sample_k,y,init_cond)        
         !Compute life-expectancy
-        call transitions(beta_h,beta_d,init_cond,H,LE)
+        !print*,'6'
+        call transitions(beta_h,beta_d,H,LE,joint_yh)
+        !sample weights
+        call sample_delta(delta,y,sample_k,share_h)
+        !compute weights
+        call compute_weights(delta,H,share_h,weights,joint_yh) 
+        !print*,'1'
+        call sample_y(gamma,y,sample_k,H,weights)
         !Save results
-        call save_results(beta_h,beta_d,gamma,LE,fraction_t,it)
+        if (it>burn) then
+            call save_results(beta_h,beta_d,gamma,LE,sum(joint_yh,2),it-burn)
+        end if
     end do
     
 end subroutine

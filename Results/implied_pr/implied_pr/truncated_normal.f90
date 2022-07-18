@@ -2,11 +2,11 @@ function i4_uniform_ab ( a, b, seed )
 
 !*****************************************************************************80
 !
-!! i4_uniform_ab() returns a scaled pseudorandom I4 between A and B.
+!! I4_UNIFORM_AB returns a scaled pseudorandom I4 between A and B.
 !
 !  Discussion:
 !
-!    An I4 is an integer value.
+!    An I4 is an integer ( kind = 4 ) value.
 !
 !    The pseudorandom number will be scaled to be uniformly distributed
 !    between A and B.
@@ -54,36 +54,49 @@ function i4_uniform_ab ( a, b, seed )
 !
 !  Parameters:
 !
-!    Input, integer A, B, the limits of the interval.
+!    Input, integer ( kind = 4 ) A, B, the limits of the interval.
 !
-!    Input/output, integer SEED, the "seed" value, which
+!    Input/output, integer ( kind = 4 ) SEED, the "seed" value, which
 !    should NOT be 0.  On output, SEED has been updated.
 !
-!    Output, integer I4_UNIFORM_AB, a number between A and B.
+!    Output, integer ( kind = 4 ) I4_UNIFORM_AB, a number between A and B.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) a
+  integer ( kind = 4 ) b
+  integer ( kind = 4 ), parameter :: i4_huge = 2147483647
+  integer ( kind = 4 ) i4_uniform_ab
+  integer ( kind = 4 ) k
+  real ( kind = 4 ) r
+  integer ( kind = 4 ) seed
+  integer ( kind = 4 ) value
 
-  integer a
-  integer b
-  integer, parameter :: i4_huge = 2147483647
-  integer i4_uniform_ab
-  integer k
-  real r
-  integer seed
-  integer value
+  if ( seed == 0 ) then
+    write ( *, '(a)' ) ' '
+    write ( *, '(a)' ) 'I4_UNIFORM_AB - Fatal error!'
+    write ( *, '(a)' ) '  Input value of SEED = 0.'
+    stop 1
+  end if
 
-  call random_number ( harvest = r )
+  k = seed / 127773
+
+  seed = 16807 * ( seed - k * 127773 ) - k * 2836
+
+  if ( seed < 0 ) then
+    seed = seed + i4_huge
+  end if
+
+  r = real ( seed, kind = 4 ) * 4.656612875E-10
 !
 !  Scale R to lie between A-0.5 and B+0.5.
 !
-  r = ( 1.0E+00 - r ) * ( real ( min ( a, b ) ) - 0.5E+00 ) & 
-    +             r   * ( real ( max ( a, b ) ) + 0.5E+00 )
+  r = ( 1.0E+00 - r ) * ( real ( min ( a, b ), kind = 4 ) - 0.5E+00 ) & 
+    +             r   * ( real ( max ( a, b ), kind = 4 ) + 0.5E+00 )
 !
 !  Use rounding to convert R to an integer between A and B.
 !
-  value = nint ( r )
+  value = nint ( r, kind = 4 )
 
   value = max ( value, min ( a, b ) )
   value = min ( value, max ( a, b ) )
@@ -120,37 +133,35 @@ subroutine normal_01_cdf ( x, cdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the CDF.
+!    Input, real ( kind = 8 ) X, the argument of the CDF.
 !
-!    Output, real ( kind = rk ) CDF, the value of the CDF.
+!    Output, real ( kind = 8 ) CDF, the value of the CDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ), parameter :: a1 = 0.398942280444D+00
-  real ( kind = rk ), parameter :: a2 = 0.399903438504D+00
-  real ( kind = rk ), parameter :: a3 = 5.75885480458D+00
-  real ( kind = rk ), parameter :: a4 = 29.8213557808D+00
-  real ( kind = rk ), parameter :: a5 = 2.62433121679D+00
-  real ( kind = rk ), parameter :: a6 = 48.6959930692D+00
-  real ( kind = rk ), parameter :: a7 = 5.92885724438D+00
-  real ( kind = rk ), parameter :: b0 = 0.398942280385D+00
-  real ( kind = rk ), parameter :: b1 = 3.8052D-08
-  real ( kind = rk ), parameter :: b2 = 1.00000615302D+00
-  real ( kind = rk ), parameter :: b3 = 3.98064794D-04
-  real ( kind = rk ), parameter :: b4 = 1.98615381364D+00
-  real ( kind = rk ), parameter :: b5 = 0.151679116635D+00
-  real ( kind = rk ), parameter :: b6 = 5.29330324926D+00
-  real ( kind = rk ), parameter :: b7 = 4.8385912808D+00
-  real ( kind = rk ), parameter :: b8 = 15.1508972451D+00
-  real ( kind = rk ), parameter :: b9 = 0.742380924027D+00
-  real ( kind = rk ), parameter :: b10 = 30.789933034D+00
-  real ( kind = rk ), parameter :: b11 = 3.99019417011D+00
-  real ( kind = rk ) cdf
-  real ( kind = rk ) q
-  real ( kind = rk ) x
-  real ( kind = rk ) y
+  real ( kind = 8 ), parameter :: a1 = 0.398942280444D+00
+  real ( kind = 8 ), parameter :: a2 = 0.399903438504D+00
+  real ( kind = 8 ), parameter :: a3 = 5.75885480458D+00
+  real ( kind = 8 ), parameter :: a4 = 29.8213557808D+00
+  real ( kind = 8 ), parameter :: a5 = 2.62433121679D+00
+  real ( kind = 8 ), parameter :: a6 = 48.6959930692D+00
+  real ( kind = 8 ), parameter :: a7 = 5.92885724438D+00
+  real ( kind = 8 ), parameter :: b0 = 0.398942280385D+00
+  real ( kind = 8 ), parameter :: b1 = 3.8052D-08
+  real ( kind = 8 ), parameter :: b2 = 1.00000615302D+00
+  real ( kind = 8 ), parameter :: b3 = 3.98064794D-04
+  real ( kind = 8 ), parameter :: b4 = 1.98615381364D+00
+  real ( kind = 8 ), parameter :: b5 = 0.151679116635D+00
+  real ( kind = 8 ), parameter :: b6 = 5.29330324926D+00
+  real ( kind = 8 ), parameter :: b7 = 4.8385912808D+00
+  real ( kind = 8 ), parameter :: b8 = 15.1508972451D+00
+  real ( kind = 8 ), parameter :: b9 = 0.742380924027D+00
+  real ( kind = 8 ), parameter :: b10 = 30.789933034D+00
+  real ( kind = 8 ), parameter :: b11 = 3.99019417011D+00
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) q
+  real ( kind = 8 ) x
+  real ( kind = 8 ) y
 !
 !  |X| <= 1.28.
 !
@@ -225,19 +236,17 @@ subroutine normal_01_cdf_inv ( p, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) P, the value of the cumulative probability
+!    Input, real ( kind = 8 ) P, the value of the cumulative probability
 !    densitity function.  0 < P < 1.  If P is outside this range, an
 !    "infinite" value will be returned.
 !
-!    Output, real ( kind = rk ) X, the normal deviate value
+!    Output, real ( kind = 8 ) X, the normal deviate value
 !    with the property that the probability of a standard normal deviate being
 !    less than or equal to the value is P.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ), parameter, dimension ( 8 ) :: a = (/ &
+  real ( kind = 8 ), parameter, dimension ( 8 ) :: a = (/ &
     3.3871328727963666080D+00, &
     1.3314166789178437745D+02, &
     1.9715909503065514427D+03, &
@@ -246,7 +255,7 @@ subroutine normal_01_cdf_inv ( p, x )
     6.7265770927008700853D+04, &
     3.3430575583588128105D+04, &
     2.5090809287301226727D+03 /)
-  real ( kind = rk ), parameter, dimension ( 8 ) :: b = (/ &
+  real ( kind = 8 ), parameter, dimension ( 8 ) :: b = (/ &
     1.0D+00, &
     4.2313330701600911252D+01, &
     6.8718700749205790830D+02, &
@@ -255,7 +264,7 @@ subroutine normal_01_cdf_inv ( p, x )
     3.9307895800092710610D+04, &
     2.8729085735721942674D+04, &
     5.2264952788528545610D+03 /)
-  real ( kind = rk ), parameter, dimension ( 8 ) :: c = (/ &
+  real ( kind = 8 ), parameter, dimension ( 8 ) :: c = (/ &
     1.42343711074968357734D+00, &
     4.63033784615654529590D+00, &
     5.76949722146069140550D+00, &
@@ -264,9 +273,9 @@ subroutine normal_01_cdf_inv ( p, x )
     2.41780725177450611770D-01, &
     2.27238449892691845833D-02, &
     7.74545014278341407640D-04 /)
-  real ( kind = rk ), parameter :: const1 = 0.180625D+00
-  real ( kind = rk ), parameter :: const2 = 1.6D+00
-  real ( kind = rk ), parameter, dimension ( 8 ) :: d = (/ &
+  real ( kind = 8 ), parameter :: const1 = 0.180625D+00
+  real ( kind = 8 ), parameter :: const2 = 1.6D+00
+  real ( kind = 8 ), parameter, dimension ( 8 ) :: d = (/ &
     1.0D+00, &
     2.05319162663775882187D+00, &
     1.67638483018380384940D+00, &
@@ -275,7 +284,7 @@ subroutine normal_01_cdf_inv ( p, x )
     1.51986665636164571966D-02, &
     5.47593808499534494600D-04, &
     1.05075007164441684324D-09 /)
-  real ( kind = rk ), parameter, dimension ( 8 ) :: e = (/ &
+  real ( kind = 8 ), parameter, dimension ( 8 ) :: e = (/ &
     6.65790464350110377720D+00, &
     5.46378491116411436990D+00, &
     1.78482653991729133580D+00, &
@@ -284,7 +293,7 @@ subroutine normal_01_cdf_inv ( p, x )
     1.24266094738807843860D-03, &
     2.71155556874348757815D-05, &
     2.01033439929228813265D-07 /)
-  real ( kind = rk ), parameter, dimension ( 8 ) :: f = (/ &
+  real ( kind = 8 ), parameter, dimension ( 8 ) :: f = (/ &
     1.0D+00, &
     5.99832206555887937690D-01, &
     1.36929880922735805310D-01, &
@@ -293,13 +302,13 @@ subroutine normal_01_cdf_inv ( p, x )
     1.84631831751005468180D-05, &
     1.42151175831644588870D-07, &
     2.04426310338993978564D-15 /)
-  real ( kind = rk ) p
-  real ( kind = rk ) q
-  real ( kind = rk ) r
-  real ( kind = rk ) r8poly_value_horner
-  real ( kind = rk ), parameter :: split1 = 0.425D+00
-  real ( kind = rk ), parameter :: split2 = 5.0D+00
-  real ( kind = rk ) x
+  real ( kind = 8 ) p
+  real ( kind = 8 ) q
+  real ( kind = 8 ) r
+  real ( kind = 8 ) r8poly_value_horner
+  real ( kind = 8 ), parameter :: split1 = 0.425D+00
+  real ( kind = 8 ), parameter :: split2 = 5.0D+00
+  real ( kind = 8 ) x
 
   if ( p <= 0.0D+00 ) then
     x = - huge ( x )
@@ -402,23 +411,21 @@ subroutine normal_01_cdf_values ( n_data, x, fx )
 !
 !  Parameters:
 !
-!    Input/output, integer N_DATA.  The user sets N_DATA to 0
+!    Input/output, integer ( kind = 4 ) N_DATA.  The user sets N_DATA to 0
 !    before the first call.  On each call, the routine increments N_DATA by 1,
 !    and returns the corresponding data; when there is no more data, the
 !    output value of N_DATA will be 0 again.
 !
-!    Output, real ( kind = rk ) X, the argument of the function.
+!    Output, real ( kind = 8 ) X, the argument of the function.
 !
-!    Output, real ( kind = rk ) FX, the value of the function.
+!    Output, real ( kind = 8 ) FX, the value of the function.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ), parameter :: n_max = 17
 
-  integer, parameter :: n_max = 17
-
-  real ( kind = rk ) fx
-  real ( kind = rk ), save, dimension ( n_max ) :: fx_vec = (/ &
+  real ( kind = 8 ) fx
+  real ( kind = 8 ), save, dimension ( n_max ) :: fx_vec = (/ &
     0.5000000000000000D+00, &
     0.5398278372770290D+00, &
     0.5792597094391030D+00, &
@@ -436,9 +443,9 @@ subroutine normal_01_cdf_values ( n_data, x, fx )
     0.9986501019683699D+00, &
     0.9997673709209645D+00, &
     0.9999683287581669D+00 /)
-  integer n_data
-  real ( kind = rk ) x
-  real ( kind = rk ), save, dimension ( n_max ) :: x_vec = (/ &
+  integer ( kind = 4 ) n_data
+  real ( kind = 8 ) x
+  real ( kind = 8 ), save, dimension ( n_max ) :: x_vec = (/ &
     0.0000000000000000D+00, &
     0.1000000000000000D+00, &
     0.2000000000000000D+00, &
@@ -494,13 +501,11 @@ subroutine normal_01_mean ( mean )
 !
 !  Parameters:
 !
-!    Output, real ( kind = rk ) MEAN, the mean of the PDF.
+!    Output, real ( kind = 8 ) MEAN, the mean of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) mean
+  real ( kind = 8 ) mean
 
   mean = 0.0D+00
 
@@ -526,18 +531,16 @@ subroutine normal_01_moment ( order, value )
 !
 !  Parameters:
 !
-!    Input, integer ORDER, the order of the moment.
+!    Input, integer ( kind = 4 ) ORDER, the order of the moment.
 !    0 <= ORDER.
 !
-!    Output, real ( kind = rk ) VALUE, the value of the moment.
+!    Output, real ( kind = 8 ) VALUE, the value of the moment.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  integer order
-  real ( kind = rk ) r8_factorial2
-  real ( kind = rk ) value
+  integer ( kind = 4 ) order
+  real ( kind = 8 ) r8_factorial2
+  real ( kind = 8 ) value
 
   if ( mod ( order, 2 ) == 0 ) then
     value = r8_factorial2 ( order - 1 )
@@ -574,23 +577,21 @@ subroutine normal_01_pdf ( x, pdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the PDF.
+!    Input, real ( kind = 8 ) X, the argument of the PDF.
 !
-!    Output, real ( kind = rk ) PDF, the value of the PDF.
+!    Output, real ( kind = 8 ) PDF, the value of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) pdf
-  real ( kind = rk ), parameter :: r8_pi = 3.141592653589793D+00
-  real ( kind = rk ) x
+  real ( kind = 8 ) pdf
+  real ( kind = 8 ), parameter :: r8_pi = 3.141592653589793D+00
+  real ( kind = 8 ) x
 
   pdf = exp ( -0.5D+00 * x * x ) / sqrt ( 2.0D+00 * r8_pi )
 
   return
 end
-subroutine normal_01_sample (  x )
+subroutine normal_01_sample ( seed, x )
 
 !*****************************************************************************80
 !
@@ -618,22 +619,21 @@ subroutine normal_01_sample (  x )
 !
 !  Parameters:
 !
-!    Input/output, integer SEED, a seed for the random number
+!    Input/output, integer ( kind = 4 ) SEED, a seed for the random number
 !    generator.
 !
-!    Output, real ( kind = rk ) X, a sample of the standard normal PDF.
+!    Output, real ( kind = 8 ) X, a sample of the standard normal PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) r1
-  real ( kind = rk ) r2
-  real ( kind = rk ), parameter :: r8_pi = 3.141592653589793D+00
-  integer seed
-  integer, save :: used = -1
-  real ( kind = rk ) x
-  real ( kind = rk ), save :: y = 0.0D+00
+  real ( kind = 8 ) r1
+  real ( kind = 8 ) r2
+  real ( kind = 8 ), parameter :: r8_pi = 3.141592653589793D+00
+  real ( kind = 8 ) r8_uniform_01
+  integer ( kind = 4 ) seed
+  integer ( kind = 4 ), save :: used = -1
+  real ( kind = 8 ) x
+  real ( kind = 8 ), save :: y = 0.0D+00
 
   if ( used == -1 ) then
     used = 0
@@ -644,8 +644,17 @@ subroutine normal_01_sample (  x )
 !
   if ( mod ( used, 2 ) == 0 ) then
 
-    call random_number ( harvest = r1 )
-    call random_number ( harvest = r2 )
+    do
+
+      r1 = r8_uniform_01 ( seed )
+
+      if ( r1 /= 0.0D+00 ) then
+        exit
+      end if
+
+    end do
+
+    r2 = r8_uniform_01 ( seed )
 
     x = sqrt ( - 2.0D+00 * log ( r1 ) ) * cos ( 2.0D+00 * r8_pi * r2 )
     y = sqrt ( - 2.0D+00 * log ( r1 ) ) * sin ( 2.0D+00 * r8_pi * r2 )
@@ -682,13 +691,11 @@ subroutine normal_01_variance ( variance )
 !
 !  Parameters:
 !
-!    Output, real ( kind = rk ) VARIANCE, the variance of the PDF.
+!    Output, real ( kind = 8 ) VARIANCE, the variance of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) variance
+  real ( kind = 8 ) variance
 
   variance = 1.0D+00
 
@@ -714,22 +721,20 @@ subroutine normal_ms_cdf ( x, mu, sigma, cdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the CDF.
+!    Input, real ( kind = 8 ) X, the argument of the CDF.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the parameters.
+!    Input, real ( kind = 8 ) MU, SIGMA, the parameters.
 !    0.0D+00 < SIGMA.
 !
-!    Output, real ( kind = rk ) CDF, the value of the CDF.
+!    Output, real ( kind = 8 ) CDF, the value of the CDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) y
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) y
 
   y = ( x - mu ) / sigma
 
@@ -757,23 +762,21 @@ subroutine normal_ms_cdf_inv ( cdf, mu, sigma, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) CDF, the value of the CDF.
+!    Input, real ( kind = 8 ) CDF, the value of the CDF.
 !    0.0D+00 <= CDF <= 1.0.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the parameters.
+!    Input, real ( kind = 8 ) MU, SIGMA, the parameters.
 !    0.0D+00 < SIGMA.
 !
-!    Output, real ( kind = rk ) X, the corresponding argument.
+!    Output, real ( kind = 8 ) X, the corresponding argument.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) x2
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) x2
 
   if ( cdf < 0.0D+00 .or. 1.0D+00 < cdf ) then
     write ( *, '(a)' ) ' '
@@ -809,18 +812,16 @@ subroutine normal_ms_mean ( mu, sigma, mean )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the parameters.
+!    Input, real ( kind = 8 ) MU, SIGMA, the parameters.
 !    0.0D+00 < SIGMA.
 !
-!    Output, real ( kind = rk ) MEAN, the mean of the PDF.
+!    Output, real ( kind = 8 ) MEAN, the mean of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) mean
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
+  real ( kind = 8 ) mean
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
 
   mean = mu
 
@@ -863,27 +864,25 @@ subroutine normal_ms_moment ( order, mu, sigma, value )
 !
 !  Parameters:
 !
-!    Input, integer ORDER, the order of the moment.
+!    Input, integer ( kind = 4 ) ORDER, the order of the moment.
 !    0 <= ORDER.
 !
-!    Input, real ( kind = rk ) MU, the mean of the distribution.
+!    Input, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Input, real ( kind = rk ) SIGMA, the standard deviation of the distribution.
+!    Input, real ( kind = 8 ) SIGMA, the standard deviation of the distribution.
 !
-!    Output, real ( kind = rk ) VALUE, the value of the central moment.
+!    Output, real ( kind = 8 ) VALUE, the value of the central moment.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  integer j
-  integer j_hi
-  real ( kind = rk ) mu
-  integer order
-  real ( kind = rk ) r8_choose
-  real ( kind = rk ) r8_factorial2
-  real ( kind = rk ) sigma
-  real ( kind = rk ) value
+  integer ( kind = 4 ) j
+  integer ( kind = 4 ) j_hi
+  real ( kind = 8 ) mu
+  integer ( kind = 4 ) order
+  real ( kind = 8 ) r8_choose
+  real ( kind = 8 ) r8_factorial2
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) value
 
   j_hi = ( order / 2 )
 
@@ -917,24 +916,22 @@ subroutine normal_ms_moment_central ( order, mu, sigma, value )
 !
 !  Parameters:
 !
-!    Input, integer ORDER, the order of the moment.
+!    Input, integer ( kind = 4 ) ORDER, the order of the moment.
 !    0 <= ORDER.
 !
-!    Input, real ( kind = rk ) MU, the mean of the distribution.
+!    Input, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Input, real ( kind = rk ) SIGMA, the standard deviation of the distribution.
+!    Input, real ( kind = 8 ) SIGMA, the standard deviation of the distribution.
 !
-!    Output, real ( kind = rk ) VALUE, the value of the central moment.
+!    Output, real ( kind = 8 ) VALUE, the value of the central moment.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) mu
-  integer order
-  real ( kind = rk ) r8_factorial2
-  real ( kind = rk ) sigma
-  real ( kind = rk ) value
+  real ( kind = 8 ) mu
+  integer ( kind = 4 ) order
+  real ( kind = 8 ) r8_factorial2
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) value
 
   if ( mod ( order, 2 ) == 0 ) then
     value = r8_factorial2 ( order - 1 ) * sigma ** order
@@ -982,23 +979,21 @@ subroutine normal_ms_moment_central_values ( order, mu, sigma, value )
 !
 !  Parameters:
 !
-!    Input, integer ORDER, the order of the moment.
+!    Input, integer ( kind = 4 ) ORDER, the order of the moment.
 !    0 <= ORDER <= 10.
 !
-!    Input, real ( kind = rk ) MU, the mean of the distribution.
+!    Input, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Input, real ( kind = rk ) SIGMA, the standard deviation of the distribution.
+!    Input, real ( kind = 8 ) SIGMA, the standard deviation of the distribution.
 !
-!    Output, real ( kind = rk ) VALUE, the value of the central moment.
+!    Output, real ( kind = 8 ) VALUE, the value of the central moment.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) mu
-  integer order
-  real ( kind = rk ) sigma
-  real ( kind = rk ) value
+  real ( kind = 8 ) mu
+  integer ( kind = 4 ) order
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) value
 
   if ( order == 0 ) then
     value = 1.0D+00
@@ -1068,23 +1063,21 @@ subroutine normal_ms_moment_values ( order, mu, sigma, value )
 !
 !  Parameters:
 !
-!    Input, integer ORDER, the order of the moment.
+!    Input, integer ( kind = 4 ) ORDER, the order of the moment.
 !    0 <= ORDER <= 8.
 !
-!    Input, real ( kind = rk ) MU, the mean of the distribution.
+!    Input, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Input, real ( kind = rk ) SIGMA, the standard deviation of the distribution.
+!    Input, real ( kind = 8 ) SIGMA, the standard deviation of the distribution.
 !
-!    Output, real ( kind = rk ) VALUE, the value of the central moment.
+!    Output, real ( kind = 8 ) VALUE, the value of the central moment.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) mu
-  integer order
-  real ( kind = rk ) sigma
-  real ( kind = rk ) value
+  real ( kind = 8 ) mu
+  integer ( kind = 4 ) order
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) value
 
   if ( order == 0 ) then
     value = 1.0D+00
@@ -1148,23 +1141,21 @@ subroutine normal_ms_pdf ( x, mu, sigma, pdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the PDF.
+!    Input, real ( kind = 8 ) X, the argument of the PDF.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the parameters.
+!    Input, real ( kind = 8 ) MU, SIGMA, the parameters.
 !    0.0D+00 < SIGMA.
 !
-!    Output, real ( kind = rk ) PDF, the value of the PDF.
+!    Output, real ( kind = 8 ) PDF, the value of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) mu
-  real ( kind = rk ) pdf
-  real ( kind = rk ), parameter :: r8_pi = 3.141592653589793D+00
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) x01
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) pdf
+  real ( kind = 8 ), parameter :: r8_pi = 3.141592653589793D+00
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) x01
 
   x01 = ( x - mu ) / sigma
 
@@ -1196,25 +1187,23 @@ subroutine normal_ms_sample ( mu, sigma, seed, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the parameters.
+!    Input, real ( kind = 8 ) MU, SIGMA, the parameters.
 !    0.0D+00 < SIGMA.
 !
-!    Input/output, integer SEED, a seed for the random number
+!    Input/output, integer ( kind = 4 ) SEED, a seed for the random number
 !    generator.
 !
-!    Output, real ( kind = rk ) X, a sample of the PDF.
+!    Output, real ( kind = 8 ) X, a sample of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  real ( kind = 8 ) mu
+  integer ( kind = 4 ) seed
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) x01
 
-  real ( kind = rk ) mu
-  integer seed
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) x01
-
-  call normal_01_sample (  x01 )
+  call normal_01_sample ( seed, x01 )
 
   x = mu + sigma * x01
 
@@ -1240,18 +1229,16 @@ subroutine normal_ms_variance ( mu, sigma, variance )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the parameters.
+!    Input, real ( kind = 8 ) MU, SIGMA, the parameters.
 !    0.0D+00 < SIGMA.
 !
-!    Output, real ( kind = rk ) VARIANCE, the variance of the PDF.
+!    Output, real ( kind = 8 ) VARIANCE, the variance of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) variance
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) variance
 
   variance = sigma * sigma
 
@@ -1294,22 +1281,20 @@ function r8_choose ( n, k )
 !
 !  Parameters:
 !
-!    Input, integer N, K, are the values of N and K.
+!    Input, integer ( kind = 4 ) N, K, are the values of N and K.
 !
-!    Output, real ( kind = rk ) R8_CHOOSE, the number of combinations of N
+!    Output, real ( kind = 8 ) R8_CHOOSE, the number of combinations of N
 !    things taken K at a time.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  integer i
-  integer k
-  integer mn
-  integer mx
-  integer n
-  real ( kind = rk ) r8_choose
-  real ( kind = rk ) value
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) k
+  integer ( kind = 4 ) mn
+  integer ( kind = 4 ) mx
+  integer ( kind = 4 ) n
+  real ( kind = 8 ) r8_choose
+  real ( kind = 8 ) value
 
   mn = min ( k, n - k )
 
@@ -1324,10 +1309,10 @@ function r8_choose ( n, k )
   else
 
     mx = max ( k, n - k )
-    value = real ( mx + 1, kind = rk )
+    value = real ( mx + 1, kind = 8 )
 
     do i = 2, mn
-      value = ( value * real ( mx + i, kind = rk ) ) / real ( i, kind = rk )
+      value = ( value * real ( mx + i, kind = 8 ) ) / real ( i, kind = 8 )
     end do
 
   end if
@@ -1377,25 +1362,23 @@ function r8_factorial2 ( n )
 !
 !  Parameters:
 !
-!    Input, integer N, the argument of the double factorial
+!    Input, integer ( kind = 4 ) N, the argument of the double factorial
 !    function.  If N is less than 1, the value is returned as 1.0.
 !
-!    Output, real ( kind = rk ) R8_FACTORIAL2, the value.
+!    Output, real ( kind = 8 ) R8_FACTORIAL2, the value.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  integer n
-  real ( kind = rk ) r8_factorial2
-  real ( kind = rk ) r8_n
+  integer ( kind = 4 ) n
+  real ( kind = 8 ) r8_factorial2
+  real ( kind = 8 ) r8_n
 
   if ( n < 1 ) then
     r8_factorial2 = 1.0D+00
     return
   end if
 
-  r8_n = real ( n, kind = rk )
+  r8_n = real ( n, kind = 8 )
   r8_factorial2 = 1.0D+00
 
   do while ( 1.0D+00 < r8_n )
@@ -1472,22 +1455,20 @@ subroutine r8_factorial2_values ( n_data, n, f )
 !
 !  Parameters:
 !
-!    Input/output, integer N_DATA.  The user sets N_DATA to 0
+!    Input/output, integer ( kind = 4 ) N_DATA.  The user sets N_DATA to 0
 !    before the first call.  On each call, the routine increments N_DATA by 1,
 !    and returns the corresponding data; when there is no more data, the
 !    output value of N_DATA will be 0 again.
 !
-!    Output, integer N, the argument of the function.
+!    Output, integer ( kind = 4 ) N, the argument of the function.
 !
-!    Output, real ( kind = rk ) F, the value of the function.
+!    Output, real ( kind = 8 ) F, the value of the function.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ), parameter :: n_max = 16
 
-  integer, parameter :: n_max = 16
-
-  real ( kind = rk ), save, dimension ( n_max ) :: f_vec = (/ &
+  real ( kind = 8 ), save, dimension ( n_max ) :: f_vec = (/ &
           1.0D+00, &
           1.0D+00, &
           2.0D+00, &
@@ -1504,10 +1485,10 @@ subroutine r8_factorial2_values ( n_data, n, f )
      135135.0D+00, &
      645120.0D+00, &
     2027025.0D+00 /)
-  real ( kind = rk ) f
-  integer n_data
-  integer n
-  integer, save, dimension ( n_max ) :: n_vec = (/ &
+  real ( kind = 8 ) f
+  integer ( kind = 4 ) n_data
+  integer ( kind = 4 ) n
+  integer ( kind = 4 ), save, dimension ( n_max ) :: n_vec = (/ &
      0, &
      1,  2,  3,  4,  5, &
      6,  7,  8,  9, 10, &
@@ -1538,7 +1519,7 @@ function r8_mop ( i )
 !
 !  Discussion:
 !
-!    An R8 is a real ( kind = rk ) value.
+!    An R8 is a real ( kind = 8 ) value.
 !
 !  Licensing:
 !
@@ -1554,22 +1535,119 @@ function r8_mop ( i )
 !
 !  Parameters:
 !
-!    Input, integer I, the power of -1.
+!    Input, integer ( kind = 4 ) I, the power of -1.
 !
-!    Output, real ( kind = rk ) R8_MOP, the I-th power of -1.
+!    Output, real ( kind = 8 ) R8_MOP, the I-th power of -1.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  integer i
-  real ( kind = rk ) r8_mop
+  integer ( kind = 4 ) i
+  real ( kind = 8 ) r8_mop
 
   if ( mod ( i, 2 ) == 0 ) then
     r8_mop = + 1.0D+00
   else
     r8_mop = - 1.0D+00
   end if
+
+  return
+end
+function r8_uniform_01 ( seed )
+
+!*****************************************************************************80
+!
+!! R8_UNIFORM_01 returns a unit pseudorandom R8.
+!
+!  Discussion:
+!
+!    An R8 is a real ( kind = 8 ) value.
+!
+!    For now, the input quantity SEED is an integer variable.
+!
+!    This routine implements the recursion
+!
+!      seed = 16807 * seed mod ( 2^31 - 1 )
+!      r8_uniform_01 = seed / ( 2^31 - 1 )
+!
+!    The integer arithmetic never requires more than 32 bits,
+!    including a sign bit.
+!
+!    If the initial seed is 12345, then the first three computations are
+!
+!      Input     Output      R8_UNIFORM_01
+!      SEED      SEED
+!
+!         12345   207482415  0.096616
+!     207482415  1790989824  0.833995
+!    1790989824  2035175616  0.947702
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    05 July 2006
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Reference:
+!
+!    Paul Bratley, Bennett Fox, Linus Schrage,
+!    A Guide to Simulation,
+!    Springer Verlag, pages 201-202, 1983.
+!
+!    Pierre L'Ecuyer,
+!    Random Number Generation,
+!    in Handbook of Simulation,
+!    edited by Jerry Banks,
+!    Wiley Interscience, page 95, 1998.
+!
+!    Bennett Fox,
+!    Algorithm 647:
+!    Implementation and Relative Efficiency of Quasirandom
+!    Sequence Generators,
+!    ACM Transactions on Mathematical Software,
+!    Volume 12, Number 4, pages 362-376, 1986.
+!
+!    Peter Lewis, Allen Goodman, James Miller
+!    A Pseudo-Random Number Generator for the System/360,
+!    IBM Systems Journal,
+!    Volume 8, pages 136-143, 1969.
+!
+!  Parameters:
+!
+!    Input/output, integer ( kind = 4 ) SEED, the "seed" value, which should
+!    NOT be 0. On output, SEED has been updated.
+!
+!    Output, real ( kind = 8 ) R8_UNIFORM_01, a new pseudorandom variate,
+!    strictly between 0 and 1.
+!
+  implicit none
+
+  integer ( kind = 4 ), parameter :: i4_huge = 2147483647
+  integer ( kind = 4 ) k
+  real ( kind = 8 ) r8_uniform_01
+  integer ( kind = 4 ) seed
+
+  if ( seed == 0 ) then
+    write ( *, '(a)' ) ' '
+    write ( *, '(a)' ) 'R8_UNIFORM_01 - Fatal error!'
+    write ( *, '(a)' ) '  Input value of SEED = 0.'
+    stop 1
+  end if
+
+  k = seed / 127773
+
+  seed = 16807 * ( seed - k * 127773 ) - k * 2836
+
+  if ( seed < 0 ) then
+    seed = seed + i4_huge
+  end if
+
+  r8_uniform_01 = real ( seed, kind = 8 ) * 4.656612875D-10
 
   return
 end
@@ -1599,9 +1677,9 @@ subroutine r8poly_print ( n, a, title )
 !
 !  Parameters:
 !
-!    Input, integer N, the dimension of A.
+!    Input, integer ( kind = 4 ) N, the dimension of A.
 !
-!    Input, real ( kind = rk ) A(0:N), the polynomial coefficients.
+!    Input, real ( kind = 8 ) A(0:N), the polynomial coefficients.
 !    A(0) is the constant term and
 !    A(N) is the coefficient of X^N.
 !
@@ -1609,14 +1687,13 @@ subroutine r8poly_print ( n, a, title )
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) n
 
-  integer n
-
-  real ( kind = rk ) a(0:n)
-  integer i
-  real ( kind = rk ) mag
+  real ( kind = 8 ) a(0:n)
+  integer ( kind = 4 ) i
+  real ( kind = 8 ) mag
   character plus_minus
+  integer ( kind = 4 ) r8poly_degree
   character ( len = * ) title
 
   write ( *, '(a)' ) ' '
@@ -1695,26 +1772,24 @@ function r8poly_value_horner ( m, c, x )
 !
 !  Parameters:
 !
-!    Input, integer M, the degree.
+!    Input, integer ( kind = 4 ) M, the degree.
 !
-!    Input, real ( kind = rk ) C(0:M), the polynomial coefficients.  
+!    Input, real ( kind = 8 ) C(0:M), the polynomial coefficients.  
 !    C(I) is the coefficient of X^I.
 !
-!    Input, real ( kind = rk ) X, the evaluation point.
+!    Input, real ( kind = 8 ) X, the evaluation point.
 !
-!    Output, real ( kind = rk ) R8POLY_VALUE_HORNER, the polynomial value.
+!    Output, real ( kind = 8 ) R8POLY_VALUE_HORNER, the polynomial value.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) m
 
-  integer m
-
-  real ( kind = rk ) c(0:m)
-  integer i
-  real ( kind = rk ) r8poly_value_horner
-  real ( kind = rk ) value
-  real ( kind = rk ) x
+  real ( kind = 8 ) c(0:m)
+  integer ( kind = 4 ) i
+  real ( kind = 8 ) r8poly_value_horner
+  real ( kind = 8 ) value
+  real ( kind = 8 ) x
 
   value = c(m)
   do i = m - 1, 0, -1
@@ -1754,22 +1829,20 @@ subroutine r8vec_linspace ( n, a, b, x )
 !
 !  Parameters:
 !
-!    Input, integer N, the number of entries in the vector.
+!    Input, integer ( kind = 4 ) N, the number of entries in the vector.
 !
-!    Input, real ( kind = rk ) A, B, the first and last entries.
+!    Input, real ( kind = 8 ) A, B, the first and last entries.
 !
-!    Output, real ( kind = rk ) X(N), a vector of linearly spaced data.
+!    Output, real ( kind = 8 ) X(N), a vector of linearly spaced data.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) n
 
-  integer n
-
-  real ( kind = rk ) a
-  real ( kind = rk ) b
-  integer i
-  real ( kind = rk ) x(n)
+  real ( kind = 8 ) a
+  real ( kind = 8 ) b
+  integer ( kind = 4 ) i
+  real ( kind = 8 ) x(n)
 
   if ( n == 1 ) then
 
@@ -1778,9 +1851,9 @@ subroutine r8vec_linspace ( n, a, b, x )
   else
 
     do i = 1, n
-      x(i) = ( real ( n - i,     kind = rk ) * a   &
-             + real (     i - 1, kind = rk ) * b ) &
-             / real ( n     - 1, kind = rk )
+      x(i) = ( real ( n - i,     kind = 8 ) * a   &
+             + real (     i - 1, kind = 8 ) * b ) &
+             / real ( n     - 1, kind = 8 )
     end do
 
   end if
@@ -1811,20 +1884,18 @@ subroutine r8vec_max ( n, a, amax )
 !
 !  Parameters:
 !
-!    Input, integer N, the number of entries in the array.
+!    Input, integer ( kind = 4 ) N, the number of entries in the array.
 !
-!    Input, real ( kind = rk ) A(N), the array.
+!    Input, real ( kind = 8 ) A(N), the array.
 !
-!    Output, real ( kind = rk ) AMAX, the value of the largest entry.
+!    Output, real ( kind = 8 ) AMAX, the value of the largest entry.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) n
 
-  integer n
-
-  real ( kind = rk ) a(n)
-  real ( kind = rk ) amax
+  real ( kind = 8 ) a(n)
+  real ( kind = 8 ) amax
 
   amax = maxval ( a(1:n) )
 
@@ -1850,23 +1921,21 @@ subroutine r8vec_mean ( n, x, mean )
 !
 !  Parameters:
 !
-!    Input, integer N, the number of entries in the vector.
+!    Input, integer ( kind = 4 ) N, the number of entries in the vector.
 !
-!    Input, real ( kind = rk ) X(N), the vector whose mean is desired.
+!    Input, real ( kind = 8 ) X(N), the vector whose mean is desired.
 !
-!    Output, real ( kind = rk ) MEAN, the mean, or average,
+!    Output, real ( kind = 8 ) MEAN, the mean, or average,
 !    of the vector entries.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) n
 
-  integer n
+  real ( kind = 8 ) mean
+  real ( kind = 8 ) x(n)
 
-  real ( kind = rk ) mean
-  real ( kind = rk ) x(n)
-
-  mean = sum ( x(1:n) ) / real ( n, kind = rk )
+  mean = sum ( x(1:n) ) / real ( n, kind = 8 )
 
   return
 end
@@ -1894,20 +1963,18 @@ subroutine r8vec_min ( n, a, amin )
 !
 !  Parameters:
 !
-!    Input, integer N, the number of entries in the array.
+!    Input, integer ( kind = 4 ) N, the number of entries in the array.
 !
-!    Input, real ( kind = rk ) A(N), the array.
+!    Input, real ( kind = 8 ) A(N), the array.
 !
-!    Output, real ( kind = rk ) AMIN, the value of the smallest entry.
+!    Output, real ( kind = 8 ) AMIN, the value of the smallest entry.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) n
 
-  integer n
-
-  real ( kind = rk ) a(n)
-  real ( kind = rk ) amin
+  real ( kind = 8 ) a(n)
+  real ( kind = 8 ) amin
 
   amin = minval ( a(1:n) )
 
@@ -1937,20 +2004,18 @@ subroutine r8vec_print ( n, a, title )
 !
 !  Parameters:
 !
-!    Input, integer N, the number of components of the vector.
+!    Input, integer ( kind = 4 ) N, the number of components of the vector.
 !
-!    Input, real ( kind = rk ) A(N), the vector to be printed.
+!    Input, real ( kind = 8 ) A(N), the vector to be printed.
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) n
 
-  integer n
-
-  real ( kind = rk ) a(n)
-  integer i
+  real ( kind = 8 ) a(n)
+  integer ( kind = 4 ) i
   character ( len = * ) title
 
   write ( *, '(a)' ) ' '
@@ -1983,28 +2048,26 @@ subroutine r8vec_variance ( n, x, variance )
 !
 !  Parameters:
 !
-!    Input, integer N, the number of entries in the vector.
+!    Input, integer ( kind = 4 ) N, the number of entries in the vector.
 !
-!    Input, real ( kind = rk ) X(N), the vector whose variance is desired.
+!    Input, real ( kind = 8 ) X(N), the vector whose variance is desired.
 !
-!    Output, real ( kind = rk ) VARIANCE, the variance of the vector entries.
+!    Output, real ( kind = 8 ) VARIANCE, the variance of the vector entries.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ) n
 
-  integer n
-
-  real ( kind = rk ) mean
-  real ( kind = rk ) variance
-  real ( kind = rk ) x(n)
+  real ( kind = 8 ) mean
+  real ( kind = 8 ) variance
+  real ( kind = 8 ) x(n)
 
   call r8vec_mean ( n, x, mean )
 
   variance = sum ( ( x(1:n) - mean ) ** 2 )
 
   if ( 1 < n ) then
-    variance = variance / real ( n - 1, kind = rk )
+    variance = variance / real ( n - 1, kind = 8 )
   else
     variance = 0.0D+00
   end if
@@ -2039,21 +2102,19 @@ subroutine timestamp ( )
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
   character ( len = 8 ) ampm
-  integer d
-  integer h
-  integer m
-  integer mm
+  integer ( kind = 4 ) d
+  integer ( kind = 4 ) h
+  integer ( kind = 4 ) m
+  integer ( kind = 4 ) mm
   character ( len = 9 ), parameter, dimension(12) :: month = (/ &
     'January  ', 'February ', 'March    ', 'April    ', &
     'May      ', 'June     ', 'July     ', 'August   ', &
     'September', 'October  ', 'November ', 'December ' /)
-  integer n
-  integer s
-  integer values(8)
-  integer y
+  integer ( kind = 4 ) n
+  integer ( kind = 4 ) s
+  integer ( kind = 4 ) values(8)
+  integer ( kind = 4 ) y
 
   call date_and_time ( values = values )
 
@@ -2103,7 +2164,7 @@ subroutine truncated_normal_ab_cdf ( x, mu, s, a, b, cdf )
 !
 !  Modified:
 !
-!    24 January 2017
+!    14 August 2013
 !
 !  Author:
 !
@@ -2111,54 +2172,40 @@ subroutine truncated_normal_ab_cdf ( x, mu, s, a, b, cdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the CDF.
+!    Input, real ( kind = 8 ) X, the argument of the CDF.
 !
-!    Input, real ( kind = rk ) MU, S, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, S, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Input, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !
-!    Output, real ( kind = rk ) CDF, the value of the CDF.
+!    Output, real ( kind = 8 ) CDF, the value of the CDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) s
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) s
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  alpha = ( a - mu ) / s
+  beta = ( b - mu ) / s
+  xi = ( x - mu ) / s
 
-  if ( x < a ) then
-  
-    cdf = 0.0D+00
-    
-  else if ( x <= b ) then
-  
-    alpha = ( a - mu ) / s
-    beta = ( b - mu ) / s
-    xi = ( x - mu ) / s
+  call normal_01_cdf ( alpha, alpha_cdf )
+  call normal_01_cdf ( beta, beta_cdf )
+  call normal_01_cdf ( xi, xi_cdf )
 
-    call normal_01_cdf ( alpha, alpha_cdf )
-    call normal_01_cdf ( beta, beta_cdf )
-    call normal_01_cdf ( xi, xi_cdf )
+  cdf = ( xi_cdf - alpha_cdf ) / ( beta_cdf - alpha_cdf )
 
-    cdf = ( xi_cdf - alpha_cdf ) / ( beta_cdf - alpha_cdf )
-
-  else
-  
-    cdf = 1.0D+00
-    
-  end if
-  
   return
 end
 subroutine truncated_normal_ab_cdf_values ( n_data, mu, sigma, a, b, x, fx )
@@ -2195,30 +2242,28 @@ subroutine truncated_normal_ab_cdf_values ( n_data, mu, sigma, a, b, x, fx )
 !
 !  Parameters:
 !
-!    Input/output, integer N_DATA.  The user sets N_DATA to 0
+!    Input/output, integer ( kind = 4 ) N_DATA.  The user sets N_DATA to 0
 !    before the first call.  On each call, the routine increments N_DATA by 1,
 !    and returns the corresponding data; when there is no more data, the
 !    output value of N_DATA will be 0 again.
 !
-!    Output, real ( kind = rk ) MU, the mean of the distribution.
+!    Output, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Output, real ( kind = rk ) SIGMA, the standard deviation
+!    Output, real ( kind = 8 ) SIGMA, the standard deviation
 !    of the distribution.
 !
-!    Output, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Output, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !
-!    Output, real ( kind = rk ) X, the argument of the function.
+!    Output, real ( kind = 8 ) X, the argument of the function.
 !
-!    Output, real ( kind = rk ) FX, the value of the function.
+!    Output, real ( kind = 8 ) FX, the value of the function.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ), parameter :: n_max = 11
 
-  integer, parameter :: n_max = 11
-
-  real ( kind = rk ) a
-  real ( kind = rk ), save, dimension ( n_max ) :: a_vec = (/ &
+  real ( kind = 8 ) a
+  real ( kind = 8 ), save, dimension ( n_max ) :: a_vec = (/ &
        50.0D+00, &
        50.0D+00, &
        50.0D+00, &
@@ -2230,8 +2275,8 @@ subroutine truncated_normal_ab_cdf_values ( n_data, mu, sigma, a, b, x, fx )
        50.0D+00, &
        50.0D+00, &
        50.0D+00 /)
-  real ( kind = rk ) b
-  real ( kind = rk ), save, dimension ( n_max ) :: b_vec = (/ &
+  real ( kind = 8 ) b
+  real ( kind = 8 ), save, dimension ( n_max ) :: b_vec = (/ &
        150.0D+00, &
        150.0D+00, &
        150.0D+00, &
@@ -2243,8 +2288,8 @@ subroutine truncated_normal_ab_cdf_values ( n_data, mu, sigma, a, b, x, fx )
        150.0D+00, &
        150.0D+00, &
        150.0D+00 /)
-  real ( kind = rk ) fx
-  real ( kind = rk ), save, dimension ( n_max ) :: fx_vec = (/ &
+  real ( kind = 8 ) fx
+  real ( kind = 8 ), save, dimension ( n_max ) :: fx_vec = (/ &
       0.3371694242213513D+00, &
       0.3685009225506048D+00, &
       0.4006444233448185D+00, &
@@ -2256,8 +2301,8 @@ subroutine truncated_normal_ab_cdf_values ( n_data, mu, sigma, a, b, x, fx )
       0.5993555766551815D+00, &
       0.6314990774493952D+00, &
       0.6628305757786487D+00 /)
-  real ( kind = rk ) mu
-  real ( kind = rk ), save, dimension ( n_max ) :: mu_vec = (/ &
+  real ( kind = 8 ) mu
+  real ( kind = 8 ), save, dimension ( n_max ) :: mu_vec = (/ &
        100.0D+00, &
        100.0D+00, &
        100.0D+00, &
@@ -2269,9 +2314,9 @@ subroutine truncated_normal_ab_cdf_values ( n_data, mu, sigma, a, b, x, fx )
        100.0D+00, &
        100.0D+00, &
        100.0D+00 /)
-  integer n_data
-  real ( kind = rk ) sigma
-  real ( kind = rk ), save, dimension ( n_max ) :: sigma_vec = (/ &
+  integer ( kind = 4 ) n_data
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ), save, dimension ( n_max ) :: sigma_vec = (/ &
        25.0D+00, &
        25.0D+00, &
        25.0D+00, &
@@ -2283,8 +2328,8 @@ subroutine truncated_normal_ab_cdf_values ( n_data, mu, sigma, a, b, x, fx )
        25.0D+00, &
        25.0D+00, &
        25.0D+00 /)
-  real ( kind = rk ) x
-  real ( kind = rk ), save, dimension ( n_max ) :: x_vec = (/ &
+  real ( kind = 8 ) x
+  real ( kind = 8 ), save, dimension ( n_max ) :: x_vec = (/ &
        90.0D+00, &
        92.0D+00, &
        94.0D+00, &
@@ -2342,32 +2387,30 @@ subroutine truncated_normal_ab_cdf_inv ( cdf, mu, sigma, a, b, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) CDF, the value of the CDF.
+!    Input, real ( kind = 8 ) CDF, the value of the CDF.
 !    0.0D+00 <= CDF <= 1.0.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Input, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !
-!    Output, real ( kind = rk ) X, the corresponding argument.
+!    Output, real ( kind = 8 ) X, the corresponding argument.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
   if ( cdf < 0.0D+00 .or. 1.0D+00 < cdf ) then
     write ( *, '(a)' ) ' '
@@ -2409,28 +2452,26 @@ subroutine truncated_normal_ab_mean ( mu, sigma, a, b, mean )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Input, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !
-!    Output, real ( kind = rk ) MEAN, the mean of the PDF.
+!    Output, real ( kind = 8 ) MEAN, the mean of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) alpha_pdf
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) beta_pdf
-  real ( kind = rk ) mean
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) alpha_pdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) beta_pdf
+  real ( kind = 8 ) mean
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
 
   alpha = ( a - mu ) / sigma
   beta = ( b - mu ) / sigma
@@ -2471,39 +2512,37 @@ subroutine truncated_normal_ab_moment ( order, mu, sigma, a, b, moment )
 !
 !  Parameters:
 !
-!    Input, integer ORDER, the order of the moment.
+!    Input, integer ( kind = 4 ) ORDER, the order of the moment.
 !    0 <= ORDER.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !    0.0 < SIGMA.
 !
-!    Input, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Input, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !    A < B.
 !
-!    Output, real ( kind = rk ) MOMENT, the moment of the PDF.
+!    Output, real ( kind = 8 ) MOMENT, the moment of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) a_h
-  real ( kind = rk ) a_cdf
-  real ( kind = rk ) a_pdf
-  real ( kind = rk ) b
-  real ( kind = rk ) b_h
-  real ( kind = rk ) b_cdf
-  real ( kind = rk ) b_pdf
-  real ( kind = rk ) ir
-  real ( kind = rk ) irm1
-  real ( kind = rk ) irm2
-  real ( kind = rk ) moment
-  real ( kind = rk ) mu
-  integer order
-  integer r
-  real ( kind = rk ) r8_choose
-  real ( kind = rk ) sigma
+  real ( kind = 8 ) a
+  real ( kind = 8 ) a_h
+  real ( kind = 8 ) a_cdf
+  real ( kind = 8 ) a_pdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) b_h
+  real ( kind = 8 ) b_cdf
+  real ( kind = 8 ) b_pdf
+  real ( kind = 8 ) ir
+  real ( kind = 8 ) irm1
+  real ( kind = 8 ) irm2
+  real ( kind = 8 ) moment
+  real ( kind = 8 ) mu
+  integer ( kind = 4 ) order
+  integer ( kind = 4 ) r
+  real ( kind = 8 ) r8_choose
+  real ( kind = 8 ) sigma
 
   if ( order < 0 ) then
     write ( *, '(a)' ) ''
@@ -2563,7 +2602,7 @@ subroutine truncated_normal_ab_moment ( order, mu, sigma, a, b, moment )
     else if ( r == 1 ) then
       ir = - ( b_pdf - a_pdf ) / ( b_cdf - a_cdf )
     else
-      ir = real ( r - 1, kind = rk ) * irm2 &
+      ir = real ( r - 1, kind = 8 ) * irm2 &
         - ( b_h ** ( r - 1 ) * b_pdf - a_h ** ( r - 1 ) * a_pdf ) &
         / ( b_cdf - a_cdf )
     end if
@@ -2590,7 +2629,7 @@ subroutine truncated_normal_ab_pdf ( x, mu, sigma, a, b, pdf )
 !
 !  Modified:
 !
-!    24 January 2017
+!    14 August 2013
 !
 !  Author:
 !
@@ -2598,54 +2637,40 @@ subroutine truncated_normal_ab_pdf ( x, mu, sigma, a, b, pdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the PDF.
+!    Input, real ( kind = 8 ) X, the argument of the PDF.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Input, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !
-!    Output, real ( kind = rk ) PDF, the value of the PDF.
+!    Output, real ( kind = 8 ) PDF, the value of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) pdf
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_pdf
 
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) pdf
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_pdf
+  alpha = ( a - mu ) / sigma
+  beta = ( b - mu ) / sigma
+  xi = ( x - mu ) / sigma
 
-  if ( x < a ) then
-  
-    pdf = 0.0D+00
-    
-  else if ( x <= b ) then
-  
-    alpha = ( a - mu ) / sigma
-    beta = ( b - mu ) / sigma
-    xi = ( x - mu ) / sigma
+  call normal_01_cdf ( alpha, alpha_cdf )
+  call normal_01_cdf ( beta, beta_cdf )
+  call normal_01_pdf ( xi, xi_pdf )
 
-    call normal_01_cdf ( alpha, alpha_cdf )
-    call normal_01_cdf ( beta, beta_cdf )
-    call normal_01_pdf ( xi, xi_pdf )
+  pdf = xi_pdf / ( beta_cdf - alpha_cdf ) / sigma
 
-    pdf = xi_pdf / ( beta_cdf - alpha_cdf ) / sigma
-
-  else
-  
-    pdf = 0.0D+00
-    
-  end if
-  
   return
 end
 subroutine truncated_normal_ab_pdf_values ( n_data, mu, sigma, a, b, x, fx )
@@ -2682,30 +2707,28 @@ subroutine truncated_normal_ab_pdf_values ( n_data, mu, sigma, a, b, x, fx )
 !
 !  Parameters:
 !
-!    Input/output, integer N_DATA.  The user sets N_DATA to 0
+!    Input/output, integer ( kind = 4 ) N_DATA.  The user sets N_DATA to 0
 !    before the first call.  On each call, the routine increments N_DATA by 1,
 !    and returns the corresponding data; when there is no more data, the
 !    output value of N_DATA will be 0 again.
 !
-!    Output, real ( kind = rk ) MU, the mean of the distribution.
+!    Output, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Output, real ( kind = rk ) SIGMA, the standard deviation 
+!    Output, real ( kind = 8 ) SIGMA, the standard deviation 
 !    of the distribution.
 !
-!    Output, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Output, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !
-!    Output, real ( kind = rk ) X, the argument of the function.
+!    Output, real ( kind = 8 ) X, the argument of the function.
 !
-!    Output, real ( kind = rk ) FX, the value of the function.
+!    Output, real ( kind = 8 ) FX, the value of the function.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ), parameter :: n_max = 11
 
-  integer, parameter :: n_max = 11
-
-  real ( kind = rk ) a
-  real ( kind = rk ), save, dimension ( n_max ) :: a_vec = (/ &
+  real ( kind = 8 ) a
+  real ( kind = 8 ), save, dimension ( n_max ) :: a_vec = (/ &
        50.0D+00, &
        50.0D+00, &
        50.0D+00, &
@@ -2717,8 +2740,8 @@ subroutine truncated_normal_ab_pdf_values ( n_data, mu, sigma, a, b, x, fx )
        50.0D+00, &
        50.0D+00, &
        50.0D+00 /)
-  real ( kind = rk ) b
-  real ( kind = rk ), save, dimension ( n_max ) :: b_vec = (/ &
+  real ( kind = 8 ) b
+  real ( kind = 8 ), save, dimension ( n_max ) :: b_vec = (/ &
        150.0D+00, &
        150.0D+00, &
        150.0D+00, &
@@ -2730,8 +2753,8 @@ subroutine truncated_normal_ab_pdf_values ( n_data, mu, sigma, a, b, x, fx )
        150.0D+00, &
        150.0D+00, &
        150.0D+00 /)
-  real ( kind = rk ) fx
-  real ( kind = rk ), save, dimension ( n_max ) :: fx_vec = (/ &
+  real ( kind = 8 ) fx
+  real ( kind = 8 ), save, dimension ( n_max ) :: fx_vec = (/ &
        0.01543301171801836D+00, &
        0.01588394472270638D+00, &
        0.01624375997031919D+00, &
@@ -2743,8 +2766,8 @@ subroutine truncated_normal_ab_pdf_values ( n_data, mu, sigma, a, b, x, fx )
        0.01624375997031919D+00, &
        0.01588394472270638D+00, &
        0.01543301171801836D+00 /)
-  real ( kind = rk ) mu
-  real ( kind = rk ), save, dimension ( n_max ) :: mu_vec = (/ &
+  real ( kind = 8 ) mu
+  real ( kind = 8 ), save, dimension ( n_max ) :: mu_vec = (/ &
        100.0D+00, &
        100.0D+00, &
        100.0D+00, &
@@ -2756,9 +2779,9 @@ subroutine truncated_normal_ab_pdf_values ( n_data, mu, sigma, a, b, x, fx )
        100.0D+00, &
        100.0D+00, &
        100.0D+00 /)
-  integer n_data
-  real ( kind = rk ) sigma
-  real ( kind = rk ), save, dimension ( n_max ) :: sigma_vec = (/ &
+  integer ( kind = 4 ) n_data
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ), save, dimension ( n_max ) :: sigma_vec = (/ &
        25.0D+00, &
        25.0D+00, &
        25.0D+00, &
@@ -2770,8 +2793,8 @@ subroutine truncated_normal_ab_pdf_values ( n_data, mu, sigma, a, b, x, fx )
        25.0D+00, &
        25.0D+00, &
        25.0D+00 /)
-  real ( kind = rk ) x
-  real ( kind = rk ), save, dimension ( n_max ) :: x_vec = (/ &
+  real ( kind = 8 ) x
+  real ( kind = 8 ), save, dimension ( n_max ) :: x_vec = (/ &
        90.0D+00, &
        92.0D+00, &
        94.0D+00, &
@@ -2829,33 +2852,32 @@ subroutine truncated_normal_ab_sample ( mu, sigma, a, b, seed, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Input, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !
-!    Input/output, integer SEED, a seed for the random number
+!    Input/output, integer ( kind = 4 ) SEED, a seed for the random number
 !    generator.
 !
-!    Output, real ( kind = rk ) X, a sample of the PDF.
+!    Output, real ( kind = 8 ) X, a sample of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  integer seed
-  real ( kind = rk ) u
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) r8_uniform_01
+  real ( kind = 8 ) sigma
+  integer ( kind = 4 ) seed
+  real ( kind = 8 ) u
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
   alpha = ( a - mu ) / sigma
   beta = ( b - mu ) / sigma
@@ -2863,7 +2885,7 @@ subroutine truncated_normal_ab_sample ( mu, sigma, a, b, seed, x )
   call normal_01_cdf ( alpha, alpha_cdf )
   call normal_01_cdf ( beta, beta_cdf )
 
-  call random_number ( harvest = u )
+  u = r8_uniform_01 ( seed )
   xi_cdf = alpha_cdf + u * ( beta_cdf - alpha_cdf )
   call normal_01_cdf_inv ( xi_cdf, xi )
 
@@ -2891,28 +2913,26 @@ subroutine truncated_normal_ab_variance ( mu, sigma, a, b, variance )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, B, the lower and upper truncation limits.
+!    Input, real ( kind = 8 ) A, B, the lower and upper truncation limits.
 !
-!    Output, real ( kind = rk ) VARIANCE, the variance of the PDF.
+!    Output, real ( kind = 8 ) VARIANCE, the variance of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) alpha_pdf
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) beta_pdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) variance
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) alpha_pdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) beta_pdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) variance
 
   alpha = ( a - mu ) / sigma
   beta = ( b - mu ) / sigma
@@ -2941,7 +2961,7 @@ subroutine truncated_normal_a_cdf ( x, mu, sigma, a, cdf )
 !
 !  Modified:
 !
-!    24 January 2017
+!    21 August 2013
 !
 !  Author:
 !
@@ -2949,45 +2969,35 @@ subroutine truncated_normal_a_cdf ( x, mu, sigma, a, cdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the CDF.
+!    Input, real ( kind = 8 ) X, the argument of the CDF.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, the lower truncation limit.
+!    Input, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Output, real ( kind = rk ) CDF, the value of the CDF.
+!    Output, real ( kind = 8 ) CDF, the value of the CDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  alpha = ( a - mu ) / sigma
+  xi = ( x - mu ) / sigma
 
-  if ( x < a ) then
-  
-    cdf = 0.0D+00
-    
-  else
-  
-    alpha = ( a - mu ) / sigma
-    xi = ( x - mu ) / sigma
+  call normal_01_cdf ( alpha, alpha_cdf )
+  call normal_01_cdf ( xi, xi_cdf )
 
-    call normal_01_cdf ( alpha, alpha_cdf )
-    call normal_01_cdf ( xi, xi_cdf )
+  cdf = ( xi_cdf - alpha_cdf ) / ( 1.0D+00 - alpha_cdf )
 
-    cdf = ( xi_cdf - alpha_cdf ) / ( 1.0D+00 - alpha_cdf )
-
-  end if
-  
   return
 end
 subroutine truncated_normal_a_cdf_values ( n_data, mu, sigma, a, x, fx )
@@ -3024,30 +3034,28 @@ subroutine truncated_normal_a_cdf_values ( n_data, mu, sigma, a, x, fx )
 !
 !  Parameters:
 !
-!    Input/output, integer N_DATA.  The user sets N_DATA to 0
+!    Input/output, integer ( kind = 4 ) N_DATA.  The user sets N_DATA to 0
 !    before the first call.  On each call, the routine increments N_DATA by 1,
 !    and returns the corresponding data; when there is no more data, the
 !    output value of N_DATA will be 0 again.
 !
-!    Output, real ( kind = rk ) MU, the mean of the distribution.
+!    Output, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Output, real ( kind = rk ) SIGMA, the standard deviation 
+!    Output, real ( kind = 8 ) SIGMA, the standard deviation 
 !    of the distribution.
 !
-!    Output, real ( kind = rk ) A, the lower truncation limit.
+!    Output, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Output, real ( kind = rk ) X, the argument of the function.
+!    Output, real ( kind = 8 ) X, the argument of the function.
 !
-!    Output, real ( kind = rk ) FX, the value of the function.
+!    Output, real ( kind = 8 ) FX, the value of the function.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ), parameter :: n_max = 11
 
-  integer, parameter :: n_max = 11
-
-  real ( kind = rk ) a
-  real ( kind = rk ), save, dimension ( n_max ) :: a_vec = (/ &
+  real ( kind = 8 ) a
+  real ( kind = 8 ), save, dimension ( n_max ) :: a_vec = (/ &
        50.0D+00, &
        50.0D+00, &
        50.0D+00, &
@@ -3059,8 +3067,8 @@ subroutine truncated_normal_a_cdf_values ( n_data, mu, sigma, a, x, fx )
        50.0D+00, &
        50.0D+00, &
        50.0D+00 /)
-  real ( kind = rk ) fx
-  real ( kind = rk ), save, dimension ( n_max ) :: fx_vec = (/ &
+  real ( kind = 8 ) fx
+  real ( kind = 8 ), save, dimension ( n_max ) :: fx_vec = (/ &
        0.3293202045481688D+00, &
        0.3599223134505957D+00, &
        0.3913175216041539D+00, &
@@ -3072,8 +3080,8 @@ subroutine truncated_normal_a_cdf_values ( n_data, mu, sigma, a, x, fx )
        0.5854027290789878D+00, &
        0.6167979372325460D+00, &
        0.6474000461349729D+00 /)
-  real ( kind = rk ) mu
-  real ( kind = rk ), save, dimension ( n_max ) :: mu_vec = (/ &
+  real ( kind = 8 ) mu
+  real ( kind = 8 ), save, dimension ( n_max ) :: mu_vec = (/ &
        100.0D+00, &
        100.0D+00, &
        100.0D+00, &
@@ -3085,9 +3093,9 @@ subroutine truncated_normal_a_cdf_values ( n_data, mu, sigma, a, x, fx )
        100.0D+00, &
        100.0D+00, &
        100.0D+00 /)
-  integer n_data
-  real ( kind = rk ) sigma
-  real ( kind = rk ), save, dimension ( n_max ) :: sigma_vec = (/ &
+  integer ( kind = 4 ) n_data
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ), save, dimension ( n_max ) :: sigma_vec = (/ &
        25.0D+00, &
        25.0D+00, &
        25.0D+00, &
@@ -3099,8 +3107,8 @@ subroutine truncated_normal_a_cdf_values ( n_data, mu, sigma, a, x, fx )
        25.0D+00, &
        25.0D+00, &
        25.0D+00 /)
-  real ( kind = rk ) x
-  real ( kind = rk ), save, dimension ( n_max ) :: x_vec = (/ &
+  real ( kind = 8 ) x
+  real ( kind = 8 ), save, dimension ( n_max ) :: x_vec = (/ &
        90.0D+00, &
        92.0D+00, &
        94.0D+00, &
@@ -3156,29 +3164,27 @@ subroutine truncated_normal_a_cdf_inv ( cdf, mu, sigma, a, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) CDF, the value of the CDF.
+!    Input, real ( kind = 8 ) CDF, the value of the CDF.
 !    0.0D+00 <= CDF <= 1.0.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, the lower truncation limit.
+!    Input, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Output, real ( kind = rk ) X, the corresponding argument.
+!    Output, real ( kind = 8 ) X, the corresponding argument.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
   if ( cdf < 0.0D+00 .or. 1.0D+00 < cdf ) then
     write ( *, '(a)' ) ' '
@@ -3218,24 +3224,22 @@ subroutine truncated_normal_a_mean ( mu, sigma, a, mean )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, the lower truncation limit.
+!    Input, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Output, real ( kind = rk ) MEAN, the mean of the PDF.
+!    Output, real ( kind = 8 ) MEAN, the mean of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) alpha_pdf
-  real ( kind = rk ) mean
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) alpha_pdf
+  real ( kind = 8 ) mean
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
 
   alpha = ( a - mu ) / sigma
 
@@ -3273,27 +3277,25 @@ subroutine truncated_normal_a_moment ( order, mu, sigma, a, moment )
 !
 !  Parameters:
 !
-!    Input, integer ORDER, the order of the moment.
+!    Input, integer ( kind = 4 ) ORDER, the order of the moment.
 !    0 <= ORDER.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !    0.0 < S.
 !
-!    Input, real ( kind = rk ) A, the lower truncation limit.
+!    Input, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Output, real ( kind = rk ) MOMENT, the moment of the PDF.
+!    Output, real ( kind = 8 ) MOMENT, the moment of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) moment
-  real ( kind = rk ) mu
-  integer order
-  real ( kind = rk ) r8_mop
-  real ( kind = rk ) sigma
+  real ( kind = 8 ) a
+  real ( kind = 8 ) moment
+  real ( kind = 8 ) mu
+  integer ( kind = 4 ) order
+  real ( kind = 8 ) r8_mop
+  real ( kind = 8 ) sigma
 
   call truncated_normal_b_moment ( order, - mu, sigma, - a, moment )
   moment = r8_mop ( order ) * moment
@@ -3312,7 +3314,7 @@ subroutine truncated_normal_a_pdf ( x, mu, sigma, a, pdf )
 !
 !  Modified:
 !
-!    24 January 2017
+!    21 August 2013
 !
 !  Author:
 !
@@ -3320,45 +3322,35 @@ subroutine truncated_normal_a_pdf ( x, mu, sigma, a, pdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the PDF.
+!    Input, real ( kind = 8 ) X, the argument of the PDF.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, the lower truncation limit.
+!    Input, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Output, real ( kind = rk ) PDF, the value of the PDF.
+!    Output, real ( kind = 8 ) PDF, the value of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) pdf
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_pdf
 
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) pdf
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_pdf
+  alpha = ( a - mu ) / sigma
+  xi = ( x - mu ) / sigma
 
-  if ( x < a ) then
-  
-    pdf = 0.0D+00
-    
-  else
-  
-    alpha = ( a - mu ) / sigma
-    xi = ( x - mu ) / sigma
+  call normal_01_cdf ( alpha, alpha_cdf )
+  call normal_01_pdf ( xi, xi_pdf )
 
-    call normal_01_cdf ( alpha, alpha_cdf )
-    call normal_01_pdf ( xi, xi_pdf )
+  pdf = xi_pdf / ( 1.0D+00 - alpha_cdf ) / sigma
 
-    pdf = xi_pdf / ( 1.0D+00 - alpha_cdf ) / sigma
-
-  end if
-  
   return
 end
 subroutine truncated_normal_a_pdf_values ( n_data, mu, sigma, a, x, fx )
@@ -3395,30 +3387,28 @@ subroutine truncated_normal_a_pdf_values ( n_data, mu, sigma, a, x, fx )
 !
 !  Parameters:
 !
-!    Input/output, integer N_DATA.  The user sets N_DATA to 0
+!    Input/output, integer ( kind = 4 ) N_DATA.  The user sets N_DATA to 0
 !    before the first call.  On each call, the routine increments N_DATA by 1,
 !    and returns the corresponding data; when there is no more data, the
 !    output value of N_DATA will be 0 again.
 !
-!    Output, real ( kind = rk ) MU, the mean of the distribution.
+!    Output, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Output, real ( kind = rk ) SIGMA, the standard deviation 
+!    Output, real ( kind = 8 ) SIGMA, the standard deviation 
 !    of the distribution.
 !
-!    Output, real ( kind = rk ) A, the lower truncation limit.
+!    Output, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Output, real ( kind = rk ) X, the argument of the function.
+!    Output, real ( kind = 8 ) X, the argument of the function.
 !
-!    Output, real ( kind = rk ) FX, the value of the function.
+!    Output, real ( kind = 8 ) FX, the value of the function.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ), parameter :: n_max = 11
 
-  integer, parameter :: n_max = 11
-
-  real ( kind = rk ) a
-  real ( kind = rk ), save, dimension ( n_max ) :: a_vec = (/ &
+  real ( kind = 8 ) a
+  real ( kind = 8 ), save, dimension ( n_max ) :: a_vec = (/ &
        50.0D+00, &
        50.0D+00, &
        50.0D+00, &
@@ -3430,8 +3420,8 @@ subroutine truncated_normal_a_pdf_values ( n_data, mu, sigma, a, x, fx )
        50.0D+00, &
        50.0D+00, &
        50.0D+00 /)
-  real ( kind = rk ) fx
-  real ( kind = rk ), save, dimension ( n_max ) :: fx_vec = (/ &
+  real ( kind = 8 ) fx
+  real ( kind = 8 ), save, dimension ( n_max ) :: fx_vec = (/ &
        0.01507373507401876D+00, &
        0.01551417047139894D+00, &
        0.01586560931024694D+00, &
@@ -3443,8 +3433,8 @@ subroutine truncated_normal_a_pdf_values ( n_data, mu, sigma, a, x, fx )
        0.01586560931024694D+00, &
        0.01551417047139894D+00, &
        0.01507373507401876D+00 /)
-  real ( kind = rk ) mu
-  real ( kind = rk ), save, dimension ( n_max ) :: mu_vec = (/ &
+  real ( kind = 8 ) mu
+  real ( kind = 8 ), save, dimension ( n_max ) :: mu_vec = (/ &
        100.0D+00, &
        100.0D+00, &
        100.0D+00, &
@@ -3456,9 +3446,9 @@ subroutine truncated_normal_a_pdf_values ( n_data, mu, sigma, a, x, fx )
        100.0D+00, &
        100.0D+00, &
        100.0D+00 /)
-  integer n_data
-  real ( kind = rk ) sigma
-  real ( kind = rk ), save, dimension ( n_max ) :: sigma_vec = (/ &
+  integer ( kind = 4 ) n_data
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ), save, dimension ( n_max ) :: sigma_vec = (/ &
        25.0D+00, &
        25.0D+00, &
        25.0D+00, &
@@ -3470,8 +3460,8 @@ subroutine truncated_normal_a_pdf_values ( n_data, mu, sigma, a, x, fx )
        25.0D+00, &
        25.0D+00, &
        25.0D+00 /)
-  real ( kind = rk ) x
-  real ( kind = rk ), save, dimension ( n_max ) :: x_vec = (/ &
+  real ( kind = 8 ) x
+  real ( kind = 8 ), save, dimension ( n_max ) :: x_vec = (/ &
        90.0D+00, &
        92.0D+00, &
        94.0D+00, &
@@ -3527,36 +3517,35 @@ subroutine truncated_normal_a_sample ( mu, sigma, a, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, the lower truncation limit.
+!    Input, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Input/output, integer SEED, a seed for the random number
+!    Input/output, integer ( kind = 4 ) SEED, a seed for the random number
 !    generator.
 !
-!    Output, real ( kind = rk ) X, a sample of the PDF.
+!    Output, real ( kind = 8 ) X, a sample of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  integer seed
-  real ( kind = rk ) u
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) r8_uniform_01
+  real ( kind = 8 ) sigma
+  integer ( kind = 4 ) seed
+  real ( kind = 8 ) u
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
   alpha = ( a - mu ) / sigma
 
   call normal_01_cdf ( alpha, alpha_cdf )
 
-  call random_number ( harvest = u )
+  call RANDOM_NUMBER(u)
   xi_cdf = alpha_cdf + u * ( 1.0D+00 - alpha_cdf )
   call normal_01_cdf_inv ( xi_cdf, xi )
 
@@ -3584,24 +3573,22 @@ subroutine truncated_normal_a_variance ( mu, sigma, a, variance )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) A, the lower truncation limit.
+!    Input, real ( kind = 8 ) A, the lower truncation limit.
 !
-!    Output, real ( kind = rk ) VARIANCE, the variance of the PDF.
+!    Output, real ( kind = 8 ) VARIANCE, the variance of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) a
-  real ( kind = rk ) alpha
-  real ( kind = rk ) alpha_cdf
-  real ( kind = rk ) alpha_pdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) variance
+  real ( kind = 8 ) a
+  real ( kind = 8 ) alpha
+  real ( kind = 8 ) alpha_cdf
+  real ( kind = 8 ) alpha_pdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) variance
 
   alpha = ( a - mu ) / sigma
 
@@ -3627,7 +3614,7 @@ subroutine truncated_normal_b_cdf ( x, mu, sigma, b, cdf )
 !
 !  Modified:
 !
-!    19 March 2018
+!    21 August 2013
 !
 !  Author:
 !
@@ -3635,45 +3622,35 @@ subroutine truncated_normal_b_cdf ( x, mu, sigma, b, cdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the CDF.
+!    Input, real ( kind = 8 ) X, the argument of the CDF.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) B, the upper truncation limit.
+!    Input, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Output, real ( kind = rk ) CDF, the value of the CDF.
+!    Output, real ( kind = 8 ) CDF, the value of the CDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  beta = ( b - mu ) / sigma
+  xi = ( x - mu ) / sigma
 
-  if ( x <= b ) then
-  
-    beta = ( b - mu ) / sigma
-    xi = ( x - mu ) / sigma
+  call normal_01_cdf ( beta, beta_cdf )
+  call normal_01_cdf ( xi, xi_cdf )
 
-    call normal_01_cdf ( beta, beta_cdf )
-    call normal_01_cdf ( xi, xi_cdf )
+  cdf = xi_cdf / beta_cdf
 
-    cdf = xi_cdf / beta_cdf
-
-  else
-  
-    cdf = 1.0D+00
-    
-  end if
-  
   return
 end
 subroutine truncated_normal_b_cdf_values ( n_data, mu, sigma, b, x, fx )
@@ -3710,30 +3687,28 @@ subroutine truncated_normal_b_cdf_values ( n_data, mu, sigma, b, x, fx )
 !
 !  Parameters:
 !
-!    Input/output, integer N_DATA.  The user sets N_DATA to 0
+!    Input/output, integer ( kind = 4 ) N_DATA.  The user sets N_DATA to 0
 !    before the first call.  On each call, the routine increments N_DATA by 1,
 !    and returns the corresponding data; when there is no more data, the
 !    output value of N_DATA will be 0 again.
 !
-!    Output, real ( kind = rk ) MU, the mean of the distribution.
+!    Output, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Output, real ( kind = rk ) SIGMA, the standard deviation
+!    Output, real ( kind = 8 ) SIGMA, the standard deviation
 !    of the distribution.
 !
-!    Output, real ( kind = rk ) B, the upper truncation limit.
+!    Output, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Output, real ( kind = rk ) X, the argument of the function.
+!    Output, real ( kind = 8 ) X, the argument of the function.
 !
-!    Output, real ( kind = rk ) FX, the value of the function.
+!    Output, real ( kind = 8 ) FX, the value of the function.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ), parameter :: n_max = 11
 
-  integer, parameter :: n_max = 11
-
-  real ( kind = rk ) b
-  real ( kind = rk ), save, dimension ( n_max ) :: b_vec = (/ &
+  real ( kind = 8 ) b
+  real ( kind = 8 ), save, dimension ( n_max ) :: b_vec = (/ &
        150.0D+00, &
        150.0D+00, &
        150.0D+00, &
@@ -3745,8 +3720,8 @@ subroutine truncated_normal_b_cdf_values ( n_data, mu, sigma, b, x, fx )
        150.0D+00, &
        150.0D+00, &
        150.0D+00 /)
-  real ( kind = rk ) fx
-  real ( kind = rk ), save, dimension ( n_max ) :: fx_vec = (/ &
+  real ( kind = 8 ) fx
+  real ( kind = 8 ), save, dimension ( n_max ) :: fx_vec = (/ &
        0.3525999538650271D+00, &
        0.3832020627674540D+00, &
        0.4145972709210122D+00, &
@@ -3758,8 +3733,8 @@ subroutine truncated_normal_b_cdf_values ( n_data, mu, sigma, b, x, fx )
        0.6086824783958461D+00, &
        0.6400776865494043D+00, &
        0.6706797954518312D+00 /)
-  real ( kind = rk ) mu
-  real ( kind = rk ), save, dimension ( n_max ) :: mu_vec = (/ &
+  real ( kind = 8 ) mu
+  real ( kind = 8 ), save, dimension ( n_max ) :: mu_vec = (/ &
        100.0D+00, &
        100.0D+00, &
        100.0D+00, &
@@ -3771,9 +3746,9 @@ subroutine truncated_normal_b_cdf_values ( n_data, mu, sigma, b, x, fx )
        100.0D+00, &
        100.0D+00, &
        100.0D+00 /)
-  integer n_data
-  real ( kind = rk ) sigma
-  real ( kind = rk ), save, dimension ( n_max ) :: sigma_vec = (/ &
+  integer ( kind = 4 ) n_data
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ), save, dimension ( n_max ) :: sigma_vec = (/ &
        25.0D+00, &
        25.0D+00, &
        25.0D+00, &
@@ -3785,8 +3760,8 @@ subroutine truncated_normal_b_cdf_values ( n_data, mu, sigma, b, x, fx )
        25.0D+00, &
        25.0D+00, &
        25.0D+00 /)
-  real ( kind = rk ) x
-  real ( kind = rk ), save, dimension ( n_max ) :: x_vec = (/ &
+  real ( kind = 8 ) x
+  real ( kind = 8 ), save, dimension ( n_max ) :: x_vec = (/ &
        90.0D+00, &
        92.0D+00, &
        94.0D+00, &
@@ -3842,29 +3817,27 @@ subroutine truncated_normal_b_cdf_inv ( cdf, mu, sigma, b, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) CDF, the value of the CDF.
+!    Input, real ( kind = 8 ) CDF, the value of the CDF.
 !    0.0D+00 <= CDF <= 1.0.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) B, the upper truncation limit.
+!    Input, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Output, real ( kind = rk ) X, the corresponding argument.
+!    Output, real ( kind = 8 ) X, the corresponding argument.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
   if ( cdf < 0.0D+00 .or. 1.0D+00 < cdf ) then
     write ( *, '(a)' ) ' '
@@ -3904,24 +3877,22 @@ subroutine truncated_normal_b_mean ( mu, sigma, b, mean )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) B, the upper truncation limit.
+!    Input, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Output, real ( kind = rk ) MEAN, the mean of the PDF.
+!    Output, real ( kind = 8 ) MEAN, the mean of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) beta_pdf
-  real ( kind = rk ) mean
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) beta_pdf
+  real ( kind = 8 ) mean
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
 
   beta = ( b - mu ) / sigma
 
@@ -3959,35 +3930,33 @@ subroutine truncated_normal_b_moment ( order, mu, sigma, b, moment )
 !
 !  Parameters:
 !
-!    Input, integer ORDER, the order of the moment.
+!    Input, integer ( kind = 4 ) ORDER, the order of the moment.
 !    0 <= ORDER.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !    0.0 < SIGMA.
 !
-!    Input, real ( kind = rk ) B, the upper truncation limit.
+!    Input, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Output, real ( kind = rk ) MOMENT, the moment of the PDF.
+!    Output, real ( kind = 8 ) MOMENT, the moment of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) b
-  real ( kind = rk ) f
-  real ( kind = rk ) h
-  real ( kind = rk ) h_cdf
-  real ( kind = rk ) h_pdf
-  real ( kind = rk ) ir
-  real ( kind = rk ) irm1
-  real ( kind = rk ) irm2
-  real ( kind = rk ) moment
-  real ( kind = rk ) mu
-  integer order
-  integer r
-  real ( kind = rk ) r8_choose
-  real ( kind = rk ) sigma
+  real ( kind = 8 ) b
+  real ( kind = 8 ) f
+  real ( kind = 8 ) h
+  real ( kind = 8 ) h_cdf
+  real ( kind = 8 ) h_pdf
+  real ( kind = 8 ) ir
+  real ( kind = 8 ) irm1
+  real ( kind = 8 ) irm2
+  real ( kind = 8 ) moment
+  real ( kind = 8 ) mu
+  integer ( kind = 4 ) order
+  integer ( kind = 4 ) r
+  real ( kind = 8 ) r8_choose
+  real ( kind = 8 ) sigma
 
   if ( order < 0 ) then
     write ( *, '(a)' ) ''
@@ -4020,7 +3989,7 @@ subroutine truncated_normal_b_moment ( order, mu, sigma, b, moment )
     else if ( r == 1 ) then
       ir = - f
     else
-      ir = - h ** ( r - 1 ) * f + real ( r - 1, kind = rk ) * irm2
+      ir = - h ** ( r - 1 ) * f + real ( r - 1, kind = 8 ) * irm2
     end if
 
     moment = moment + r8_choose ( order, r ) * mu ** ( order - r ) &
@@ -4045,7 +4014,7 @@ subroutine truncated_normal_b_pdf ( x, mu, sigma, b, pdf )
 !
 !  Modified:
 !
-!    24 January 2017
+!    21 August 2013
 !
 !  Author:
 !
@@ -4053,45 +4022,35 @@ subroutine truncated_normal_b_pdf ( x, mu, sigma, b, pdf )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) X, the argument of the PDF.
+!    Input, real ( kind = 8 ) X, the argument of the PDF.
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) B, the upper truncation limit.
+!    Input, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Output, real ( kind = rk ) PDF, the value of the PDF.
+!    Output, real ( kind = 8 ) PDF, the value of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) pdf
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_pdf
 
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) pdf
-  real ( kind = rk ) sigma
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_pdf
+  beta = ( b - mu ) / sigma
+  xi = ( x - mu ) / sigma
 
-  if ( x <= b ) then
-  
-    beta = ( b - mu ) / sigma
-    xi = ( x - mu ) / sigma
+  call normal_01_cdf ( beta, beta_cdf )
+  call normal_01_pdf ( xi, xi_pdf )
 
-    call normal_01_cdf ( beta, beta_cdf )
-    call normal_01_pdf ( xi, xi_pdf )
+  pdf = xi_pdf / beta_cdf / sigma
 
-    pdf = xi_pdf / beta_cdf / sigma
-
-  else
-  
-    pdf = 0.0D+00
-    
-  end if
-  
   return
 end
 subroutine truncated_normal_b_pdf_values ( n_data, mu, sigma, b, x, fx )
@@ -4128,30 +4087,28 @@ subroutine truncated_normal_b_pdf_values ( n_data, mu, sigma, b, x, fx )
 !
 !  Parameters:
 !
-!    Input/output, integer N_DATA.  The user sets N_DATA to 0
+!    Input/output, integer ( kind = 4 ) N_DATA.  The user sets N_DATA to 0
 !    before the first call.  On each call, the routine increments N_DATA by 1,
 !    and returns the corresponding data; when there is no more data, the
 !    output value of N_DATA will be 0 again.
 !
-!    Output, real ( kind = rk ) MU, the mean of the distribution.
+!    Output, real ( kind = 8 ) MU, the mean of the distribution.
 !
-!    Output, real ( kind = rk ) SIGMA, the standard deviation
+!    Output, real ( kind = 8 ) SIGMA, the standard deviation
 !    of the distribution.
 !
-!    Output, real ( kind = rk ) B, the upper truncation limit.
+!    Output, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Output, real ( kind = rk ) X, the argument of the function.
+!    Output, real ( kind = 8 ) X, the argument of the function.
 !
-!    Output, real ( kind = rk ) FX, the value of the function.
+!    Output, real ( kind = 8 ) FX, the value of the function.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
+  integer ( kind = 4 ), parameter :: n_max = 11
 
-  integer, parameter :: n_max = 11
-
-  real ( kind = rk ) b
-  real ( kind = rk ), save, dimension ( n_max ) :: b_vec = (/ &
+  real ( kind = 8 ) b
+  real ( kind = 8 ), save, dimension ( n_max ) :: b_vec = (/ &
        150.0D+00, &
        150.0D+00, &
        150.0D+00, &
@@ -4163,8 +4120,8 @@ subroutine truncated_normal_b_pdf_values ( n_data, mu, sigma, b, x, fx )
        150.0D+00, &
        150.0D+00, &
        150.0D+00 /)
-  real ( kind = rk ) fx
-  real ( kind = rk ), save, dimension ( n_max ) :: fx_vec = (/ &
+  real ( kind = 8 ) fx
+  real ( kind = 8 ), save, dimension ( n_max ) :: fx_vec = (/ &
        0.01507373507401876D+00, &
        0.01551417047139894D+00, &
        0.01586560931024694D+00, &
@@ -4176,8 +4133,8 @@ subroutine truncated_normal_b_pdf_values ( n_data, mu, sigma, b, x, fx )
        0.01586560931024694D+00, &
        0.01551417047139894D+00, &
        0.01507373507401876D+00 /)
-  real ( kind = rk ) mu
-  real ( kind = rk ), save, dimension ( n_max ) :: mu_vec = (/ &
+  real ( kind = 8 ) mu
+  real ( kind = 8 ), save, dimension ( n_max ) :: mu_vec = (/ &
        100.0D+00, &
        100.0D+00, &
        100.0D+00, &
@@ -4189,9 +4146,9 @@ subroutine truncated_normal_b_pdf_values ( n_data, mu, sigma, b, x, fx )
        100.0D+00, &
        100.0D+00, &
        100.0D+00 /)
-  integer n_data
-  real ( kind = rk ) sigma
-  real ( kind = rk ), save, dimension ( n_max ) :: sigma_vec = (/ &
+  integer ( kind = 4 ) n_data
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ), save, dimension ( n_max ) :: sigma_vec = (/ &
        25.0D+00, &
        25.0D+00, &
        25.0D+00, &
@@ -4203,8 +4160,8 @@ subroutine truncated_normal_b_pdf_values ( n_data, mu, sigma, b, x, fx )
        25.0D+00, &
        25.0D+00, &
        25.0D+00 /)
-  real ( kind = rk ) x
-  real ( kind = rk ), save, dimension ( n_max ) :: x_vec = (/ &
+  real ( kind = 8 ) x
+  real ( kind = 8 ), save, dimension ( n_max ) :: x_vec = (/ &
        90.0D+00, &
        92.0D+00, &
        94.0D+00, &
@@ -4240,7 +4197,7 @@ subroutine truncated_normal_b_pdf_values ( n_data, mu, sigma, b, x, fx )
 
   return
 end
-subroutine truncated_normal_b_sample ( mu, sigma, b, x )
+subroutine truncated_normal_b_sample ( mu, sigma, b,  x )
 
 !*****************************************************************************80
 !
@@ -4260,36 +4217,35 @@ subroutine truncated_normal_b_sample ( mu, sigma, b, x )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) B, the upper truncation limit.
+!    Input, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Input/output, integer SEED, a seed for the random number
+!    Input/output, integer ( kind = 4 ) SEED, a seed for the random number
 !    generator.
 !
-!    Output, real ( kind = rk ) X, a sample of the PDF.
+!    Output, real ( kind = 8 ) X, a sample of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  integer seed
-  real ( kind = rk ) u
-  real ( kind = rk ) x
-  real ( kind = rk ) xi
-  real ( kind = rk ) xi_cdf
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) r8_uniform_01
+  real ( kind = 8 ) sigma
+  integer ( kind = 4 ) seed
+  real ( kind = 8 ) u
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xi
+  real ( kind = 8 ) xi_cdf
 
   beta = ( b - mu ) / sigma
 
   call normal_01_cdf ( beta, beta_cdf )
 
-  call random_number ( harvest = u )
+  call RANDOM_NUMBER(u) 
   xi_cdf = u * beta_cdf
   call normal_01_cdf_inv ( xi_cdf, xi )
 
@@ -4317,24 +4273,22 @@ subroutine truncated_normal_b_variance ( mu, sigma, b, variance )
 !
 !  Parameters:
 !
-!    Input, real ( kind = rk ) MU, SIGMA, the mean and standard deviation of the
+!    Input, real ( kind = 8 ) MU, SIGMA, the mean and standard deviation of the
 !    parent Normal distribution.
 !
-!    Input, real ( kind = rk ) B, the upper truncation limit.
+!    Input, real ( kind = 8 ) B, the upper truncation limit.
 !
-!    Output, real ( kind = rk ) VARIANCE, the variance of the PDF.
+!    Output, real ( kind = 8 ) VARIANCE, the variance of the PDF.
 !
   implicit none
 
-  integer, parameter :: rk = kind ( 1.0D+00 )
-
-  real ( kind = rk ) b
-  real ( kind = rk ) beta
-  real ( kind = rk ) beta_cdf
-  real ( kind = rk ) beta_pdf
-  real ( kind = rk ) mu
-  real ( kind = rk ) sigma
-  real ( kind = rk ) variance
+  real ( kind = 8 ) b
+  real ( kind = 8 ) beta
+  real ( kind = 8 ) beta_cdf
+  real ( kind = 8 ) beta_pdf
+  real ( kind = 8 ) mu
+  real ( kind = 8 ) sigma
+  real ( kind = 8 ) variance
 
   beta = ( b - mu ) / sigma
 

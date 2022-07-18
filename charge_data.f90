@@ -4,7 +4,7 @@ subroutine charge_data()
     integer,dimension(indv_HRS*habits*generations)::data_vec_habits
     integer,dimension(indv_psid*habits*generations)::data_vec_habits_psid
     integer,dimension(2,indv)::ages
-    integer,dimension(generations,indv_HRS)::data_shlt_srh
+    integer,dimension(generations,indv_HRS)::data_shlt_hrs
     integer,dimension(generations,indv_psid)::data_shlt_psid
     
     integer::i_l,g_l,index
@@ -35,13 +35,20 @@ subroutine charge_data()
         read(10,*) educ(indv_HRS+1:indv)
     close(10)
     open(unit=10,file=path//"Data\shlt.csv")
-        read(10,*) data_shlt_srh
+        read(10,*) data_shlt_hrs
     close(10)
     open(unit=10,file=path//"Data\shlt_psid.csv")
         read(10,*) data_shlt_psid
     close(10)
+    open(unit=10,file=path//"data\race_all.csv")
+        read(10,*) race(1:indv_HRS)
+    close(10)
+    open(unit=10,file=path//"data\race_all_psid.csv")
+        read(10,*) race(indv_HRS+1:indv)
+    close(10)
+    race=1
     
-    data_shlt(1:indv_HRS,:)=reshape(data_shlt_srh,(/indv_HRS,generations/),order=(/2,1/))
+    data_shlt(1:indv_HRS,:)=reshape(data_shlt_hrs,(/indv_HRS,generations/),order=(/2,1/)) 
     data_shlt(indv_HRS+1:indv,:)=reshape(data_shlt_psid,(/indv_psid,generations/),order=(/2,1/))
     
     do i_l=1,indv
@@ -82,5 +89,21 @@ subroutine charge_data()
             college(i_l)=1
         end if
     end do
+    
+    !compute  average health and average age
+    h_bar=0
+    do i_l=1,indv
+        index=0
+        do g_l=first_age(i_l),last_age(i_l) 
+            if (data_shlt(i_l,g_l)>=1 .and. data_shlt(i_l,g_l)<=2) then
+                index=index+1
+                h_bar(i_l)=h_bar(i_l)+(data_shlt(i_l,g_l)-1) 
+                a_bar(i_l)=a_bar(i_l)+initial_age+(g_l-1)*2-70
+            end if
+        end do
+        h_bar(i_l)=h_bar(i_l)/dble(index)
+        a_bar(i_l)=a_bar(i_l)/dble(index)
+    end do
+    
     
 end subroutine

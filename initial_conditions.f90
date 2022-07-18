@@ -5,27 +5,28 @@ module global_ini
     integer,dimension(indv,1)::y_ini
 end module
     
-subroutine initial_conditions(beta_h,beta_d,gamma,y)
+subroutine initial_conditions(beta_h,beta_d,gamma,y,delta)
     use global_var; use nrtype; use global_ini
     implicit none
-    real(DP),dimension(covariates,types,clusters,clusters),intent(out)::beta_h
-    real(DP),dimension(covariates,types,clusters),intent(out)::beta_d
-    real(DP),dimension(covariates_habits,habits,types),intent(out)::gamma
+    real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(out)::beta_h
+    real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(out)::beta_d
+    real(DP),dimension(covariates_habits,habits),intent(out)::gamma
+    real(DP),dimension(covariates_mixture,L_gender,L_educ,types)::delta
     integer,dimension(indv,1),intent(in)::y
     
     !Assign individuals to clusters
     call cluster_assign(sample_k_ini)
     !Initial conditions for y is set by a random number generator
     y_ini=y
-    !Posterior distribution of transition parameters given the sampled health states & health behavior type types
+    print*,'initial_conditions_habits'
+    call initial_conditions_mixture(delta)
     print*,'initial_conditions_survival'
     call initial_conditions_sur(beta_d) 
     print*,'initial_conditions_tr'
     call initial_conditions_tr(beta_h) 
-
-    !Posterior distribution of the habits given the sampled health states
     print*,'initial_conditions_habits'
     call initial_conditions_habits(gamma)
+    
       
 end subroutine
     
@@ -43,8 +44,7 @@ end subroutine
 subroutine initial_conditions_tr(beta_h)
 use global_var; use nrtype; use global_ini
 implicit none
-real(DP),dimension(covariates,types,clusters,clusters),intent(out)::beta_h
-real(DP),dimension(covariates*clusters**2,1)::c_tr
+real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(out)::beta_h
 integer::it
 
 beta_h=0.0_dp
@@ -58,14 +58,13 @@ end subroutine
 subroutine initial_conditions_sur(beta_d)
 use global_var; use nrtype; use global_ini
 implicit none
-real(DP),dimension(covariates,types,clusters),intent(out)::beta_d
+real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(out)::beta_d
 real(DP),dimension(covariates*clusters,1)::c_tr
 integer::it
 
 beta_d=0.0_dp
 do it=1,100
     print*,it
-    !Sample beta given h_star
     call sample_beta_d(beta_d,y_ini,sample_k_ini)
 end do
 
@@ -74,19 +73,33 @@ end subroutine
 subroutine initial_conditions_habits(gamma)
 use global_var; use nrtype; use global_ini
 implicit none
-real(DP),dimension(covariates_habits,habits,types),intent(out)::gamma
+real(DP),dimension(covariates_habits,habits),intent(out)::gamma
 integer::ind,it
-real(DP),dimension(covariates_habits*habits*types,1)::c_ga
 real(DP)::factor_A=1.0_dp
 
 gamma=0.0_dp
 do it=0,100
     print*,it
-    !Sample y* given gamma
     call sample_gamma_y(gamma,y_ini,sample_k_ini)    
 end do
-
 end subroutine
+
+subroutine initial_conditions_mixture(delta)
+use global_var; use nrtype; use global_ini
+implicit none
+real(DP),dimension(covariates_mixture,L_gender,L_educ,types),intent(out)::delta
+real(DP),dimension(generations,clusters,L_gender,L_educ,types)::weights
+integer::it
+real(DP),dimension(clusters,L_gender,L_educ)::share_h
+
+delta=0.0_dp
+do it=0,100
+    print*,it,delta(1,1,1,2)
+    call sample_delta(delta,y_ini,sample_k_ini,share_h)    
+end do
+
+end subroutine    
+    
     
 SUBROUTINE choldc(a,n)
 use nrtype
