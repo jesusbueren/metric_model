@@ -8,7 +8,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
     integer::h_l,c_l,g_l,ge_l,age,ge_d,it,i_l,health_d,d_l,t_l,e_l
     real(DP)::h_star1
     real(DP),dimension(covariates,1)::z
-    real(DP),dimension(covariates,covariates)::Sigma,inv_Sigma,A
+    real(DP),dimension(covariates,covariates)::Sigma,inv_Sigma,A,Sigma_aux
     real(DP),dimension(indv*g_max,clusters,types,L_gender,L_educ,covariates)::big_X_h
     real(DP),dimension(indv*g_max,clusters,types,L_gender,L_educ)::big_Y_h
     integer,dimension(clusters,types,L_gender,L_educ)::counter_big_X_h
@@ -40,16 +40,25 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
         end if
     end do;end do
     
-    beta_h=0.0_dp
+    
     do h_l=1,clusters;do t_l=1,types;do e_l=1,L_educ;do ge_l=1,L_gender
-        do c_l=1,covariates
-            z(c_l,1)=c4_normal_01(  )
-        end do
-        Sigma=matmul(transpose(big_X_h(1:counter_big_X_h(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_X_h(1:counter_big_X_h(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:))
-        call inverse(Sigma,inv_Sigma,covariates)
-        A=inv_Sigma
-        call choldc(A,covariates)
-        beta_h(:,t_l,h_l,ge_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X_h(1:counter_big_X_h(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_Y_h(1:counter_big_X_h(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l)))+matmul(A,z(:,1))
+        if (counter_big_X_h(h_l,t_l,ge_l,e_l)>5) then
+            beta_h(:,t_l,h_l,ge_l,e_l)=0.0d0
+            do c_l=1,covariates
+                z(c_l,1)=c4_normal_01(  )
+            end do
+            Sigma=matmul(transpose(big_X_h(1:counter_big_X_h(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_X_h(1:counter_big_X_h(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:))
+            Sigma_aux=Sigma
+            call inverse(Sigma,inv_Sigma,covariates)
+            A=inv_Sigma
+            call choldc(A,covariates)
+            beta_h(:,t_l,h_l,ge_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X_h(1:counter_big_X_h(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_Y_h(1:counter_big_X_h(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l)))+matmul(A,z(:,1))
+            if (isnan(sum(beta_h(:,t_l,h_l,ge_l,e_l)))) then
+                print*,'error beta_h'
+            end if
+        else
+            print*,'strange beta_h'
+        end if
     end do;end do;end do;end do
 
 end subroutine

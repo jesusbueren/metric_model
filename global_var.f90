@@ -34,13 +34,16 @@ module global_var
     implicit none
     !Define number of health clusters and health behavior types
     integer,parameter::clusters=2,types=3
-    integer,parameter::adls=12,habits=6,indv_HRS=27090,indv_PSID=7316,generations=37,initial_age=26,L_gender=2,L_educ=3,indv=indv_HRS+indv_PSID
+    integer,parameter::adls=12,habits=6,indv_HRS=27090,indv_PSID=7316,generations=37,initial_age=26,indv=indv_HRS+indv_PSID,L_gender=2,L_educ=3
     integer,parameter::covariates=3,covariates_habits=4,covariates_mixture=2
     integer,parameter::g_max=10
     integer,dimension(indv,generations)::data_shlt
     integer,dimension(indv,habits,generations)::data_habits
     integer,dimension(indv)::first_age,last_age,gender,high_school,college,educ,race
     real(DP),dimension(indv)::h_bar,a_bar
+    integer,dimension(indv,1)::y_true
+    real(DP),dimension(clusters,L_gender,L_educ)::share_h_true
+    real(DP),dimension(clusters,L_gender,L_educ,types)::delta_true
     character(LEN=42)::path="C:\Users\jbueren\Google Drive\endo_health\"  
     character(LEN=71)::path_s="C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health\"
 end module global_var

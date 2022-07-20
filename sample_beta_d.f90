@@ -22,7 +22,7 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
     character::pause_k
 
      counter_big_X_d=0
-    do i_l=1,indv;do g_l=first_age(i_l),last_age(i_l)-1
+    do i_l=1,indv_HRS;do g_l=first_age(i_l),last_age(i_l)-1
             x=-9.0d0
             age=initial_age+(g_l-1)*2-70
             x(1:3,1)=(/1.0_dp,dble(age),dble(age)**2.0d0/)
@@ -45,16 +45,23 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
             
     end do; end do
 
-    beta_d=0.0_dp
     do h_l=1,clusters;do t_l=1,types;do e_l=1,L_educ;do ge_l=1,L_gender
         do c_l=1,covariates
             z(c_l,1)=c4_normal_01(  )
         end do
-        Sigma=matmul(transpose(big_X_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_X_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:))
-        call inverse(Sigma,inv_Sigma,covariates)
-        A=inv_Sigma
-        call choldc(A,covariates)
-        beta_d(:,t_l,h_l,ge_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_Y_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l)))+matmul(A,z(:,1))
+        if (counter_big_X_d(h_l,t_l,ge_l,e_l)>5) then
+            beta_d(:,t_l,h_l,ge_l,e_l)=0.0d0
+            Sigma=matmul(transpose(big_X_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_X_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:))
+            call inverse(Sigma,inv_Sigma,covariates)
+            A=inv_Sigma
+            call choldc(A,covariates)
+            beta_d(:,t_l,h_l,ge_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_Y_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l)))+matmul(A,z(:,1))
+            if (isnan(sum(beta_d(:,t_l,h_l,ge_l,e_l)))) then
+                print*,'pb beta_d'
+            end if
+        else
+            print*,'strange sampled beta_d'
+        end if
     end do;end do; end do; end do
         
 end subroutine    

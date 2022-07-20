@@ -1,7 +1,7 @@
 program main
     use global_var;use nrtype
     implicit none
-    integer,dimension(1)::seed=254 
+    integer,dimension(1)::seed=456
     real(DP),dimension(covariates,types,clusters,L_gender,L_educ)::beta_h
     real(DP),dimension(covariates,types,clusters,L_gender,L_educ)::beta_d
     real(DP),dimension(covariates_habits,habits,types)::gamma
@@ -33,17 +33,21 @@ program main
             y(i_l,1)=1
         end if
     end do
+    
 
     
+    
+    !call simulate_data()
+    
     !Initial conditions
-    call initial_conditions(beta_h,beta_d,gamma,y,delta)
-    open(unit=9,file=path_s//'initial_conditions.txt')
-        write(9,'(F20.10)') beta_h,gamma,beta_d,delta
-    close(9)
+    !call initial_conditions(beta_h,beta_d,gamma,y,delta)
+    !open(unit=9,file=path_s//'initial_conditions.txt')
+    !    write(9,'(F20.10)') beta_h,gamma,beta_d,delta
+    !close(9)
     
     !Full posterior
     open(unit=9,file=path_s//'initial_conditions.txt')
-        read(9,'(F20.10)') beta_h,gamma,beta_d
+        read(9,'(F20.10)') beta_h,gamma,beta_d,delta
     close(9)
     call full_posterior(beta_h,beta_d,gamma,y,delta)
     

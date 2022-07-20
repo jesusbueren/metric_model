@@ -11,7 +11,7 @@ subroutine sample_y(gamma,y,sample_k,H,weights)
     real(dp)::health_d
     real(dp)::d,p,u,log_likeli
     real(DP),dimension(habits,generations,types,clusters)::alphas
-    real(DP),dimension(types)::pr,filtered_pr
+    real(DP),dimension(types)::pr,filtered_pr,selection
     real(DP),dimension(generations,clusters,L_gender,L_educ,types),intent(in)::weights
     
 
@@ -29,36 +29,42 @@ subroutine sample_y(gamma,y,sample_k,H,weights)
     do i_l=1,indv;
         if (race(i_l)==1) then
             pr=1.0d0
-            filtered_pr=1.0d0
-            do g_l=first_age(i_l),last_age(i_l);do h_l=1,habits
-                do e_l=1,types
+            if (sample_k(i_l,first_age(i_l))/=-1) then
+                filtered_pr=weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:) 
+            else
+                !Change this in the future (just one observation either way)
+                filtered_pr=weights(first_age(i_l),1,gender(i_l),educ(i_l),:)
+            end if
+                
+            do g_l=first_age(i_l),last_age(i_l)-1
+                do h_l=1,habits; do e_l=1,types
                     if (data_habits(i_l,h_l,g_l)==1 .and. sample_k(i_l,g_l)/=-1 ) then 
                         pr(e_l)=pr(e_l)*alphas(h_l,g_l,e_l,sample_k(i_l,g_l))
-                    elseif (data_habits(i_l,h_l,g_l)==0 .and. sample_k(i_l,g_l)/=-1) then
+                    elseif (data_habits(i_l,h_l,g_l)==0 .and. sample_k(i_l,g_l)/=-1) then 
                         pr(e_l)=pr(e_l)*(1.0d0-alphas(h_l,g_l,e_l,sample_k(i_l,g_l)))
                     end if
-                    if (g_l<generations) then
-                        if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then 
+                end do; end do
+                do e_l=1,types
+                    if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then 
+                        !if (i_l<=indv_HRS) then
                             filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))
-                        end if
+                        !else
+                        !    filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))) 
+                        !end if
                     end if
+                if (isnan(sum(filtered_pr))) then
+                    print*,'pb sample_y'
+                end if
                 end do
-            end do; end do
-            filtered_pr=1.0d0
-            if (sample_k(i_l,first_age(i_l))>=1 .and. sample_k(i_l,first_age(i_l))<=2) then
-                pr=pr*weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:)*filtered_pr & !
-                    /sum(pr*weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:)*filtered_pr) !
-                log_likeli=log_likeli+log(pr(y(i_l,1)))+log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1)))+log(filtered_pr(y(i_l,1)))
-            else
-                pr=pr*weights(first_age(i_l),1,gender(i_l),educ(i_l),:)*filtered_pr & 
-                    /sum(pr*weights(first_age(i_l),1,gender(i_l),educ(i_l),:)*filtered_pr)
-                log_likeli=log_likeli+log(pr(y(i_l,1)))+log(weights(first_age(i_l),1,gender(i_l),educ(i_l),y(i_l,1)))
-            end if
+            end do
             
-            if (isnan(log_likeli)) then
-                print*,''
-            end if
 
+            pr=pr*filtered_pr/sum(pr*filtered_pr)
+            
+            log_likeli=log_likeli+log(pr(y(i_l,1)))+log(filtered_pr(y(i_l,1)))
+            if (isnan(log_likeli))  then
+                print*,'problem sample y'
+            end if
                 
             y_new(i_l,1)=-9
             call RANDOM_NUMBER(u)
@@ -80,7 +86,7 @@ subroutine sample_y(gamma,y,sample_k,H,weights)
     end do
     y=y_new
     
-    print*,log_likeli
+    print*,'likelihood',log_likeli
     
     !print*,'change cluster', real(changes)/real(indv), 'share',real(share)/real(indv)
     

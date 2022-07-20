@@ -48,6 +48,7 @@ subroutine charge_data()
     close(10)
     race=1
     
+    
     data_shlt(1:indv_HRS,:)=reshape(data_shlt_hrs,(/indv_HRS,generations/),order=(/2,1/)) 
     data_shlt(indv_HRS+1:indv,:)=reshape(data_shlt_psid,(/indv_psid,generations/),order=(/2,1/))
     

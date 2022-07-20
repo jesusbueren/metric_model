@@ -10,7 +10,7 @@ subroutine initial_conditions(beta_h,beta_d,gamma,y,delta)
     implicit none
     real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(out)::beta_h
     real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(out)::beta_d
-    real(DP),dimension(covariates_habits,habits),intent(out)::gamma
+    real(DP),dimension(covariates_habits,habits,types),intent(out)::gamma
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types)::delta
     integer,dimension(indv,1),intent(in)::y
     
@@ -73,7 +73,7 @@ end subroutine
 subroutine initial_conditions_habits(gamma)
 use global_var; use nrtype; use global_ini
 implicit none
-real(DP),dimension(covariates_habits,habits),intent(out)::gamma
+real(DP),dimension(covariates_habits,habits,types),intent(out)::gamma
 integer::ind,it
 real(DP)::factor_A=1.0_dp
 
@@ -90,12 +90,11 @@ implicit none
 real(DP),dimension(covariates_mixture,L_gender,L_educ,types),intent(out)::delta
 real(DP),dimension(generations,clusters,L_gender,L_educ,types)::weights
 integer::it
-real(DP),dimension(clusters,L_gender,L_educ)::share_h
 
 delta=0.0_dp
 do it=0,100
     print*,it,delta(1,1,1,2)
-    call sample_delta(delta,y_ini,sample_k_ini,share_h)    
+    call sample_delta_ini(delta,y_ini,sample_k_ini)    
 end do
 
 end subroutine    

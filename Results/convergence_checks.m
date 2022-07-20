@@ -7,8 +7,9 @@ covariates_habits=4
 habits=6
 types=3
 educ=3
+genders=2
 covariates=3
-variables_tr=clusters*covariates*types*educ*2
+variables_tr=clusters*covariates*types*educ*genders
 variables_gma=covariates_habits*habits*types
 variables_p=12
 generations=37
@@ -19,19 +20,19 @@ cd('C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health')
 fileID=fopen('c_tr.txt');
 c_tr=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-c_tr=reshape(c_tr{1},covariates,types,clusters,2,educ,size(c_tr{1},1)/(variables_tr));
+c_tr=reshape(c_tr{1},covariates,types,clusters,genders,educ,size(c_tr{1},1)/(variables_tr));
 
 
 fileID=fopen('LE.txt');
 LE=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-LE=reshape(LE{1},types,2,educ,clusters+1,size(LE{1},1)/(types*2*educ*(clusters+1)));
+LE=reshape(LE{1},types,genders,educ,clusters+1,size(LE{1},1)/(types*genders*educ*(clusters+1)));
 
 
 fileID=fopen('fraction_t.txt');
 fraction_t=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-fraction_t=reshape(fraction_t{1},generations,2,educ,types,size(fraction_t{1},1)/(generations*educ*types*2));
+fraction_t=reshape(fraction_t{1},generations,genders,educ,types,size(fraction_t{1},1)/(generations*educ*types*genders));
 
 
 fileID=fopen('c_habits.txt');
@@ -43,15 +44,15 @@ c_gma=reshape(c_gma{1},covariates_habits,habits,types,size(c_gma{1},1)/(variable
 
 iterations=min([size(c_gma,4) size(c_tr,6)])
 
-burn=1
+burn=10
 
 
 
 %% Histogram from distribution of variables governing transitions
-for y_l=1:3
+for y_l=1:types
 c_l=1
 ge_l=1
-e_l=3
+e_l=1
 
 figure(y_l)
 for cov_l=1:covariates
@@ -81,16 +82,16 @@ end
 
 
 %%
-max=10
+max=1
 alphas=zeros(habits,generations,types,max);
-ini=iterations-10
+ini=iterations-1
 for it=0:max-1
 for e_l=1:types
     for h_l=1:habits; for g_l=1:generations
         clear x;
         age=initial_age+(g_l-1)*2-70;
-        x(:,1)=[1,age,age^2-1,1];
-        alphas(h_l,g_l,e_l,it+1)=(1-normcdf(0,sum(x(:,1).*c_gma(:,h_l,e_l,it+ini)),1))*100;
+        x(:,1)=[1,age,age^2-1,0];
+        alphas(h_l,g_l,e_l,it+1)=(1-normcdf(0,sum(x(:,1).*c_gma(:,h_l,e_l,it+ini+1)),1))*100;
     end ;end 
 end 
 end
@@ -127,7 +128,7 @@ for h_l=[1 4 5 2 3 6]
     elseif h_l==6
         title('Obesity','FontWeight','normal','fontsize',FS)
     end 
-    yticks([0:25:100])
+    yticks([0:20:100])
     xlim([25 100])
     xticks([25:10:100])
     set(gcf,'color','w')
@@ -176,30 +177,42 @@ print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\health_behavio
 
 
 %% Plot Life expectancy for the different groups
-burn=1
+burn=100
 
-for ge_l=1:2
+for ge_l=1:genders
 for e_l=1:educ
     if ge_l==1 && e_l==1
-        table=[squeeze(mean(fraction_t(1,ge_l,e_l,:,burn:end),5)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)]
+        table=[squeeze(mean(fraction_t(12,ge_l,e_l,:,burn:end),5)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)]
     else
         table=vertcat(table,...
-               [squeeze(mean(fraction_t(1,ge_l,e_l,:,burn:end),5)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)])
+               [squeeze(mean(fraction_t(12,ge_l,e_l,:,burn:end),5)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)])
     end
     
 end
 end
 
+
+
+
 %% Plot weights
 
-ge_l=2
-e_l=3
-LE
+ge_l=1
+e_l=1
+
+colors = { [0.4660    0.6740    0.1880]  [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+pattern = {  '-'  '--' ':' '-.' '-'};
+lw=[1.7 1.5 2.0]
+figure(4)
+subplot(1,2,1)
 for p_l=1:types 
         h(p_l)=plot(26:2:98,mean(fraction_t(:,ge_l,e_l,p_l,burn:end),5),'Color',colors{p_l},'linewidth',lw(p_l),'linestyle',pattern{p_l})
         hold on
+%         h(p_l)=plot(26:2:98,mean(fraction_t(:,ge_l,e_l,p_l,burn:end),5)+2.0*std(squeeze(fraction_t(:,ge_l,e_l,p_l,burn:end))')','Color',colors{p_l},'linewidth',lw(p_l),'linestyle',pattern{2})
+%         h(p_l)=plot(26:2:98,mean(fraction_t(:,ge_l,e_l,p_l,burn:end),5)-2.0*std(squeeze(fraction_t(:,ge_l,e_l,p_l,burn:end))')','Color',colors{p_l},'linewidth',lw(p_l),'linestyle',pattern{2})
 end
 ylim([0 1])
+subplot(1,2,2)
+plot(squeeze(fraction_t(1,ge_l,e_l,1,burn:end)))
 
 
 %% Moments assets

@@ -28,7 +28,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     H=-9.0d0
     !!$OMP PARALLEL  DEFAULT(PRIVATE) SHARED(H,beta)
     !!$OMP  DO collapse(4)
-    do t_l=1,types; do c_l=1,clusters; do g_l=1,generations; do ge_l=1,2;do e_l=1,L_educ
+    do t_l=1,types; do c_l=1,clusters; do g_l=1,generations; do ge_l=1,L_gender;do e_l=1,L_educ
         age=initial_age+(g_l-1)*2-70
         x(1:3,1)=(/1.0_dp,dble(age),dble(age)**2.0d0/)
         if (clusters==2) then
@@ -52,11 +52,16 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
             !    H(c_l,c_l2,g_l,t_l,ge_l,e_l)=0.5d0/sqrt(pi)*sum(weight*(prod1+prod2))
             !end do   
         end if
+
         H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_d(:,t_l,c_l,ge_l,e_l))/sqrt(2.0_dp)))
+
+        if (isnan(sum(H(c_l,:,g_l,t_l,ge_l,e_l)))) then
+            print*,'error in transitions'
+        end if
         H(c_l,1:clusters,g_l,t_l,ge_l,e_l)=H(c_l,1:2,g_l,t_l,ge_l,e_l)*(1.0d0-H(c_l,clusters+1,g_l,t_l,ge_l,e_l))
     end do; end do; end do; end do;end do
     !!$OMP END DO
-    !!$OMP END PARALLEL !H(2,1,:,1,1,3)
+    !!$OMP END PARALLEL !H(1,3,:,3,1,3)
 
     !No resurection
     H(clusters+1,1:clusters,:,:,:,:)=0.0_dp 
@@ -65,7 +70,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     !Compute LE in each health status at age 50
     LE=0.0d0
 
-    do ge_l=1,2; do t_l=1,types;do e_l=1,L_educ
+    do ge_l=1,L_gender; do t_l=1,types;do e_l=1,L_educ
         p=-9.0d0
         p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l)/sum(joint_yh(1,:,ge_l,e_l,t_l))
         if (isnan(sum(p)))then
