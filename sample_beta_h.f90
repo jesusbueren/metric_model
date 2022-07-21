@@ -42,7 +42,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
     
     
     do h_l=1,clusters;do t_l=1,types;do e_l=1,L_educ;do ge_l=1,L_gender
-        if (counter_big_X_h(h_l,t_l,ge_l,e_l)>5) then
+        if (counter_big_X_h(h_l,t_l,ge_l,e_l)>1) then
             beta_h(:,t_l,h_l,ge_l,e_l)=0.0d0
             do c_l=1,covariates
                 z(c_l,1)=c4_normal_01(  )
@@ -57,7 +57,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
                 print*,'error beta_h'
             end if
         else
-            print*,'strange beta_h'
+            print*,'strange beta_h',h_l,t_l,e_l,ge_l
         end if
     end do;end do;end do;end do
 

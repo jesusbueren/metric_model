@@ -50,7 +50,7 @@ burn=10
 
 %% Histogram from distribution of variables governing transitions
 for y_l=1:types
-c_l=1
+c_l=2
 ge_l=1
 e_l=1
 
@@ -177,7 +177,7 @@ print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\health_behavio
 
 
 %% Plot Life expectancy for the different groups
-burn=100
+burn=1000
 
 for ge_l=1:genders
 for e_l=1:educ

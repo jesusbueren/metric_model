@@ -1,4 +1,4 @@
-subroutine sample_y(gamma,y,sample_k,H,weights)
+subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
     use nrtype; use global_var
     implicit none
     integer,dimension(indv,1),intent(inout)::y
@@ -13,7 +13,7 @@ subroutine sample_y(gamma,y,sample_k,H,weights)
     real(DP),dimension(habits,generations,types,clusters)::alphas
     real(DP),dimension(types)::pr,filtered_pr,selection
     real(DP),dimension(generations,clusters,L_gender,L_educ,types),intent(in)::weights
-    
+    real(DP),dimension(indv,types),intent(out)::type_pr
 
     
     do e_l=1,types; do h_l=1,habits;do c_l=1,clusters; do g_l=1,generations
@@ -60,7 +60,7 @@ subroutine sample_y(gamma,y,sample_k,H,weights)
             
 
             pr=pr*filtered_pr/sum(pr*filtered_pr)
-            
+            type_pr(i_l,:)=pr
             log_likeli=log_likeli+log(pr(y(i_l,1)))+log(filtered_pr(y(i_l,1)))
             if (isnan(log_likeli))  then
                 print*,'problem sample y'

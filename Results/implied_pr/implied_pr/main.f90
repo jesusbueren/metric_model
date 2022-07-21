@@ -29,7 +29,7 @@ program main
     
     sample_k=data_shlt
     
-    call sample_y(gamma,y,fraction_t,sample_k)
+    call sample_y(gamma,y,sample_k,H,weights)
 
     
     do e_l=1,types

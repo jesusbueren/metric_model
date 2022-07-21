@@ -49,7 +49,7 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
         do c_l=1,covariates
             z(c_l,1)=c4_normal_01(  )
         end do
-        if (counter_big_X_d(h_l,t_l,ge_l,e_l)>5) then
+        if (counter_big_X_d(h_l,t_l,ge_l,e_l)>1) then
             beta_d(:,t_l,h_l,ge_l,e_l)=0.0d0
             Sigma=matmul(transpose(big_X_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:)),big_X_d(1:counter_big_X_d(h_l,t_l,ge_l,e_l),h_l,t_l,ge_l,e_l,:))
             call inverse(Sigma,inv_Sigma,covariates)

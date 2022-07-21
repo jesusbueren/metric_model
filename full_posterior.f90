@@ -14,6 +14,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     real(DP),dimension(types,L_gender,L_educ,clusters+1)::LE
     real(DP),dimension(generations,clusters,L_gender,L_educ,types)::weights,joint_yh
     real(DP),dimension(clusters,L_gender,L_educ)::share_h
+    real(DP),dimension(indv,types)::type_pr,type_pr_av
     !Timer
     integer::calc
     real::calctime
@@ -32,7 +33,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     call fraction_h_e_g(sample_k,share_h)
     
     H=1/dble(clusters+1)
-    burn=0
+    burn=1000
     
     
 
@@ -40,6 +41,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     beta_d=0.0d0
     gamma=0.0d0
     delta=1.0d0/dble(types)
+    type_pr_av=0.0d0
     
 
     !call tick(calc)
@@ -56,12 +58,17 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
         !Sample pr of type at initial age
         call sample_delta(delta,H,share_h,y,sample_k,weights,joint_yh)
         !sample type
-        call sample_y(gamma,y,sample_k,H,weights)
+        call sample_y(gamma,y,sample_k,H,weights,type_pr)
 
         if (it>burn) then
             call save_results(beta_h,beta_d,gamma,LE,sum(joint_yh,2),it-burn)
+            type_pr_av=dble(it-burn-1)/dble(it-burn)*type_pr_av+1.0d0/dble(it-burn)*type_pr
         end if
     end do
+    
+    open(unit=9,file=path_s//'implied_probilities.txt')
+        write(9,'(F20.8)') type_pr_av
+    close(9)
     
 end subroutine
     
