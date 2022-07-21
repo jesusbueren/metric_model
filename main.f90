@@ -2,8 +2,8 @@ program main
     use global_var;use nrtype
     implicit none
     integer,dimension(1)::seed=456
-    real(DP),dimension(covariates,types,clusters,L_gender,L_educ)::beta_h
-    real(DP),dimension(covariates,types,clusters,L_gender,L_educ)::beta_d
+    real(DP),dimension(covariates,clusters,L_gender,L_educ)::beta_h
+    real(DP),dimension(covariates,clusters,L_gender,L_educ)::beta_d
     real(DP),dimension(covariates_habits,habits,types)::gamma
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types)::delta
     integer,dimension(indv,1)::y

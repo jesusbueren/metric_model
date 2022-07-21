@@ -23,39 +23,12 @@ program main
     call random_seed(PUT=seed) 
     call charge_data()
     
-    !Load high density point from estimated posterior distribution 
-    ! and take it as true value
-    call load_high_density(beta_h,beta_d,gamma)
     
     sample_k=data_shlt
     
-    call sample_y(gamma,y,sample_k,H,weights)
-
-    
-    do e_l=1,types
-        do h_l=1,habits; do g_l=1,generations;do c_l=1,clusters
-            age=initial_age+(g_l-1)*2-70
-            health_d=dble(c_l-1)
-            x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),health_d/)
-            alphas(h_l,g_l,e_l,c_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*gamma(:,h_l,e_l))/sqrt(2.0_dp)))
-        end do; end do;end do
-    end do
-    
-    
-    do i_l=1,indv;
-        pr=1.0_dp
-        do g_l=first_age(i_l),last_age(i_l);do h_l=1,habits
-            do e_l=1,types
-                if (data_habits(i_l,h_l,g_l)==1 .and. sample_k(i_l,g_l)/=-1) then 
-                    pr(e_l)=pr(e_l)*alphas(h_l,g_l,e_l,sample_k(i_l,g_l))
-                elseif (data_habits(i_l,h_l,g_l)==0 .and. sample_k(i_l,g_l)/=-1) then
-                    pr(e_l)=pr(e_l)*(1.0d0-alphas(h_l,g_l,e_l,sample_k(i_l,g_l)))
-                end if
-            end do
-        end do; end do
-        pr=pr/sum(pr,1)
-        type_pr(i_l,:)=pr
-    end do
+    open(unit=9,file=path_s//'implied_probilities.txt')
+        read(9,'(F20.8)') type_pr
+    close(9)
     
     open(unit=9,file=path_s//'pr_type_hrs2.txt')
     do i_l=1,indv_HRS; do g_l=1,generations;
@@ -69,7 +42,7 @@ program main
     end do;end do
     close(9)
     
-    !call estimate_mixture_wealth(type_pr)
+    call estimate_mixture_wealth(type_pr)
     
     call estimate_mixture_income(type_pr)
     

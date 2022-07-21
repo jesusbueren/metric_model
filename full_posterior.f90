@@ -2,10 +2,10 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     use global_var; use nrtype
     implicit none
     real(DP),dimension(clusters,L_gender,L_educ,types),intent(inout)::delta
-    real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(inout)::beta_h
+    real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_h
     real(DP),dimension(covariates_habits,habits,types),intent(inout)::gamma
     integer,dimension(indv,1),intent(inout)::y
-    real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(inout)::beta_d
+    real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_d
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H,H_g 
     integer::it,burn
     integer,dimension(indv,generations)::sample_k
@@ -33,7 +33,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     call fraction_h_e_g(sample_k,share_h)
     
     H=1/dble(clusters+1)
-    burn=1000
+    burn=2000
     
     
 

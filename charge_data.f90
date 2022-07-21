@@ -46,6 +46,7 @@ subroutine charge_data()
     open(unit=10,file=path//"data\race_all_psid.csv")
         read(10,*) race(indv_HRS+1:indv)
     close(10)
+
     race=1
     
     

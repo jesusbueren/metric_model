@@ -1,14 +1,15 @@
 subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(in)::beta_h
-    real(DP),dimension(covariates,types,clusters,L_gender,L_educ),intent(in)::beta_d
+    real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h
+    real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_d
     real(DP),dimension(generations,clusters,L_gender,L_educ,types),intent(in)::joint_yh
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ),intent(out)::H
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(out)::LE
     integer::e_l,c_l,c_l2,g_l,ge_l,age,it,max_loc,d_l,c_l3,t_l
     double precision,dimension(L_educ-1)::educ_d
     real(DP),dimension(covariates,1)::x
+    real(DP),dimension(types-1)::dummy_type,dummy_type_x_age,dummy_type_x_age2
     real(DP),dimension(clusters,clusters,generations,types,L_gender,L_educ)::H_new
     integer,parameter::sims=1000
     integer,dimension(clusters+1)::counter_h
@@ -30,9 +31,17 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     !!$OMP  DO collapse(4)
     do t_l=1,types; do c_l=1,clusters; do g_l=1,generations; do ge_l=1,L_gender;do e_l=1,L_educ
         age=initial_age+(g_l-1)*2-70
-        x(1:3,1)=(/1.0_dp,dble(age),dble(age)**2.0d0/)
+        dummy_type=0.0d0
+        dummy_type_x_age=0.0d0
+        dummy_type_x_age2=0.0d0
+        if (t_l>1)then
+            dummy_type(t_l-1)=1.0d0
+            dummy_type_x_age(t_l-1)=dble(age)
+            dummy_type_x_age2(t_l-1)=dble(age)**2.0d0
+        end if
+        x(:,1)=[(/1.0_dp,dble(age),dble(age)**2.0d0/),dummy_type,dummy_type_x_age]!,dummy_type_x_age2
         if (clusters==2) then
-            H(c_l,1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_h(:,t_l,c_l,ge_l,e_l))/sqrt(2.0_dp)))
+            H(c_l,1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_h(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
             H(c_l,2,g_l,t_l,ge_l,e_l)=1.0d0-H(c_l,1,g_l,t_l,ge_l,e_l)
         else
             print*,'need to do smthg else'
@@ -53,7 +62,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
             !end do   
         end if
 
-        H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_d(:,t_l,c_l,ge_l,e_l))/sqrt(2.0_dp)))
+        H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_d(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
 
         if (isnan(sum(H(c_l,:,g_l,t_l,ge_l,e_l)))) then
             print*,'error in transitions'

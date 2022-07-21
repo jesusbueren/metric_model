@@ -33,7 +33,6 @@
 		<File RelativePath=".\income_process.f90"/>
 		<File RelativePath=".\kalman_FS.f90"/>
 		<File RelativePath="..\..\..\likelihoods.f90"/>
-		<File RelativePath=".\load_high_density.f90"/>
 		<File RelativePath=".\log_normal_dist.f90"/>
 		<File RelativePath=".\main.f90"/>
 		<File RelativePath=".\pr_of_zero_wealth.f90"/>

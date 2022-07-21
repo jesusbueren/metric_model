@@ -8,8 +8,8 @@ habits=6
 types=3
 educ=3
 genders=2
-covariates=3
-variables_tr=clusters*covariates*types*educ*genders
+covariates=3+(types-1)*2
+variables_tr=clusters*covariates*educ*genders
 variables_gma=covariates_habits*habits*types
 variables_p=12
 generations=37
@@ -20,7 +20,7 @@ cd('C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health')
 fileID=fopen('c_tr.txt');
 c_tr=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-c_tr=reshape(c_tr{1},covariates,types,clusters,genders,educ,size(c_tr{1},1)/(variables_tr));
+c_tr=reshape(c_tr{1},covariates,clusters,genders,educ,size(c_tr{1},1)/(variables_tr));
 
 
 fileID=fopen('LE.txt');
@@ -42,33 +42,34 @@ c_gma=reshape(c_gma{1},covariates_habits,habits,types,size(c_gma{1},1)/(variable
 
 
 
-iterations=min([size(c_gma,4) size(c_tr,6)])
+iterations=min([size(c_gma,4) size(c_tr,5)])
 
-burn=10
+burn=1000
 
 
 
 %% Histogram from distribution of variables governing transitions
-for y_l=1:types
-c_l=2
-ge_l=1
+
+for c_l=1:2
+ge_l=2
 e_l=1
 
-figure(y_l)
+figure(c_l)
 for cov_l=1:covariates
 subplot(2,covariates,cov_l)
-plot(squeeze(c_tr(cov_l,y_l,c_l,ge_l,e_l,burn:iterations)))
+plot(squeeze(c_tr(cov_l,c_l,ge_l,e_l,burn:iterations)))
 grid on
 subplot(2,covariates,covariates+cov_l)
-hist(squeeze(c_tr(cov_l,y_l,c_l,ge_l,e_l,burn:iterations)))
-end
+hist(squeeze(c_tr(cov_l,c_l,ge_l,e_l,burn:iterations)))
 
+
+end
 end
 
 
 %% Histogram from distribution of variables governing habits
 
-h_l=1 %habits
+h_l=5 %habits
 for y_l=1:types
 figure(y_l)
 for cov_l=1:covariates_habits
@@ -128,7 +129,7 @@ for h_l=[1 4 5 2 3 6]
     elseif h_l==6
         title('Obesity','FontWeight','normal','fontsize',FS)
     end 
-    yticks([0:20:100])
+    yticks([0:25:100])
     xlim([25 100])
     xticks([25:10:100])
     set(gcf,'color','w')
@@ -177,7 +178,6 @@ print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\health_behavio
 
 
 %% Plot Life expectancy for the different groups
-burn=1000
 
 for ge_l=1:genders
 for e_l=1:educ
