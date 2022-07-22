@@ -8,12 +8,14 @@ habits=6
 types=3
 educ=3
 genders=2
-covariates=3+(types-1)*2
-variables_tr=clusters*covariates*educ*genders
-variables_gma=covariates_habits*habits*types
 variables_p=12
 generations=37
 initial_age=26
+
+covariates=2+(types-1)*2
+variables_tr=clusters*covariates*educ*genders
+variables_gma=covariates_habits*habits*types
+variables_H=(clusters+1)*(clusters+1)*generations*types*genders*educ
 
 cd('C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health')
 
@@ -39,6 +41,11 @@ fileID=fopen('c_habits.txt');
 c_gma=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 c_gma=reshape(c_gma{1},covariates_habits,habits,types,size(c_gma{1},1)/(variables_gma));
+
+fileID=fopen('H.txt');
+H=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
+fclose(fileID);
+H=reshape(H{1},clusters+1,clusters+1,generations,types,genders,educ,size(H{1},1)/(variables_H));
 
 
 
@@ -102,8 +109,8 @@ alphas(4,1:12,:,:)=NaN;
 alphas(5,1:12,:,:)=NaN;
 
 colors = { [0.4660    0.6740    0.1880]  [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
-pattern = {  '-'  '--' ':' '-.' '-'};
-lw=[1.7 1.5 2.0]
+pattern = {  '-'  ':' '--' '-.' '-'};
+lw=[1.7 3.0 1.5 ]
     FS=11 %font size
 figure(10)
 set(10,'position',[150    150    750    350])
@@ -205,7 +212,7 @@ lw=[1.7 1.5 2.0]
 figure(4)
 subplot(1,2,1)
 for p_l=1:types 
-        h(p_l)=plot(26:2:98,mean(fraction_t(:,ge_l,e_l,p_l,burn:end),5),'Color',colors{p_l},'linewidth',lw(p_l),'linestyle',pattern{p_l})
+        h(p_l)=plot(26:2:90,mean(fraction_t(1:33,ge_l,e_l,p_l,burn:end),5),'Color',colors{p_l},'linewidth',lw(p_l),'linestyle',pattern{p_l})
         hold on
 %         h(p_l)=plot(26:2:98,mean(fraction_t(:,ge_l,e_l,p_l,burn:end),5)+2.0*std(squeeze(fraction_t(:,ge_l,e_l,p_l,burn:end))')','Color',colors{p_l},'linewidth',lw(p_l),'linestyle',pattern{2})
 %         h(p_l)=plot(26:2:98,mean(fraction_t(:,ge_l,e_l,p_l,burn:end),5)-2.0*std(squeeze(fraction_t(:,ge_l,e_l,p_l,burn:end))')','Color',colors{p_l},'linewidth',lw(p_l),'linestyle',pattern{2})
@@ -213,6 +220,22 @@ end
 ylim([0 1])
 subplot(1,2,2)
 plot(squeeze(fraction_t(1,ge_l,e_l,1,burn:end)))
+
+%% transition pr
+ge_l=1
+e_l=1
+t_l=3
+
+colors = { [0.4660    0.6740    0.1880]  [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+pattern = {  '-'  '--' ':' '-.' '-'};
+lw=[1.7 1.5 2.0]
+figure(6)
+for h_l=1:clusters 
+        h(h_l)=plot(26:2:90,squeeze(mean(H(h_l,3,1:33,t_l,ge_l,e_l,burn:end),7)),'Color',colors{h_l},'linewidth',lw(h_l),'linestyle',pattern{h_l})
+        hold on
+end
+ylim([0 1])
+
 
 
 %% Moments assets

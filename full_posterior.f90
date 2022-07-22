@@ -1,7 +1,7 @@
 subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(clusters,L_gender,L_educ,types),intent(inout)::delta
+    real(DP),dimension(covariates_mixture,L_gender,L_educ,types),intent(inout)::delta
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_h
     real(DP),dimension(covariates_habits,habits,types),intent(inout)::gamma
     integer,dimension(indv,1),intent(inout)::y
@@ -33,14 +33,12 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     call fraction_h_e_g(sample_k,share_h)
     
     H=1/dble(clusters+1)
-    burn=2000
-    
-    
+    burn=1!2000    
 
     beta_h=0.0d0
     beta_d=0.0d0
     gamma=0.0d0
-    delta=1.0d0/dble(types)
+    delta=0.0d0
     type_pr_av=0.0d0
     
 
@@ -61,7 +59,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
         call sample_y(gamma,y,sample_k,H,weights,type_pr)
 
         if (it>burn) then
-            call save_results(beta_h,beta_d,gamma,LE,sum(joint_yh,2),it-burn)
+            call save_results(beta_h,beta_d,gamma,LE,sum(joint_yh,2),H,it-burn)
             type_pr_av=dble(it-burn-1)/dble(it-burn)*type_pr_av+1.0d0/dble(it-burn)*type_pr
         end if
     end do

@@ -12,7 +12,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
     real(DP),dimension(indv*g_max,clusters,L_gender,L_educ,covariates)::big_X_h
     real(DP),dimension(indv*g_max,clusters,L_gender,L_educ)::big_Y_h
     integer,dimension(clusters,L_gender,L_educ)::counter_big_X_h
-    real(DP),dimension(types-1)::dummy_type,dummy_type_x_age,dummy_type_x_age2
+    real(DP),dimension(types-1)::dummy_type,dummy_type_x_age
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -25,13 +25,11 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
         age=initial_age+(g_l-1)*2-70
         dummy_type=0.0d0
         dummy_type_x_age=0.0d0
-        dummy_type_x_age2=0.0d0
         if (type_i(i_l,1)>1)then
             dummy_type(type_i(i_l,1)-1)=1.0d0
             dummy_type_x_age(type_i(i_l,1)-1)=dble(age)
-            dummy_type_x_age2(type_i(i_l,1)-1)=dble(age)**2.0d0
         end if
-        x(:,1)=[(/1.0_dp,dble(age),dble(age)**2.0d0/),dummy_type,dummy_type_x_age]!,dummy_type_x_age2
+        x(:,1)=[(/1.0_dp,dble(age)/),dummy_type,dummy_type_x_age]!,dble(age)**2.0d0
         
         if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. sample_k(i_l,g_l+1)<clusters+1 .and. race(i_l)==1) then
             counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1

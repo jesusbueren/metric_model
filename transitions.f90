@@ -9,7 +9,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     integer::e_l,c_l,c_l2,g_l,ge_l,age,it,max_loc,d_l,c_l3,t_l
     double precision,dimension(L_educ-1)::educ_d
     real(DP),dimension(covariates,1)::x
-    real(DP),dimension(types-1)::dummy_type,dummy_type_x_age,dummy_type_x_age2
+    real(DP),dimension(types-1)::dummy_type,dummy_type_x_age
     real(DP),dimension(clusters,clusters,generations,types,L_gender,L_educ)::H_new
     integer,parameter::sims=1000
     integer,dimension(clusters+1)::counter_h
@@ -29,17 +29,15 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     H=-9.0d0
     !!$OMP PARALLEL  DEFAULT(PRIVATE) SHARED(H,beta)
     !!$OMP  DO collapse(4)
-    do t_l=1,types; do c_l=1,clusters; do g_l=1,generations; do ge_l=1,L_gender;do e_l=1,L_educ
+    do t_l=1,types; do c_l=1,clusters; do g_l=generations,1,-1; do ge_l=1,L_gender;do e_l=1,L_educ
         age=initial_age+(g_l-1)*2-70
         dummy_type=0.0d0
         dummy_type_x_age=0.0d0
-        dummy_type_x_age2=0.0d0
         if (t_l>1)then
             dummy_type(t_l-1)=1.0d0
             dummy_type_x_age(t_l-1)=dble(age)
-            dummy_type_x_age2(t_l-1)=dble(age)**2.0d0
         end if
-        x(:,1)=[(/1.0_dp,dble(age),dble(age)**2.0d0/),dummy_type,dummy_type_x_age]!,dummy_type_x_age2
+        x(:,1)=[(/1.0_dp,dble(age)/),dummy_type,dummy_type_x_age]!,dble(age)**2.0d0
         if (clusters==2) then
             H(c_l,1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_h(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
             H(c_l,2,g_l,t_l,ge_l,e_l)=1.0d0-H(c_l,1,g_l,t_l,ge_l,e_l)
@@ -61,8 +59,10 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
             !    H(c_l,c_l2,g_l,t_l,ge_l,e_l)=0.5d0/sqrt(pi)*sum(weight*(prod1+prod2))
             !end do   
         end if
-
+            
         H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_d(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
+
+
 
         if (isnan(sum(H(c_l,:,g_l,t_l,ge_l,e_l)))) then
             print*,'error in transitions'
@@ -85,7 +85,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
         if (isnan(sum(p)))then
             print*,''
         end if
-        do g_l=2,generations
+        do g_l=2,generations-4
             if (g_l>12) then
                 if (g_l==13) then
                     p(3,g_l-1)=0.0d0

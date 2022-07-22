@@ -1,4 +1,4 @@
-subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,it)
+subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,H,it)
     use global_var; use nrtype
     implicit none
     real(dp),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h
@@ -7,6 +7,8 @@ subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,it)
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(in)::LE
     integer,intent(in)::it
     real(DP),dimension(generations,L_gender,L_educ,types),intent(in)::fraction_t
+    real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ),intent(in)::H
+    
     real(dp),dimension(clusters*covariates*L_gender*L_educ,1)::c_tr
     real(dp),dimension(clusters*covariates*L_gender*L_educ,1)::c_tr_d
     real(dp),dimension(covariates_habits*habits*types,1)::c_habits
@@ -35,6 +37,9 @@ subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,it)
         open(unit=9,file=path_s//'fraction_t.txt')
             write(9,'(F7.4)') fraction_t_v
         close(9)
+        open(unit=9,file=path_s//'H.txt')
+            write(9,'(F7.4)') H
+        close(9)
     else
         open(unit=9,file=path_s//'c_tr.txt',access='append')
             write(9,'(F20.8)') c_tr
@@ -50,6 +55,9 @@ subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,it)
         close(9)
         open(unit=9,file=path_s//'fraction_t.txt',access='append')
             write(9,'(F7.4)') fraction_t_v
+        close(9)
+        open(unit=9,file=path_s//'H.txt',access='append')
+            write(9,'(F7.4)') H
         close(9)
     end if
         
