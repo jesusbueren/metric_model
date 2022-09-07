@@ -12,7 +12,7 @@ subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
     real(dp)::d,p,u,log_likeli
     real(DP),dimension(habits,generations,types,clusters)::alphas
     real(DP),dimension(types)::pr,filtered_pr,selection
-    real(DP),dimension(generations,clusters,L_gender,L_educ,types),intent(in)::weights
+    real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts),intent(in)::weights
     real(DP),dimension(indv,types),intent(out)::type_pr
 
     
@@ -30,10 +30,10 @@ subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
         if (race(i_l)==1) then
             pr=1.0d0
             if (sample_k(i_l,first_age(i_l))/=-1) then
-                filtered_pr=weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:) 
+                filtered_pr=weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:,birth_cohort(i_l)) 
             else
                 !Change this in the future (just one observation either way)
-                filtered_pr=weights(first_age(i_l),1,gender(i_l),educ(i_l),:)
+                filtered_pr=weights(first_age(i_l),1,gender(i_l),educ(i_l),:,birth_cohort(i_l))
             end if
                 
             do g_l=first_age(i_l),last_age(i_l)-1
@@ -46,11 +46,11 @@ subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
                 end do; end do
                 do e_l=1,types
                     if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then 
-                        !if (i_l<=indv_HRS) then
+                        if (i_l<=indv_HRS) then
                             filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))
-                        !else
-                        !    filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))) 
-                        !end if
+                        else
+                            filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))) 
+                        end if
                     end if
                 if (isnan(sum(filtered_pr))) then
                     print*,'pb sample_y'
@@ -86,7 +86,7 @@ subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
     end do
     y=y_new
     
-    print*,'likelihood',log_likeli
+    !print*,'likelihood',log_likeli
     
     !print*,'change cluster', real(changes)/real(indv), 'share',real(share)/real(indv)
     

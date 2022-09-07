@@ -44,6 +44,6 @@ program main
     
     call estimate_mixture_wealth(type_pr)
     
-    call estimate_mixture_income(type_pr)
+    !call estimate_mixture_income(type_pr)
     
 end program

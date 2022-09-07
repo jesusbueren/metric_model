@@ -7,7 +7,7 @@ program main
     real(DP),dimension(covariates_habits,habits,types)::gamma
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types)::delta
     integer,dimension(indv,1)::y
-    integer::i_l,ind
+    integer::i_l
     real(DP)::u
     
     call random_seed(PUT=seed)
@@ -16,15 +16,16 @@ program main
     call charge_data()
     
     !Original types are sampled with higher probability of smokers are type 3, if high bmi type 2 else type 1
+    ! This is irrelevant for the estimation results but it ensures that the type 1 is always the protective, Type 2 detrimental and type 3 harmful
     y=-1
     do i_l=1,indv
         call random_number(u)
-        if (data_habits(i_l,3,first_age(i_l))==1) then
+        if (data_habits(i_l,3,first_age(i_l))==1) then !smoking
             if (u<0.8d0)then
                 y(i_l,1)=3
             end if
         end if
-        if (data_habits(i_l,6,first_age(i_l))==1 .and. y(i_l,1)==-1) then
+        if (data_habits(i_l,6,first_age(i_l))==1 .and. y(i_l,1)==-1) then !high bmi
             if (u<0.8d0)then
                 y(i_l,1)=2
             end if
@@ -33,22 +34,15 @@ program main
             y(i_l,1)=1
         end if
     end do
-    
 
     
-    
-    !call simulate_data()
-    
-    !Initial conditions
-    !call initial_conditions(beta_h,beta_d,gamma,y,delta)
-    !open(unit=9,file=path_s//'initial_conditions.txt')
-    !    write(9,'(F20.10)') beta_h,gamma,beta_d,delta
-    !close(9)
-    
     !Full posterior
-    open(unit=9,file=path_s//'initial_conditions.txt')
-        read(9,'(F20.10)') beta_h,gamma,beta_d,delta
-    close(9)
+    
+    !Initial guess
+    beta_h=0.0d0
+    beta_d=0.0d0
+    gamma=0.0d0
+    delta=0.0d0
     call full_posterior(beta_h,beta_d,gamma,y,delta)
     
 end program

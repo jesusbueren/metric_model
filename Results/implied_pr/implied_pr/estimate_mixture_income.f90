@@ -20,8 +20,8 @@ subroutine estimate_mixture_income(type_pr)
     data_income=-9.0d0
     data_income(indv_HRS+1:indv,:)=reshape(data_income_psid,(/indv_psid,generations/),order=(/2,1/)) 
 
-    !call pr_of_zero_income()
-    !call pr_of_zero_income_dynamic()
+    call pr_of_zero_income()
+    call pr_of_zero_income_dynamic()
     
     call income_process(type_pr)
 

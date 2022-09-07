@@ -20,7 +20,7 @@ subroutine sample_probit_p(y,beta_w)
     do i_l=1,indv;do g_l=first_age(i_l),last_age(i_l)
         age=initial_age+(g_l-1)*2-70
         x(1:4,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0/)     
-        if (data_wealth(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1) then
+        if (data_wealth(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<85) then
             counter_big_X(y(i_l,1),educ(i_l))=counter_big_X(y(i_l,1),educ(i_l))+1
             big_X(counter_big_X(y(i_l,1),educ(i_l)),y(i_l,1),educ(i_l),:)=x(:,1)
             if (data_wealth(i_l,g_l)<=0.0d0 ) then

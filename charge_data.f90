@@ -46,6 +46,12 @@ subroutine charge_data()
     open(unit=10,file=path//"data\race_all_psid.csv")
         read(10,*) race(indv_HRS+1:indv)
     close(10)
+    open(unit=10,file=path//"data\birth_all.csv")
+        read(10,*) birth_cohort(1:indv_HRS)
+    close(10)
+    open(unit=10,file=path//"data\birth_psid.csv")
+        read(10,*) birth_cohort(indv_HRS+1:indv) 
+    close(10)
 
     race=1
     
@@ -79,7 +85,8 @@ subroutine charge_data()
             end do
         end if
     end do
-
+    
+    !Dummies for education
     high_school=0
     college=0
     do i_l=1,indv
@@ -107,5 +114,24 @@ subroutine charge_data()
         a_bar(i_l)=a_bar(i_l)/dble(index)
     end do
     
+    !Birth cohorts
+    if (cohorts==1) then
+        birth_cohort=1
+    else
+        !5 cohorts
+        do i_l=1,indv
+            if (birth_cohort(i_l)<1920) then
+                birth_cohort(i_l)=1
+            elseif (birth_cohort(i_l)<1940) then
+                birth_cohort(i_l)=2
+            elseif (birth_cohort(i_l)<1960) then
+                birth_cohort(i_l)=3
+            elseif (birth_cohort(i_l)<1980) then
+                birth_cohort(i_l)=4
+            else
+                birth_cohort(i_l)=5
+            end if
+        end do
+    end if
     
 end subroutine

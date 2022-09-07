@@ -3,7 +3,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     implicit none
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_d
-    real(DP),dimension(generations,clusters,L_gender,L_educ,types),intent(in)::joint_yh
+    real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts),intent(in)::joint_yh
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ),intent(out)::H
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(out)::LE
     integer::e_l,c_l,c_l2,g_l,ge_l,age,it,max_loc,d_l,c_l3,t_l
@@ -81,9 +81,13 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
 
     do ge_l=1,L_gender; do t_l=1,types;do e_l=1,L_educ
         p=-9.0d0
-        p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l)/sum(joint_yh(1,:,ge_l,e_l,t_l))
+        if (cohorts==5) then
+            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,5)/sum(joint_yh(1,:,ge_l,e_l,t_l,3))
+        else
+            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,5)/sum(joint_yh(1,:,ge_l,e_l,t_l,1))
+        end if
         if (isnan(sum(p)))then
-            print*,''
+            print*,'error in transitions: initial cond. Don t worry if it=1'
         end if
         do g_l=2,generations-4
             if (g_l>12) then

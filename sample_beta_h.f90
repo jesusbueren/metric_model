@@ -70,3 +70,45 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
     end do;end do;end do
 
 end subroutine
+    
+SUBROUTINE choldc(a,n)
+use nrtype
+    IMPLICIT NONE
+    integer,intent(in)::n
+    real(DP), DIMENSION(n,n), INTENT(INOUT) :: a
+    real(DP), DIMENSION(n) :: p
+    INTEGER :: i,j
+    real(DP) :: summ
+    do i=1,n
+	    summ=a(i,i)-dot_product(a(i,1:i-1),a(i,1:i-1))
+	    p(i)=sqrt(summ)
+	    a(i+1:n,i)=(a(i,i+1:n)-matmul(a(i+1:n,1:i-1),a(i,1:i-1)))/p(i)
+    end do
+    
+    do i=1,n
+        do j=1,n
+            if (i==j) then
+                a(i,i)=p(i)
+            elseif (i<j) then
+                a(i,j)=0.0d0
+            end if
+        end do
+    end do
+    
+    END SUBROUTINE choldc
+    
+    double precision function c4_normal_01 (  )
+!------------------------------------------------------------------------------------------------------------------------------------
+  implicit none
+  double precision, parameter :: r4_pi=3.14159265358979323846264338327950288419716939937510
+  double precision:: v1
+  double precision:: v2
+  double precision:: x_c
+  double precision:: x_r 
+  call random_number(v1)
+  call random_number(v2)
+  x_r =sqrt(-2.0d0*log(v1))*cos(2.0d0*r4_pi*v2)
+  x_c =sqrt(-2.0d0*log(v1))*sin(2.0d0*r4_pi*v2)
+  c4_normal_01=x_r
+  return
+end

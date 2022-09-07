@@ -2,7 +2,7 @@ subroutine simulate_data()
     use global_var; use nrtype
     implicit none
     real(DP),dimension(clusters,L_gender,L_educ)::share_h
-    real(DP),dimension(clusters,L_gender,L_educ,types)::delta
+    real(DP),dimension(clusters,L_gender,L_educ,types,cohorts)::delta
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H
     real(DP),dimension(generations,clusters,L_gender,L_educ,types)::weights,joint_yh
     real(DP),dimension(habits,generations,types,clusters)::alphas
@@ -22,11 +22,11 @@ subroutine simulate_data()
     share_h(2,1,1)=1.d0-share_h(1,1,1)
     
     !Set parameter of weights of behavior types in the initial age given intitial health
-    delta(1,1,1,1)=0.8d0
-    delta(1,1,1,2)=1.0d0-delta(1,1,1,1)
+    delta(1,1,1,1,:)=0.8d0
+    delta(1,1,1,2,:)=1.0d0-delta(1,1,1,1,:)
     
-    delta(2,1,1,1)=0.2d0
-    delta(2,1,1,2)=1.0d0-delta(2,1,1,1)
+    delta(2,1,1,1,:)=0.2d0
+    delta(2,1,1,2,:)=1.0d0-delta(2,1,1,1,:)
     
     !Set transition probabilities
     H(clusters+1,clusters+1,:,:,1,1)=1.0d0
