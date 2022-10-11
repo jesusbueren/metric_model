@@ -14,6 +14,7 @@ subroutine estimate_mixture_wealth(type_pr)
     real(DP),dimension(generations,indv_psid)::data_wealth_psid
     real(DP),dimension(generations,types,L_educ)::pr_zero
     real(DP),dimension(generations,types,L_educ,3)::quantile_w
+    real(DP),dimension(generations,types,L_educ)::mean_w,variance_w
     real(DP),dimension(3)::quantiles=(/0.25d0,0.5d0,0.75d0/)
     real(DP),dimension(covariates_mix,types,L_educ)::beta_mean
     real(DP),dimension(types,L_educ)::beta_var
@@ -41,28 +42,22 @@ subroutine estimate_mixture_wealth(type_pr)
     do p_l=1,3
         p=quantiles(p_l)
         do e_l=1,L_educ; do y_l=1,types;do g_l=1,generations
+            q=p-pr_zero(g_l,y_l,e_l)
+            call quantile_wealth_hat(y_l,e_l,g_l,beta_mean,beta_var,q,quantile_w(g_l,y_l,e_l,p_l),mean_w(g_l,y_l,e_l),variance_w(g_l,y_l,e_l))
             if (pr_zero(g_l,y_l,e_l)>p) then 
-                quantile_w(g_l,y_l,e_l,p_l)=0.0d0
-            else
-                q=p-pr_zero(g_l,y_l,e_l)
-                call quantile_wealth_hat(y_l,e_l,g_l,beta_mean,beta_var,q,quantile_w(g_l,y_l,e_l,p_l))
+                quantile_w(g_l,y_l,e_l,p_l)=0.0d0                
             end if    
         end do; end do; end do
     end do
     
     open(unit=10,file=path//"metric_model\Results\wealth_moments_data.txt")
         do e_l=1,L_educ; do y_l=1,types;do g_l=1,generations
-            write(10,'(I3,I3,I3,<3>F14.1)') y_l,e_l,g_l,quantile_w(g_l,y_l,e_l,1),quantile_w(g_l,y_l,e_l,2),quantile_w(g_l,y_l,e_l,3)
+            write(10,'(I3,I3,I3,<5>F14.1)') y_l,e_l,g_l,quantile_w(g_l,y_l,e_l,1),quantile_w(g_l,y_l,e_l,2),quantile_w(g_l,y_l,e_l,3),mean_w(g_l,y_l,e_l)*(1.0d0-pr_zero(g_l,y_l,e_l)),sqrt(variance_w(g_l,y_l,e_l))
         end do; end do; end do
     close(10)
 
-    
-    open(unit=10,file=path//"metric_model\Results\wealth_moments_data.txt")
-        do e_l=1,L_educ; do y_l=1,types;do g_l=1,generations
-            write(10,'(I3,I3,I3,<3>F14.1)') y_l,e_l,g_l,quantile_w(g_l,y_l,e_l,1),quantile_w(g_l,y_l,e_l,2),quantile_w(g_l,y_l,e_l,3) 
-        end do; end do; end do
-    close(10)    
+      
 
-    
+    pause
 
 end subroutine

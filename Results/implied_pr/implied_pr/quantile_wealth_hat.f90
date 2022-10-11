@@ -1,11 +1,11 @@
-subroutine quantile_wealth_hat(y_l,e_l,g_l,beta_mean,beta_var,quantile,q_wealth)
+subroutine quantile_wealth_hat(y_l,e_l,g_l,beta_mean,beta_var,quantile,q_wealth,mean_w,variance_w)
     use global_var; use nrtype; use mixtures_vars
     implicit none
     integer,intent(in)::y_l,e_l,g_l
     real(DP),dimension(covariates_mix,types,L_educ),intent(in)::beta_mean
     real(DP),dimension(types,L_educ),intent(in)::beta_var
     real(DP),intent(in)::quantile
-    real(DP),intent(out)::q_wealth
+    real(DP),intent(out)::q_wealth,mean_w,variance_w
     real(DP),dimension(covariates_mix,1)::x
     integer::age
     real(DP)::x2
@@ -16,6 +16,9 @@ subroutine quantile_wealth_hat(y_l,e_l,g_l,beta_mean,beta_var,quantile,q_wealth)
         x2=2.0d0*quantile-1.0d0
         q_wealth=exp(sum(x(:,1)*beta_mean(:,y_l,e_l))+sqrt(beta_var(y_l,e_l))*sqrt(2.0d0)*&
             sqrt(pi_d)*(0.5d0*x2+1.0d0/24.0d0*pi_d*x2**3.0d0+7.0d0/960.0d0*pi_d**2.0d0*x2**5.0d0+127.0d0/80640.0d0*pi_d**3.0d0*x2**7.0d0))
+        mean_w=exp(sum(x(:,1)*beta_mean(:,y_l,e_l))+beta_var(y_l,e_l)/2.0d0)
+        variance_w=(exp(beta_var(y_l,e_l))-1.0d0)*exp(2.0d0*sum(x(:,1)*beta_mean(:,y_l,e_l))+beta_var(y_l,e_l))
+        
     
 end subroutine
     

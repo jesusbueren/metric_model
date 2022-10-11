@@ -205,7 +205,7 @@ end
 %% Plot weights
 ge_l=1
 e_l=1
-
+FS=8
 colors = { [0.4660    0.6740    0.1880]  [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {  '-'  '--' ':' '-.' '-'};
 lw=[1.7 1.5 2.0]
@@ -289,9 +289,9 @@ cd('C:\Users\jbueren\Google Drive\endo_health\metric_model\Results')
     mean_wealth=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
     fclose(fileID);
 
-    mean_wealth=reshape(mean_wealth{1},6,37,3,3);
+    mean_wealth=reshape(mean_wealth{1},8,37,3,3);
 
-for p=1:3
+for p=1:4
     
 
 colors = {  [0.4660    0.6740    0.1880]   [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
@@ -301,7 +301,7 @@ FS=11
 figure(2)
 set(2,'position',[950    150    750    750])
 for e_l=1:3
-subplot(3,3,(p-1)*3+e_l)
+subplot(4,3,(p-1)*3+e_l)
 for y_l=1:3
 h(y_l)=plot(26:2:80,mean_wealth(3+p,1:28,y_l,e_l)./1000,'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
 hold on
@@ -317,8 +317,19 @@ else
     title('college')
 %     ylim([0 1000])
 end
-ylim([0 1000])
-
+ylim([0 2000])
+if e_l==1
+    if p==1
+        ylabel('P25')
+    elseif p==2
+        ylabel('P50')
+    elseif p==3
+        ylabel('P75')
+    elseif p==4
+        ylabel('Mean')
+    end 
+end
+        
 end
 if p==1
 I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
@@ -340,6 +351,9 @@ print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\wealth_moments_p75','-d
 print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\wealth_moments_p75','-depsc')
 end
 end
+print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\wealth_moments','-depsc')
+print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\wealth_moments','-depsc')
+
 
 
 
