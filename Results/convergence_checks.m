@@ -460,7 +460,7 @@ cd('C:\Users\jbueren\Google Drive\endo_health\metric_model\Results')
 fileID=fopen('median_income.txt');
 mean_wealth=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-mean_wealth=reshape(mean_wealth{1},4,37,3,3);
+mean_wealth=reshape(mean_wealth{1},5,37,3,3,5);
 
 colors = {  [0.4660    0.6740    0.1880]   [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = { '--'  '-'  ':' '-.' '-'};
@@ -471,7 +471,7 @@ set(3,'position',[150    150    750    350])
 for e_l=1:3
 subplot(1,3,e_l)
 for y_l=1:3
-h(y_l)=plot(26:2:64,mean_wealth(4,1:20,y_l,e_l)./1000,'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
+h(y_l)=plot(26:2:64,mean_wealth(5,1:20,y_l,e_l,3),'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
 hold on
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
@@ -482,9 +482,10 @@ elseif e_l==2
 else
     title('college')
 end
-ylim([0 100])
+% ylim([0 200])
+ylim([10 11.5])
 xticks(0:10:60)
-yticks(0:25:150)
+% yticks(0:25:150)
 end
 I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
 legend('boxoff')

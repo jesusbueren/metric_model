@@ -2,10 +2,10 @@ subroutine sample_rho_nu(u_draw,s2_nu,rho,s2_nu_new)
     use global_var;use nrtype
     implicit none
     double precision,dimension(indv,generations),intent(in)::u_draw
-    double precision,intent(in)::s2_nu
-    double precision,dimension(1,1),intent(out)::rho
-    double precision,intent(out)::s2_nu_new
-    integer::ind,t_l,i_l
+    double precision,dimension(L_educ),intent(in)::s2_nu
+    double precision,dimension(L_educ,1),intent(out)::rho
+    double precision,dimension(L_educ),intent(out)::s2_nu_new
+    integer::ind,t_l,i_l,e_l
     double precision,dimension(indv*generations,1)::x_u,y_u,e
     double precision,dimension(1,1)::rho_hat
     double precision::v,s2,shape,scale
@@ -22,10 +22,11 @@ subroutine sample_rho_nu(u_draw,s2_nu,rho,s2_nu_new)
     end interface
     
     !Sample rho
+    do e_l=1,L_educ
     ind=0
     do i_l=indv_HRS+1,indv
         do t_l=first_age(i_l),last_age(i_l)-1
-            if (u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 ) then
+            if (u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<64 .and. educ(i_l)==e_l ) then 
                 ind=ind+1
                 x_u(ind,1)=u_draw(i_l,t_l)
                 y_u(ind,1)=u_draw(i_l,t_l+1)
@@ -34,15 +35,16 @@ subroutine sample_rho_nu(u_draw,s2_nu,rho,s2_nu_new)
     end do
     
     rho_hat=matmul(1/matmul(transpose(x_u(1:ind,1:1)),x_u(1:ind,1:1)),matmul(transpose(x_u(1:ind,1:1)),y_u(1:ind,1:1)))
-    rho=rho_hat(1,1)+c4_normal_01( )*sqrt(1/matmul(transpose(x_u(1:ind,1:1)),x_u(1:ind,1:1))*s2_nu)
+    rho(e_l:e_l,1:1)=rho_hat(1,1)+c4_normal_01( )*sqrt(1/matmul(transpose(x_u(1:ind,1:1)),x_u(1:ind,1:1))*s2_nu(e_l))
     
     !Sample s2_nu
     v=dble(ind-1)
-    e(1:ind,1:1)=y_u(1:ind,1:1)-rho(1,1)*x_u(1:ind,1:1) 
+    e(1:ind,1:1)=y_u(1:ind,1:1)-rho(e_l,1)*x_u(1:ind,1:1) 
     s2=sum(e(1:ind,1:1)**2)/v
     shape=v/2
     scale=1/(v*s2/2)
-    s2_nu_new=1/(r8_gamma_01_sample(shape)*scale)
+    s2_nu_new(e_l)=1/(r8_gamma_01_sample(shape)*scale)
+    end do
     
     end subroutine
 
