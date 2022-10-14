@@ -73,7 +73,7 @@ subroutine sample_mean_p_income(y,beta_var,u_draw,beta_mean)
         cohort_d=0.0d0
         cohort_d(birth_cohort(i_l))=1.0d0
         x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,g_l)-1),y_d(2:types),cohort_d(4:5)/)     
-        if (data_income(i_l,g_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<64 ) then !.and. birth_cohort(i_l)==3
+        if (data_income(i_l,g_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<60 .and. initial_age+(g_l-1)*2>27 ) then !.and. birth_cohort(i_l)==3
             counter_big_X(educ(i_l))=counter_big_X(educ(i_l))+1
             big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)
             big_Y(counter_big_X(educ(i_l)),educ(i_l))=log(data_income(i_l,g_l))-u_draw(i_l,g_l)

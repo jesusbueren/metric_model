@@ -48,7 +48,7 @@ subroutine quantile_income_hat(y_l,e_l,c_l,g_l,beta_mean,beta_var,quantile,q_inc
         !q_income=exp(sum(x(:,1)*beta_mean(:,e_l))+sqrt(beta_var)*sqrt(2.0d0)* &
         !    sqrt(pi_d)*(0.5d0*x2+1.0d0/24.0d0*pi_d*x2**3.0d0+7.0d0/960.0d0*pi_d**2.0d0*x2**5.0d0+127.0d0/80640.0d0*pi_d**3.0d0*x2**7.0d0))
         
-        q_income=sum(x(:,1)*beta_mean(:,e_l))!+beta_var/2.0d0
+        q_income=exp(sum(x(:,1)*beta_mean(:,e_l))+beta_var/2.0d0)
 
 
 

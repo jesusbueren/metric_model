@@ -26,7 +26,7 @@ subroutine sample_rho_nu(u_draw,s2_nu,rho,s2_nu_new)
     ind=0
     do i_l=indv_HRS+1,indv
         do t_l=first_age(i_l),last_age(i_l)-1
-            if (u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<64 .and. educ(i_l)==e_l ) then 
+            if (u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60 .and. educ(i_l)==e_l ) then 
                 ind=ind+1
                 x_u(ind,1)=u_draw(i_l,t_l)
                 y_u(ind,1)=u_draw(i_l,t_l+1)

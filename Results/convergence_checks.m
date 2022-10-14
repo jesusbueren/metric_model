@@ -466,12 +466,12 @@ colors = {  [0.4660    0.6740    0.1880]   [0.9290    0.6940    0.1250]    [0.85
 pattern = { '--'  '-'  ':' '-.' '-'};
 lw=[1.5 1.5 2.5]
 FS=11
-figure(3)
-set(3,'position',[150    150    750    350])
+figure(5)
+set(5,'position',[150    150    750    350])
 for e_l=1:3
 subplot(1,3,e_l)
 for y_l=1:3
-h(y_l)=plot(26:2:64,mean_wealth(5,1:20,y_l,e_l,3),'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
+h(y_l)=plot(26:2:64,mean_wealth(5,1:20,y_l,e_l,5)./1000,'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
 hold on
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
@@ -482,8 +482,8 @@ elseif e_l==2
 else
     title('college')
 end
-% ylim([0 200])
-ylim([10 11.5])
+ylim([0 200])
+% ylim([10 11.5])
 xticks(0:10:60)
 % yticks(0:25:150)
 end

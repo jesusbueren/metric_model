@@ -45,7 +45,7 @@ subroutine kalman_FS(rho_e,s2_nu_e,s2_w_e,beta_mean,y,u_draw)
             x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,t_l)-1),y_d(2:types),cohort_d(4:5)/)
             y_p(t_l)=sum(x(1:covariates_mix_mean,1)*beta_mean(:,educ(i_l)))+xi_p(t_l)+c4_normal_01( )*sqrt(s2_w)
             !Gain & Updating equations
-            if (data_income(i_l,t_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<64 ) then
+            if (data_income(i_l,t_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60 ) then
                 K=P_t1_t0(t_l)*(P_t1_t0(t_l)+s2_w)**-1.0d0
                 xi_t1_t1(t_l)=xi_t1_t0(t_l)+K*(log(data_income(i_l,t_l))-sum(x(1:covariates_mix_mean,1)*beta_mean(:,educ(i_l)))-xi_t1_t0(t_l)) 
             else
