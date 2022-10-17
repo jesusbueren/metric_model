@@ -30,14 +30,14 @@ subroutine sample_s2w(y,u_draw,beta_mean,s2_w)
         ind=0
         do i_l=indv_HRS+1,indv
             do t_l=first_age(i_l),last_age(i_l)
-                if (u_draw(i_l,t_l)/=-1.0d0 .and. data_income(i_l,t_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60 .and. educ(i_l)==e_l) then 
+                if (u_draw(i_l,t_l)/=-1.0d0 .and. data_income(i_l,t_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<63 .and. educ(i_l)==e_l) then 
                     ind=ind+1
                     age=initial_age+(t_l-1)*2-70
                     y_d=0.0d0
-                y_d(y(i_l,1))=1.0d0
-                cohort_d=0.0d0
-                cohort_d(birth_cohort(i_l))=1.0d0
-                x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,t_l)-1),y_d(2:types),cohort_d(4:5)/)
+                    y_d(y(i_l,1))=1.0d0
+                    cohort_d=0.0d0
+                    cohort_d(birth_cohort(i_l))=1.0d0
+                    x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,t_l)-1),y_d(2:types),cohort_d(4:5)/)
                     w_draw(ind,1)=log(data_income(i_l,t_l))-u_draw(i_l,t_l)-sum(x(1:covariates_mix_mean,1)*beta_mean(:,educ(i_l)))
                 end if
             end do

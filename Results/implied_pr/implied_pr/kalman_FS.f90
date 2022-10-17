@@ -1,10 +1,11 @@
-subroutine kalman_FS(rho_e,s2_nu_e,s2_w_e,beta_mean,y,u_draw)
+subroutine kalman_FS(s2_0_e,s2_nu_e,s2_w_e,beta_mean,y,u_draw)
     use global_var;use nrtype; use mixtures_vars_income
     implicit none
     double precision,dimension(indv,generations),intent(out)::u_draw
-    double precision,dimension(L_educ),intent(in)::rho_e,s2_nu_e,s2_w_e
+    double precision,dimension(L_educ),intent(in)::s2_nu_e,s2_w_e
+    double precision,dimension(cohorts,L_educ),intent(in)::s2_0_e
     real(DP),dimension(covariates_mix_mean,L_educ),intent(in)::beta_mean
-    double precision::rho,s2_nu,s2_w
+    double precision::rho,s2_nu,s2_w,s2_0
     real(DP),dimension(covariates_mix_mean,1)::x
     integer,dimension(indv,1),intent(in)::y
     integer::t_l,i_l
@@ -22,7 +23,8 @@ subroutine kalman_FS(rho_e,s2_nu_e,s2_w_e,beta_mean,y,u_draw)
     
     u_draw=-1.0d0
     do i_l=indv_HRS+1,indv
-        rho=rho_e(educ(i_l))
+        rho=1.0d0
+        s2_0=s2_0_e(birth_cohort(i_l),educ(i_l))
         s2_nu=s2_nu_e(educ(i_l))
         s2_w=s2_w_e(educ(i_l))
         !Filter
@@ -31,9 +33,9 @@ subroutine kalman_FS(rho_e,s2_nu_e,s2_w_e,beta_mean,y,u_draw)
         do t_l=first_age(i_l),last_age(i_l)
             if (t_l==first_age(i_l)) then
                 xi_t1_t0(t_l)=0
-                P_t1_t0(t_l)=s2_nu/(1-rho**2)
+                P_t1_t0(t_l)=s2_0+(t_l-1)*s2_nu
                 xi_t1_t0_p(t_l)=0
-                xi_p(t_l)=sqrt(s2_nu/(1-rho**2))*c4_normal_01( ) !simulated draw
+                xi_p(t_l)=sqrt(P_t1_t0(t_l))*c4_normal_01( ) !simulated draw
             else
                 xi_p(t_l)=rho*xi_p(t_l-1)+sqrt(s2_nu)*c4_normal_01( ) !simulated draw
             end if
@@ -45,7 +47,7 @@ subroutine kalman_FS(rho_e,s2_nu_e,s2_w_e,beta_mean,y,u_draw)
             x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,t_l)-1),y_d(2:types),cohort_d(4:5)/)
             y_p(t_l)=sum(x(1:covariates_mix_mean,1)*beta_mean(:,educ(i_l)))+xi_p(t_l)+c4_normal_01( )*sqrt(s2_w)
             !Gain & Updating equations
-            if (data_income(i_l,t_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60 ) then
+            if (data_income(i_l,t_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<63 ) then
                 K=P_t1_t0(t_l)*(P_t1_t0(t_l)+s2_w)**-1.0d0
                 xi_t1_t1(t_l)=xi_t1_t0(t_l)+K*(log(data_income(i_l,t_l))-sum(x(1:covariates_mix_mean,1)*beta_mean(:,educ(i_l)))-xi_t1_t0(t_l)) 
             else
@@ -69,7 +71,7 @@ subroutine kalman_FS(rho_e,s2_nu_e,s2_w_e,beta_mean,y,u_draw)
                 xi_t1_T(t_l)=xi_t1_t1(t_l)+J*(xi_t1_T(t_l+1)-xi_t1_t0(t_l+1))
                 xi_t1_T_p(t_l)=xi_t1_t1_p(t_l)+J*(xi_t1_T_p(t_l+1)-xi_t1_t0_p(t_l+1))
             end if                       
-            u_draw(i_l,t_l)=xi_t1_T(t_l)-xi_t1_T_p(t_l)+xi_p(t_l) 
+            u_draw(i_l,t_l)=xi_t1_T(t_l)-xi_t1_T_p(t_l)+xi_p(t_l)
             if (isnan(u_draw(i_l,t_l))) then
                 print*,''
             end if

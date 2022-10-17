@@ -1,11 +1,12 @@
-subroutine sample_rho_nu(u_draw,s2_nu,rho,s2_nu_new)
+subroutine sample_0_nu(u_draw,s2_nu,s2_0,s2_0_new,s2_nu_new)
     use global_var;use nrtype
     implicit none
     double precision,dimension(indv,generations),intent(in)::u_draw
     double precision,dimension(L_educ),intent(in)::s2_nu
-    double precision,dimension(L_educ,1),intent(out)::rho
     double precision,dimension(L_educ),intent(out)::s2_nu_new
-    integer::ind,t_l,i_l,e_l
+    double precision,dimension(cohorts,L_educ),intent(in)::s2_0
+    double precision,dimension(cohorts,L_educ),intent(out)::s2_0_new
+    integer::ind,t_l,i_l,e_l,c_l
     double precision,dimension(indv*generations,1)::x_u,y_u,e
     double precision,dimension(1,1)::rho_hat
     double precision::v,s2,shape,scale
@@ -20,33 +21,58 @@ subroutine sample_rho_nu(u_draw,s2_nu,rho,s2_nu_new)
             double precision,intent(in)::shape
         end function r8_gamma_01_sample
     end interface
+    real(DP)::log_likeli,log_likeli_new,u
     
     !Sample rho
-    do e_l=1,L_educ
-    ind=0
-    do i_l=indv_HRS+1,indv
-        do t_l=first_age(i_l),last_age(i_l)-1
-            if (u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60 .and. educ(i_l)==e_l ) then 
-                ind=ind+1
-                x_u(ind,1)=u_draw(i_l,t_l)
-                y_u(ind,1)=u_draw(i_l,t_l+1)
-            end if
+    do c_l=3,cohorts;do e_l=1,L_educ
+        ind=0
+        do i_l=indv_HRS+1,indv
+            do t_l=first_age(i_l),last_age(i_l)-1
+                if (u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60 .and. educ(i_l)==e_l ) then 
+                    ind=ind+1
+                    x_u(ind,1)=u_draw(i_l,t_l)
+                    y_u(ind,1)=u_draw(i_l,t_l+1)
+                end if
+            end do
         end do
+        
+        !Sample s2_nu
+        v=dble(ind-1)
+        e(1:ind,1:1)=y_u(1:ind,1:1)-x_u(1:ind,1:1) 
+        s2=sum(e(1:ind,1:1)**2)/v
+        shape=v/2
+        scale=1/(v*s2/2)
+        s2_nu_new(e_l)=1/(r8_gamma_01_sample(shape)*scale)
+        
+        !Sample s2_0 (metropolis)
+        log_likeli=0.0d0
+        log_likeli_new=0.0d0
+        !s2_0_new(c_l,e_l)=max(s2_0(c_l,e_l)+c4_normal_01( ) *0.001d0,1.0d-18)
+1        s2_0_new(c_l,e_l)=(r8_gamma_01_sample(sqrt(s2_0(c_l,e_l))/1.0d-4)*1.0d-4)**2.0d0
+        if (s2_0_new(c_l,e_l)<1.0d-7)then
+            go to 1
+        end if
+        
+        do i_l=indv_HRS+1,indv
+            do t_l=first_age(i_l),last_age(i_l)-1
+                if (u_draw(i_l,t_l)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<63 .and. educ(i_l)==e_l .and. birth_cohort(i_l)==c_l) then 
+                    log_likeli=log_likeli-0.5d0*log(s2_nu_new(e_l)*(t_l-1)+s2_0(c_l,e_l))-0.5d0*u_draw(i_l,t_l)**2.0d0/(s2_nu_new(e_l)*(t_l-1)+s2_0(c_l,e_l))
+                    log_likeli_new=log_likeli_new-0.5d0*log(s2_nu_new(e_l)*(t_l-1)+s2_0_new(c_l,e_l))-0.5d0*u_draw(i_l,t_l)**2.0d0/(s2_nu_new(e_l)*(t_l-1)+s2_0_new(c_l,e_l))
+                end if
+            end do
+        end do   
+        call random_number(u)
+        if (u>exp(log_likeli_new-log_likeli)) then
+            s2_0_new(c_l,e_l)=s2_0(c_l,e_l)
+        end if
+   
+    end do;end do
+    
+    do c_l=1,2
+        s2_0_new(c_l,:)=s2_0_new(3,:)
     end do
     
-    rho_hat=matmul(1/matmul(transpose(x_u(1:ind,1:1)),x_u(1:ind,1:1)),matmul(transpose(x_u(1:ind,1:1)),y_u(1:ind,1:1)))
-    rho(e_l:e_l,1:1)=rho_hat(1,1)+c4_normal_01( )*sqrt(1/matmul(transpose(x_u(1:ind,1:1)),x_u(1:ind,1:1))*s2_nu(e_l))
-    
-    !Sample s2_nu
-    v=dble(ind-1)
-    e(1:ind,1:1)=y_u(1:ind,1:1)-rho(e_l,1)*x_u(1:ind,1:1) 
-    s2=sum(e(1:ind,1:1)**2)/v
-    shape=v/2
-    scale=1/(v*s2/2)
-    s2_nu_new(e_l)=1/(r8_gamma_01_sample(shape)*scale)
-    end do
-    
-    end subroutine
+end subroutine
 
     
 double precision function r8_gamma_01_sample ( a )
@@ -300,7 +326,7 @@ double precision function r8_gamma_01_sample ( a )
   return
     end
     
-    function r8_uniform_01_sample ( )
+   double precision function r8_uniform_01_sample ( )
 
 !*****************************************************************************80
 !
@@ -339,8 +365,8 @@ double precision function r8_gamma_01_sample ( a )
   implicit none
 
   integer ( kind = 4 ), parameter :: option = 0
-  real ( kind = 8 ) r8_uniform_01_sample
-  real ( kind = 8 ) value
+
+  double precision:: value
 
  call random_number ( harvest = value )
  
@@ -349,7 +375,7 @@ double precision function r8_gamma_01_sample ( a )
   return
 end
     
-    function r8_normal_01_sample ( )
+  double precision  function r8_normal_01_sample ( )
 
 !*****************************************************************************80
 !
@@ -390,12 +416,12 @@ end
 !
   implicit none
 
-  real ( kind = 8 ), parameter :: pi = 3.141592653589793D+00
-  real ( kind = 8 ) r1
-  real ( kind = 8 ) r2
-  real ( kind = 8 ) r8_normal_01_sample
-  real ( kind = 8 ) r8_uniform_01_sample
-  real ( kind = 8 ) x
+  double precision, parameter :: pi = 3.141592653589793D+00
+  double precision:: r1
+  double precision:: r2
+
+  double precision:: r8_uniform_01_sample
+  double precision:: x
 
   r1 = r8_uniform_01_sample ( )
   r2 = r8_uniform_01_sample ( )
@@ -407,7 +433,7 @@ end
   return
     end
     
-    function r8_exponential_01_sample ( )
+  double precision  function r8_exponential_01_sample ( )
 
 !*****************************************************************************80
 !
@@ -431,9 +457,8 @@ end
 !
   implicit none
 
-  real ( kind = 8 ) r
-  real ( kind = 8 ) r8_exponential_01_sample
-  real ( kind = 8 ) r8_uniform_01_sample
+  double precision:: r
+  double precision:: r8_uniform_01_sample
 
   r = r8_uniform_01_sample ( )
 

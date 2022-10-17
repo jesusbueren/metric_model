@@ -43,11 +43,11 @@ subroutine sample_mean_p(y,beta_var,beta_mean)
     
 end subroutine
     
-subroutine sample_mean_p_income(y,beta_var,u_draw,beta_mean)
+subroutine sample_mean_p_income(y,s2_w,u_draw,beta_mean)
     use global_var; use mixtures_vars_income; use nrtype
     implicit none
     integer,dimension(indv,1),intent(in)::y
-    real(DP),dimension(L_educ),intent(in)::beta_var
+    real(DP),dimension(L_educ),intent(in)::s2_w
     real(DP),dimension(indv,generations),intent(in)::u_draw
     real(DP),dimension(covariates_mix_mean,L_educ),intent(out)::beta_mean
     integer::i_l,g_l,e_l,y_l,c_l
@@ -73,17 +73,17 @@ subroutine sample_mean_p_income(y,beta_var,u_draw,beta_mean)
         cohort_d=0.0d0
         cohort_d(birth_cohort(i_l))=1.0d0
         x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,g_l)-1),y_d(2:types),cohort_d(4:5)/)     
-        if (data_income(i_l,g_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<60 .and. initial_age+(g_l-1)*2>27 ) then !.and. birth_cohort(i_l)==3
+        if (data_income(i_l,g_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<63  ) then !.and. birth_cohort(i_l)==3
             counter_big_X(educ(i_l))=counter_big_X(educ(i_l))+1
-            big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)
-            big_Y(counter_big_X(educ(i_l)),educ(i_l))=log(data_income(i_l,g_l))-u_draw(i_l,g_l)
+            big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)/sqrt(s2_w(educ(i_l)))
+            big_Y(counter_big_X(educ(i_l)),educ(i_l))=(log(data_income(i_l,g_l))-u_draw(i_l,g_l))/sqrt(s2_w(educ(i_l)))
         end if
     end do; end do
     
     beta_mean=0.0_dp
     do e_l=1,L_educ
         do c_l=1,covariates_mix_mean
-            z(c_l,1)=c4_normal_01(  )*sqrt(beta_var(e_l))
+            z(c_l,1)=c4_normal_01(  )
         end do
         Sigma=matmul(transpose(big_X(1:counter_big_X(e_l),e_l,:)),big_X(1:counter_big_X(e_l),e_l,:))
         call inverse(Sigma,inv_Sigma,covariates_mix_mean)
