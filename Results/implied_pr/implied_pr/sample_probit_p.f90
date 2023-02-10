@@ -20,10 +20,10 @@ subroutine sample_probit_p(y,beta_w)
     do i_l=1,indv;do g_l=first_age(i_l),last_age(i_l)
         age=initial_age+(g_l-1)*2-70
         x(1:4,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0/)     
-        if (data_wealth(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<85) then
+        if (data_wealth(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<80) then
             counter_big_X(y(i_l,1),educ(i_l))=counter_big_X(y(i_l,1),educ(i_l))+1
             big_X(counter_big_X(y(i_l,1),educ(i_l)),y(i_l,1),educ(i_l),:)=x(:,1)
-            if (data_wealth(i_l,g_l)<=0.0d0 ) then
+            if (data_wealth(i_l,g_l)<=0.0d0 .and.  initial_age+(g_l-1)*2<80) then
                 call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_w(:,y(i_l,1),educ(i_l))),1.0_dp,0.0_dp,nw_star)
                 big_Y(counter_big_X(y(i_l,1),educ(i_l)),y(i_l,1),educ(i_l))=nw_star
             else
@@ -59,6 +59,8 @@ subroutine sample_probit_p_income(y,beta_i)
     real(DP),dimension(indv*10,L_educ,covariates_mix)::big_X
     real(DP),dimension(indv*10,L_educ)::big_Y
     real(DP),dimension(covariates_mix,covariates_mix)::Sigma,inv_Sigma,A
+    real(DP),dimension(types)::y_d
+    real(DP),dimension(cohorts)::cohort_d
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -68,7 +70,11 @@ subroutine sample_probit_p_income(y,beta_i)
     counter_big_X=0
     do i_l=indv_HRS+1,indv;do g_l=first_age(i_l),last_age(i_l)
         age=initial_age+(g_l-1)*2-70
-        x(1:covariates_mix,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(data_shlt(i_l,g_l)-1)/)     
+        y_d=0.0d0
+        y_d(y(i_l,1))=1.0d0
+        cohort_d=0.0d0
+        cohort_d(birth_cohort(i_l))=1.0d0
+        x(1:covariates_mix,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(data_shlt(i_l,g_l)-1),cohort_d(4:5)/)     
         if (data_income(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<62) then
             counter_big_X(educ(i_l))=counter_big_X(educ(i_l))+1
             big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)
@@ -109,7 +115,7 @@ subroutine sample_probit_p_income(y,beta_i)
     real(DP),dimension(indv*10,L_educ,covariates_mix_d)::big_X
     real(DP),dimension(indv*10,L_educ)::big_Y
     real(DP),dimension(covariates_mix_d,covariates_mix_d)::Sigma,inv_Sigma,A
-    
+    real(DP),dimension(cohorts)::cohort_d
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -125,7 +131,9 @@ subroutine sample_probit_p_income(y,beta_i)
             else
                 LF=1
             end if
-            x(1:covariates_mix_d,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(data_shlt(i_l,g_l)-1),dble(LF)/) 
+            cohort_d=0.0d0
+            cohort_d(birth_cohort(i_l))=1.0d0
+            x(1:covariates_mix_d,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(data_shlt(i_l,g_l)-1),dble(LF),cohort_d(4:5)/) 
             counter_big_X(educ(i_l))=counter_big_X(educ(i_l))+1
             big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)
             if (data_income(i_l,g_l)<=520.0d0*7.25d0 ) then

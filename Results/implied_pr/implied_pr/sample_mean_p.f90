@@ -21,7 +21,7 @@ subroutine sample_mean_p(y,beta_var,beta_mean)
     do i_l=1,indv;do g_l=first_age(i_l),last_age(i_l)
         age=initial_age+(g_l-1)*2-70
         x(1:4,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0/)     
-        if (data_wealth(i_l,g_l)>0.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<85) then
+        if (data_wealth(i_l,g_l)>0.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<80) then
             counter_big_X(y(i_l,1),educ(i_l))=counter_big_X(y(i_l,1),educ(i_l))+1
             big_X(counter_big_X(y(i_l,1),educ(i_l)),y(i_l,1),educ(i_l),:)=x(:,1)
             big_Y(counter_big_X(y(i_l,1),educ(i_l)),y(i_l,1),educ(i_l))=log(data_wealth(i_l,g_l))
@@ -47,7 +47,7 @@ subroutine sample_mean_p_income(y,s2_w,u_draw,beta_mean)
     use global_var; use mixtures_vars_income; use nrtype
     implicit none
     integer,dimension(indv,1),intent(in)::y
-    real(DP),dimension(L_educ),intent(in)::s2_w
+    real(DP),dimension(L_educ,cohorts),intent(in)::s2_w
     real(DP),dimension(indv,generations),intent(in)::u_draw
     real(DP),dimension(covariates_mix_mean,L_educ),intent(out)::beta_mean
     integer::i_l,g_l,e_l,y_l,c_l
@@ -73,10 +73,13 @@ subroutine sample_mean_p_income(y,s2_w,u_draw,beta_mean)
         cohort_d=0.0d0
         cohort_d(birth_cohort(i_l))=1.0d0
         x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,g_l)-1),y_d(2:types),cohort_d(4:5)/)     
-        if (data_income(i_l,g_l)>520.0d0*7.25d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<63  ) then !.and. birth_cohort(i_l)==3
+        if ( gender(i_l)==1 .and. initial_age+(g_l-1)*2<63  .and. data_income(i_l,g_l)>520.0d0*7.25d0  ) then ! 
             counter_big_X(educ(i_l))=counter_big_X(educ(i_l))+1
-            big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)/sqrt(s2_w(educ(i_l)))
-            big_Y(counter_big_X(educ(i_l)),educ(i_l))=(log(data_income(i_l,g_l))-u_draw(i_l,g_l))/sqrt(s2_w(educ(i_l)))
+            big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)/sqrt(s2_w(educ(i_l),birth_cohort(i_l)))
+            big_Y(counter_big_X(educ(i_l)),educ(i_l))=(log(data_income(i_l,g_l))-u_draw(i_l,g_l))/sqrt(s2_w(educ(i_l),birth_cohort(i_l)))
+            if (isnan((log(data_income(i_l,g_l))-u_draw(i_l,g_l))/sqrt(s2_w(educ(i_l),birth_cohort(i_l))))) then
+                print*,''
+            end if
         end if
     end do; end do
     

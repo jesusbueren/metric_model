@@ -7,12 +7,12 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     integer,dimension(indv,1),intent(inout)::y
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_d
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H,H_g 
-    integer::it,burn,it2
+    integer::it,burn,it2,h_l
     integer,dimension(indv,generations)::sample_k
     real(DP)::u
     real(DP),dimension(indv,habits,generations)::y_star
     real(DP),dimension(types,L_gender,L_educ,clusters+1)::LE
-    real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts)::weights,joint_yh
+    real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts)::weights,joint_yh,aux
     real(DP),dimension(clusters,L_gender,L_educ)::share_h
     real(DP),dimension(indv,types)::type_pr,type_pr_av
     !Timer
@@ -41,7 +41,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     !Save one in it2 iterations
     it2=10
     !call tick(calc)
-    do it=1,20000+burn
+    do it=1,100000+burn
         print*,it
         !Sample health transitions parameters
         call sample_beta_h(beta_h,y,sample_k)
@@ -58,7 +58,10 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
 
         if (it>burn) then
             if (it2==10) then
-                call save_results(beta_h,beta_d,gamma,LE,sum(joint_yh,2),H,it-burn)
+                do h_l=1,clusters
+                    aux(:,h_l,:,:,:,:)=sum(joint_yh,2) 
+                end do
+                call save_results(beta_h,beta_d,gamma,LE,sum(joint_yh,2),joint_yh/aux,H,it-burn)
                 it2=0
             else
                 it2=it2+1

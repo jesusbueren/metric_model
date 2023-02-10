@@ -1,15 +1,17 @@
-subroutine sample_0_nu(u_draw,s2_nu,s2_0,s2_0_new,s2_nu_new)
-    use global_var;use nrtype
+subroutine sample_rho_0_nu(u_draw,s2_nu,s2_0,rho,s2_0_new,s2_nu_new,rho_new)
+    use global_var;use nrtype; use mixtures_vars_income
     implicit none
     double precision,dimension(indv,generations),intent(in)::u_draw
-    double precision,dimension(L_educ),intent(in)::s2_nu
-    double precision,dimension(L_educ),intent(out)::s2_nu_new
-    double precision,dimension(cohorts,L_educ),intent(in)::s2_0
-    double precision,dimension(cohorts,L_educ),intent(out)::s2_0_new
-    integer::ind,t_l,i_l,e_l,c_l
+    double precision,dimension(L_educ,cohorts),intent(in)::s2_nu
+    double precision,dimension(L_educ,cohorts),intent(out)::s2_nu_new
+    double precision,dimension(L_educ,cohorts),intent(in)::s2_0
+    double precision,dimension(L_educ,cohorts),intent(out)::s2_0_new
+    double precision,dimension(L_educ,cohorts),intent(in)::rho
+    double precision,dimension(L_educ,cohorts),intent(out)::rho_new
+    integer::ind,t_l,i_l,e_l,c_l,g_l2
     double precision,dimension(indv*generations,1)::x_u,y_u,e
-    double precision,dimension(1,1)::rho_hat
-    double precision::v,s2,shape,scale
+    double precision::rho_hat
+    double precision::v,s2,shape,scale,var_ind,var_ind_new
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -24,11 +26,13 @@ subroutine sample_0_nu(u_draw,s2_nu,s2_0,s2_0_new,s2_nu_new)
     real(DP)::log_likeli,log_likeli_new,u
     
     !Sample rho
-    do c_l=3,cohorts;do e_l=1,L_educ
+    !do c_l=3,cohorts;do e_l=1,L_educ
+        e_l=1
+        c_l=3
         ind=0
         do i_l=indv_HRS+1,indv
-            do t_l=first_age(i_l),last_age(i_l)-1
-                if (u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60 .and. educ(i_l)==e_l ) then 
+            do t_l=first_age(i_l),last_age(i_l)-1 
+                if ( u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<63  .and. data_income(i_l,t_l)>520.0d0*7.25d0) then  !  .and. educ(i_l)==e_l .and. birth_cohort(i_l)==c_l 
                     ind=ind+1
                     x_u(ind,1)=u_draw(i_l,t_l)
                     y_u(ind,1)=u_draw(i_l,t_l+1)
@@ -36,41 +40,60 @@ subroutine sample_0_nu(u_draw,s2_nu,s2_0,s2_0_new,s2_nu_new)
             end do
         end do
         
+        !Sample rho
+        rho_hat=(1.0d0/sum(x_u(1:ind,1)**2))*sum(x_u(1:ind,1)*y_u(1:ind,1))  
+        rho_new(:,:)=rho_hat+c4_normal_01( )*sqrt((1.0d0/sum(x_u(1:ind,1)**2))*s2_nu(e_l,c_l))
+
+
         !Sample s2_nu
         v=dble(ind-1)
-        e(1:ind,1:1)=y_u(1:ind,1:1)-x_u(1:ind,1:1) 
+        e(1:ind,1:1)=y_u(1:ind,1:1)-rho_new(e_l,c_l)*x_u(1:ind,1:1) 
         s2=sum(e(1:ind,1:1)**2)/v
         shape=v/2
         scale=1/(v*s2/2)
-        s2_nu_new(e_l)=1/(r8_gamma_01_sample(shape)*scale)
-        
+        s2_nu_new(:,:)=1/(r8_gamma_01_sample(shape)*scale)
+
         !Sample s2_0 (metropolis)
         log_likeli=0.0d0
         log_likeli_new=0.0d0
-        !s2_0_new(c_l,e_l)=max(s2_0(c_l,e_l)+c4_normal_01( ) *0.001d0,1.0d-18)
-1        s2_0_new(c_l,e_l)=(r8_gamma_01_sample(sqrt(s2_0(c_l,e_l))/1.0d-4)*1.0d-4)**2.0d0
-        if (s2_0_new(c_l,e_l)<1.0d-7)then
+1       s2_0_new(e_l,c_l)=s2_0(e_l,c_l)+c4_normal_01( )*1.0d-2
+        if (s2_0_new(e_l,c_l)<1.0d-7)then
             go to 1
         end if
-        
+
         do i_l=indv_HRS+1,indv
             do t_l=first_age(i_l),last_age(i_l)-1
-                if (u_draw(i_l,t_l)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<63 .and. educ(i_l)==e_l .and. birth_cohort(i_l)==c_l) then 
-                    log_likeli=log_likeli-0.5d0*log(s2_nu_new(e_l)*(t_l-1)+s2_0(c_l,e_l))-0.5d0*u_draw(i_l,t_l)**2.0d0/(s2_nu_new(e_l)*(t_l-1)+s2_0(c_l,e_l))
-                    log_likeli_new=log_likeli_new-0.5d0*log(s2_nu_new(e_l)*(t_l-1)+s2_0_new(c_l,e_l))-0.5d0*u_draw(i_l,t_l)**2.0d0/(s2_nu_new(e_l)*(t_l-1)+s2_0_new(c_l,e_l))
+                if (u_draw(i_l,t_l)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<63   .and. birth_cohort(i_l)==c_l .and. data_income(i_l,t_l)>520.0d0*7.25d0) then !.and. educ(i_l)==e_l 
+                    if (t_l==first_age(i_l)) then
+                        var_ind=s2_0(e_l,c_l)
+                        var_ind_new=s2_0_new(e_l,c_l)
+                        if (t_l>1) then
+                            do g_l2=2,first_age(i_l)
+                                var_ind=rho_new(e_l,c_l)**2*var_ind+s2_nu_new(e_l,c_l)
+                                var_ind_new=rho_new(e_l,c_l)**2*var_ind_new+s2_nu_new(e_l,c_l)
+                            end do
+                        end if
+                    else
+                        var_ind=rho_new(e_l,c_l)**2*var_ind+s2_nu_new(e_l,c_l)
+                        var_ind_new=rho_new(e_l,c_l)**2*var_ind_new+s2_nu_new(e_l,c_l)
+                    end if
+                    log_likeli=log_likeli-0.5d0*log(var_ind)-0.5d0*(u_draw(i_l,t_l)**2.0d0)/var_ind                   
+                    log_likeli_new=log_likeli_new-0.5d0*log(var_ind_new)-0.5d0*(u_draw(i_l,t_l)**2.0d0)/var_ind_new
                 end if
             end do
         end do   
         call random_number(u)
         if (u>exp(log_likeli_new-log_likeli)) then
-            s2_0_new(c_l,e_l)=s2_0(c_l,e_l)
-        end if
-   
+            s2_0_new(:,:)=s2_0(e_l,c_l)
+        end if    
+    !end do;end do
+    
+    do c_l=1,2;do e_l=1,3
+        rho_new(e_l,c_l)=rho_new(e_l,3)
+        s2_nu_new(e_l,c_l)=s2_nu_new(e_l,3)
+        s2_0_new(e_l,c_l)=s2_0_new(e_l,3)
     end do;end do
     
-    do c_l=1,2
-        s2_0_new(c_l,:)=s2_0_new(3,:)
-    end do
     
 end subroutine
 

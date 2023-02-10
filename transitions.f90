@@ -82,9 +82,9 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     do ge_l=1,L_gender; do t_l=1,types;do e_l=1,L_educ
         p=-9.0d0
         if (cohorts==5) then
-            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,5)/sum(joint_yh(1,:,ge_l,e_l,t_l,3))
+            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,3)/sum(joint_yh(1,:,ge_l,e_l,t_l,3))
         else
-            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,5)/sum(joint_yh(1,:,ge_l,e_l,t_l,1))
+            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,5)/sum(joint_yh(1,:,ge_l,e_l,t_l,5))
         end if
         if (isnan(sum(p)))then
             print*,'error in transitions: initial cond. Don t worry if it=1'

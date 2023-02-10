@@ -1,7 +1,7 @@
 module mixtures_vars_income
     use global_var
     implicit none
-    integer,parameter::covariates_mix=4,covariates_mix_mean=9,covariates_mix_d=5
+    integer,parameter::covariates_mix=6,covariates_mix_mean=9,covariates_mix_d=7
     real(DP),dimension(indv,generations)::data_income
 end module
     
@@ -20,9 +20,8 @@ subroutine estimate_mixture_income(type_pr)
     data_income=-9.0d0
     data_income(indv_HRS+1:indv,:)=reshape(data_income_psid,(/indv_psid,generations/),order=(/2,1/)) 
 
-    !call pr_of_zero_income()
-    !call pr_of_zero_income_dynamic()
-    
+    call pr_of_zero_income(type_pr)
+    call pr_of_zero_income_dynamic()
     call income_process(type_pr)
 
 end subroutine
