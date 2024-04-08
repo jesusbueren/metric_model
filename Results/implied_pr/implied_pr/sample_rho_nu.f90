@@ -26,13 +26,12 @@ subroutine sample_rho_0_nu(u_draw,s2_nu,s2_0,rho,s2_0_new,s2_nu_new,rho_new)
     real(DP)::log_likeli,log_likeli_new,u
     
     !Sample rho
-    !do c_l=3,cohorts;do e_l=1,L_educ
-        e_l=1
-        c_l=3
+    c_l=1 !set it to a particular number
+    do e_l=1,L_educ
         ind=0
         do i_l=indv_HRS+1,indv
             do t_l=first_age(i_l),last_age(i_l)-1 
-                if ( u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<63  .and. data_income(i_l,t_l)>520.0d0*7.25d0) then  !  .and. educ(i_l)==e_l .and. birth_cohort(i_l)==c_l 
+                if ( u_draw(i_l,t_l)/=-1.0d0 .and. u_draw(i_l,t_l+1)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60  .and. data_income(i_l,t_l)>520.0d0*7.25d0 .and. educ(i_l)==e_l) then  !   .and. birth_cohort(i_l)==c_l 
                     ind=ind+1
                     x_u(ind,1)=u_draw(i_l,t_l)
                     y_u(ind,1)=u_draw(i_l,t_l+1)
@@ -42,7 +41,10 @@ subroutine sample_rho_0_nu(u_draw,s2_nu,s2_0,rho,s2_0_new,s2_nu_new,rho_new)
         
         !Sample rho
         rho_hat=(1.0d0/sum(x_u(1:ind,1)**2))*sum(x_u(1:ind,1)*y_u(1:ind,1))  
-        rho_new(:,:)=rho_hat+c4_normal_01( )*sqrt((1.0d0/sum(x_u(1:ind,1)**2))*s2_nu(e_l,c_l))
+2        rho_new(e_l,:)=rho_hat+c4_normal_01( )*sqrt((1.0d0/sum(x_u(1:ind,1)**2))*s2_nu(e_l,c_l))
+        if (rho_new(e_l,1)>1.0d0)then
+            go to 2
+        end if
 
 
         !Sample s2_nu
@@ -51,19 +53,20 @@ subroutine sample_rho_0_nu(u_draw,s2_nu,s2_0,rho,s2_0_new,s2_nu_new,rho_new)
         s2=sum(e(1:ind,1:1)**2)/v
         shape=v/2
         scale=1/(v*s2/2)
-        s2_nu_new(:,:)=1/(r8_gamma_01_sample(shape)*scale)
+        s2_nu_new(e_l,:)=1/(r8_gamma_01_sample(shape)*scale)
 
         !Sample s2_0 (metropolis)
         log_likeli=0.0d0
         log_likeli_new=0.0d0
 1       s2_0_new(e_l,c_l)=s2_0(e_l,c_l)+c4_normal_01( )*1.0d-2
+        s2_0_new(e_l,:)=s2_0_new(e_l,c_l)
         if (s2_0_new(e_l,c_l)<1.0d-7)then
             go to 1
         end if
 
         do i_l=indv_HRS+1,indv
             do t_l=first_age(i_l),last_age(i_l)-1
-                if (u_draw(i_l,t_l)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<63   .and. birth_cohort(i_l)==c_l .and. data_income(i_l,t_l)>520.0d0*7.25d0) then !.and. educ(i_l)==e_l 
+                if (u_draw(i_l,t_l)/=-1.0d0 .and. gender(i_l)==1 .and. initial_age+(t_l-1)*2<60   .and. educ(i_l)==e_l .and. data_income(i_l,t_l)>520.0d0*7.25d0) then 
                     if (t_l==first_age(i_l)) then
                         var_ind=s2_0(e_l,c_l)
                         var_ind_new=s2_0_new(e_l,c_l)
@@ -84,16 +87,11 @@ subroutine sample_rho_0_nu(u_draw,s2_nu,s2_0,rho,s2_0_new,s2_nu_new,rho_new)
         end do   
         call random_number(u)
         if (u>exp(log_likeli_new-log_likeli)) then
-            s2_0_new(:,:)=s2_0(e_l,c_l)
+            s2_0_new(e_l,:)=s2_0(e_l,c_l)
         end if    
-    !end do;end do
+    end do
     
-    do c_l=1,2;do e_l=1,3
-        rho_new(e_l,c_l)=rho_new(e_l,3)
-        s2_nu_new(e_l,c_l)=s2_nu_new(e_l,3)
-        s2_0_new(e_l,c_l)=s2_0_new(e_l,3)
-    end do;end do
-    
+
     
 end subroutine
 

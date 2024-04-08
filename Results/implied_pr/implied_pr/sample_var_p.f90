@@ -1,14 +1,16 @@
-subroutine sample_var_p(y,beta_mean,beta_var)
+subroutine sample_var_p(y,sample_k,beta_mean,beta_var)
     use global_var; use mixtures_vars; use nrtype
     implicit none
     integer,dimension(indv,1),intent(in)::y
+    integer,dimension(indv,generations),intent(in)::sample_k
     real(DP),dimension(types,L_educ),intent(out)::beta_var
     real(DP),dimension(covariates_mix,types,L_educ),intent(in)::beta_mean
     integer::i_l,g_l,e_l,y_l,c_l
-    real(DP)::age,n0=10,S0=1
+    real(DP)::age,n0=10,S0=1,health_d
     real(DP),dimension(covariates_mix,1)::x,z
     integer,dimension(types,L_educ)::counter_big_X
     real(DP),dimension(indv*10,types,L_educ)::big_u2
+    real(DP),dimension(cohorts)::cohort_d
     real(SP)::shape,scale
     interface
         function gengam(a,r )
@@ -22,10 +24,13 @@ subroutine sample_var_p(y,beta_mean,beta_var)
     counter_big_X=0
     do i_l=1,indv;do g_l=first_age(i_l),last_age(i_l)  
        age=initial_age+(g_l-1)*2-70
-        x(1:4,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0/)     
-        if (data_wealth(i_l,g_l)>0.0d0 .and. gender(i_l)==1) then
+       health_d=dble(sample_k(i_l,g_l)-1)
+       cohort_d=0.0d0
+        cohort_d(birth_cohort(i_l))=1.0d0
+        x(1:covariates_mix,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,cohort_d(2:cohorts)/)     
+        if (data_wealth(i_l,g_l)>0.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<80 .and. data_wealth(i_l,g_l)<5.0e6 ) then
             counter_big_X(y(i_l,1),educ(i_l))=counter_big_X(y(i_l,1),educ(i_l))+1
-            big_u2(counter_big_X(y(i_l,1),educ(i_l)),y(i_l,1),educ(i_l))=(log(data_wealth(i_l,g_l))-sum(x(:,1)*beta_mean(:,y(i_l,1),educ(i_l))))**2.0d0 !big_u2(1:500,1,1)
+            big_u2(counter_big_X(y(i_l,1),educ(i_l)),y(i_l,1),educ(i_l))=(log(data_wealth(i_l,g_l))-sum(x(:,1)*beta_mean(:,y(i_l,1),educ(i_l))))**2.0d0
         end if
     end do; end do
     

@@ -1,7 +1,8 @@
-subroutine log_normal_dist(type_pr,beta_mean,beta_var)
+subroutine log_normal_dist(type_pr,sample_k,beta_mean,beta_var)
     use global_var;use nrtype; use mixtures_vars
     implicit none
     double precision,dimension(indv,types),intent(in)::type_pr
+    integer,dimension(indv,generations),intent(in)::sample_k
     integer,dimension(indv,1)::y
     real(DP),dimension(covariates_mix,types,L_educ),intent(out)::beta_mean
     real(DP),dimension(types,L_educ),intent(out)::beta_var
@@ -20,10 +21,10 @@ subroutine log_normal_dist(type_pr,beta_mean,beta_var)
         call sample_health_behavior(type_pr,y) 
     
         !Sample parameters of mean wealth
-        call sample_mean_p(y,beta_var_it(:,:,it),beta_mean_it(:,:,:,it+1))
+        call sample_mean_p(y,sample_k,beta_var_it(:,:,it),beta_mean_it(:,:,:,it+1))
         
         !Sample parameters of var of wealth
-        call sample_var_p(y,beta_mean_it(:,:,:,it+1),beta_var_it(:,:,it+1))
+        call sample_var_p(y,sample_k,beta_mean_it(:,:,:,it+1),beta_var_it(:,:,it+1))
 
     end do
 

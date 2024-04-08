@@ -5,7 +5,7 @@ close all
 clusters=2
 covariates_habits=4
 habits=6
-types=3
+types=2
 educ=3
 genders=2
 variables_p=12
@@ -81,7 +81,7 @@ end
 
 %% Histogram from distribution of variables governing habits
 
-h_l=5 %habits
+h_l=6 %habits
 for y_l=1:types
 figure(y_l)
 for cov_l=1:covariates_habits
@@ -112,13 +112,14 @@ end
 alphas(1,1:12,:,:)=NaN;
 alphas(4,1:12,:,:)=NaN;
 alphas(5,1:12,:,:)=NaN;
+alphas(6,1:12,:,:)=NaN;
 
-colors = { [0.4660    0.6740    0.1880]  [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {  '-'  ':' '--' '-.' '-'};
 lw=[1.7 3.0 1.5 ]
-    FS=11 %font size
+    FS=8 %font size
 figure(10)
-set(10,'position',[150    150    750    350])
+set(10,'position',[150    150    500    250])
 ind=0
 for h_l=[1 4 5 2 3 6]
     ind=ind+1
@@ -139,7 +140,7 @@ for h_l=[1 4 5 2 3 6]
     elseif h_l==5
         title('Flu shot','FontWeight','normal','fontsize',FS) 
     elseif h_l==6
-        title('Obesity','FontWeight','normal','fontsize',FS)
+        title('Exercise','FontWeight','normal','fontsize',FS)
     end 
     yticks([0:25:100])
     xlim([25 100])
@@ -160,20 +161,20 @@ newPosition = [0.45 0.93 0.1 0.1];
 grid off
 set(gca,'FontName','Times New Roman','FontSize',FS);
 
-print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\health_behaviors','-depsc')
+print('C:\Users\jbueren\Dropbox\habits\Slides\v2\figures\health_behaviors','-depsc')
 print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\health_behaviors','-depsc')
 
 
 
 %% Plot Life expectancy for the different groups
-
+c_l=4
 for ge_l=1:genders
 for e_l=1:educ
     if ge_l==1 && e_l==1
-        table=[squeeze(mean(fraction_t(12,ge_l,e_l,:,3,burn:end),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)]
+        table=[ squeeze(mean(fraction_t(12,ge_l,e_l,:,c_l,burn:end),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)]
     else
         table=vertcat(table,...
-               [squeeze(mean(fraction_t(12,ge_l,e_l,:,3,burn:end),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)])
+               [ squeeze(mean(fraction_t(12,ge_l,e_l,:,c_l,burn:end),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)])
     end
     
 end
@@ -182,31 +183,34 @@ end
 
 
 
-%% Plot weights
+%% Plot weights across cohorts
 ge_l=1
 e_l=1
 FS=10
-colors = { [0.4660    0.6740    0.1880]  [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980] [0.9290    0.6940    0.1250]     [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {  '-'  '--' ':' '-.' '-'};
 lw=[1.7 1.5 2.0]
 
+FS=9
 
 %select gender
 marker= {'o','s','d' }
 ge_l=1
 figure(6)
-set(6,'position',[150    150    750    750])
+set(6,'position',[150    150    500    280])
 for e_l=1:3
     subplot(2,2,e_l)
     for p_l=1:types 
-        h(p_l)=errorbar(1910:20:1990,squeeze(mean(fraction_t(12,ge_l,e_l,p_l,:,burn:end),6)),2.*squeeze(std(fraction_t(12,ge_l,e_l,p_l,:,burn:end),0,6)),...
-            marker{p_l},'MarkerSize',6,'MarkerFaceColor',colors{p_l})
+        h(p_l)=errorbar(10:20:90,squeeze(mean(fraction_t(12,ge_l,e_l,p_l,:,burn:end),6)),2.*squeeze(std(fraction_t(12,ge_l,e_l,p_l,:,burn:end),0,6)),...
+            marker{p_l},'MarkerSize',3,'MarkerFaceColor',colors{p_l},'LineStyle','-')
         h(p_l).Color = colors{p_l}
         hold on
         ylim([0 1])
-    end    
-    xticks([1910:20:1990])
-    xlim([1905 1995])
+    end  
+    xlabel('Birth Year')
+    xticks([10:20:90])
+    yticks([0:0.25:1])
+    xlim([5 95])
     if e_l==1
         title('dropout')
     elseif e_l==2
@@ -221,70 +225,160 @@ set(gcf,'color','w')
 I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
 legend('boxoff')
 I.FontSize=FS+1
-newPosition = [0.45 0.001 0.1 0.07];
+newPosition = [0.45 0.94 0.1 0.07];
     newUnits = 'normalized';
     set(I,'Position', newPosition,'Units', newUnits);
 grid off
 set(gca,'FontName','Times New Roman','FontSize',FS);
 subplot(2,2,4)
-for p_l=1:types 
-
-    LE_v=mean(LE(:,ge_l,3,clusters+1,burn:end),5)'*squeeze(mean(fraction_t(12,ge_l,3,:,:,burn:end),6))-...
-        mean(LE(:,ge_l,1,clusters+1,burn:end),5)'*squeeze(mean(fraction_t(12,ge_l,1,:,:,burn:end),6))
-    h(p_l)=scatter(1910:20:1990,LE_v,50,"filled",'MarkerEdgeColor',[0 .5 .5],'MarkerFaceColor',[0 .7 .7], 'LineWidth',1.5) %,...
-    xticks([1910:20:1990])
-    ylim([5 12])
-    xlim([1905 1995])
-    hold on
+for c_l=1:cohorts
+LE_v(c_l)=mean(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
+               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))))
+sd2_LE_v(c_l)=2*std(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
+               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))));
 end
+% h2=scatter(10:20:90,LE_v,10,"filled",'MarkerEdgeColor',[0 .5 .5],'MarkerFaceColor',[0 .7 .7], 'LineWidth',1.5) 
+h2=errorbar(10:20:90,LE_v,sd2_LE_v,...
+            marker{1},'MarkerSize',3,'MarkerFaceColor',colors{4},'LineStyle','-')
+h2.Color = colors{4}
+xticks([10:20:90])
+ylim([5 12])
+xlim([05 95])
+hold on
+xlabel('Birth Year')
 title('life expectancy gradient')
 set(gca,'FontName','Times New Roman','FontSize',FS);
-print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\share_y_cohorts','-depsc')
+print('C:\Users\jbueren\Dropbox\habits\Slides\v2\figures\share_y_cohorts','-depsc')
+%% Plot weights across age for a given cohort
+ge_l=1
+e_l=1
+FS=10
+colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]   [0.9290    0.6940    0.1250]  [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+pattern = {  '-'  '--' ':' '-.' '-'};
+lw=[1.7 1.5 2.0]
+
+
+%select gender
+marker= {'o','s','d' }
+ge_l=1
+figure(6)
+set(6,'position',[150    150    500    250])
+% for ge_l=1:2
+ge_l=1
+for e_l=1:3
+    subplot(1,3,e_l)
+    for p_l=1:types 
+        h(p_l)=errorbar(26:4:100,squeeze(mean(fraction_t(1:2:end,ge_l,e_l,p_l,3,burn:end),6)).*100,2.*squeeze(std(fraction_t(1:2:end,ge_l,e_l,p_l,3,burn:end),0,6)).*100,...
+            marker{p_l},'MarkerSize',6,'MarkerFaceColor',colors{p_l})
+        h(p_l).Color = colors{p_l}
+        hold on
+        ylim([0 100])
+    end    
+    yticks([0:25:100])
+    xlim([25 100])
+    xticks([25:10:100])
+    set(gcf,'color','w')
+    ylim([-5,105])
+    xlabel('Age')
+    if e_l==1
+        title('dropout','FontWeight','normal','fontsize',FS)
+    elseif e_l==2
+        title('highschool','FontWeight','normal','fontsize',FS)
+    elseif e_l==3
+        title('college','FontWeight','normal','fontsize',FS)
+    end
+    set(gca,'FontName','Times New Roman','FontSize',FS);
+end
+% end
+% hold off
+% set(gcf,'color','w')
+% I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+% legend('boxoff')
+% I.FontSize=FS+1
+% newPosition = [0.45 0.95 0.1 0.07];
+%     newUnits = 'normalized';
+%     set(I,'Position', newPosition,'Units', newUnits);
+% grid off
+set(gca,'FontName','Times New Roman','FontSize',FS);
+
+print('C:\Users\jbueren\Dropbox\habits\Slides\v2\figures\share_y_age','-depsc')
 
 
 
 %% transition pr & fraction by h
 ge_l=1
-h_l=1
-h_l2=3
-t_l=1
-FS=10
-colors = { [0.4660    0.6740    0.1880]  [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+FS=11
+colors = { [0.4660    0.6740    0.1880] [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]      [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {  '-'  '--' ':' '-.' '-'};
 lw=[1.7 1.5 2.0]
 marker= {'o','s','d' }
 
+h_str=["gh","bh"]
+h2_str=["gh","bh","D"]
+
+for h_l=1:2
+for h_l2=1:3
+
+
+
 figure(7)
-set(7,'position',[150    150    750    425])
+set(7,'position',[150    100    750    900])
 for e_l=1:3
-    subplot(1,3,e_l)
+    subplot(6,3,e_l+(h_l2-1)*3+(h_l-1)*9)
     for p_l=1:types 
         h(p_l)=errorbar(26:4:92,mean(squeeze(H(h_l,h_l2,1:2:34,p_l,ge_l,e_l,burn:end)),2),2.*std(squeeze(H(h_l,h_l2,1:2:34,p_l,ge_l,e_l,burn:end))'),...
             marker{p_l},'MarkerSize',6,'MarkerFaceColor',colors{p_l})
         h(p_l).Color = colors{p_l}
         hold on 
     end 
-    if e_l==1
-        title('dropout')
-    elseif e_l==2
-        title('highschool')
-    elseif e_l==3
-        title('college')
+    if e_l==1 && h_l==1 && h_l2==1
+        title('HSD','FontWeight','normal','FontSize',FS)
+    elseif e_l==2 && h_l==1 && h_l2==1
+        title('HSG','FontWeight','normal','FontSize',FS)
+    elseif e_l==3 && h_l==1 && h_l2==1
+        title('CG','FontWeight','normal','FontSize',FS)
     end
-ylim([0 0.7])
-xlim([24 91])
-xticks(25:10:95)
+if h_l==1 && h_l2==1
+   ylim([0.4 1]) 
+elseif h_l==1 && h_l2==2
+   ylim([0 0.4]) 
+elseif h_l==1 && h_l2==3
+   ylim([0 0.4]) 
+elseif h_l==2 && h_l2==1
+   ylim([0 0.7]) 
+elseif h_l==2 && h_l2==2
+   ylim([0.2 0.8]) 
+elseif h_l==2 && h_l2==3
+   ylim([0 0.5]) 
+end
+if e_l==1
+ylabel(strcat(h_str(h_l),'\rightarrow',h2_str(h_l2)))
+end
+yl=ylim
+xlim([22 96])
+xticks(30:10:90)
+yticks(yl(1):0.1:yl(2))
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
 set(gcf,'color','w')
-I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+if h_l==2 && h_l2==3
+    I=legend('Protective','Detrimental','Harmful','Orientation','horizontal')
+end
+end
+end
 legend('boxoff')
+
+%
 I.FontSize=FS+1
 newPosition = [0.45 0.001 0.1 0.07];
 newUnits = 'normalized';
 set(I,'Position', newPosition,'Units', newUnits);
 grid off
 
+print('C:\Users\jbueren\Dropbox\habits\Draft\figures\transitions_all','-depsc')
+
+
+%%
 figure(8)
 set(8,'position',[150    150    750    425])
 for e_l=1:3
@@ -324,48 +418,62 @@ clear all
 close all
 cd('C:\Users\jbueren\Google Drive\endo_health\metric_model\Results')
 
+fileID=fopen('wealth_moments_data.txt');
+mean_wealth=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
+fclose(fileID);
 
-    fileID=fopen('wealth_moments_data.txt');
-    mean_wealth=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
-    fclose(fileID);
+types_y=2
+mean_wealth=reshape(mean_wealth{1},9,37,2,types_y,3);
 
-    mean_wealth=reshape(mean_wealth{1},8,37,3,3);
-
+%wealth distribution cond on good health
+h_l=1
 for p=1:3
-    
-
-colors = {  [0.4660    0.6740    0.1880]   [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
-pattern = { '--'  '-'  ':' '-.' '-'};
-lw=[1.5 1.5 2.5]
+colors = {  [0.4660    0.6740    0.1880]   [0.8500    0.3250    0.0980]   [0.8500    0.3250    0.0980] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+pattern = { '-'  ':'  ':' '-.' '-'};
+lw=[2.0 2.0]
 FS=11
 figure(2)
-set(2,'position',[950    150    750    750])
+set(2,'position',[150    150    600    600])
 for e_l=1:3
 subplot(3,3,(p-1)*3+e_l)
-for y_l=1:3
+for y_l=1:types_y
 %     h(y_l)=plot(50:2:98,mean_wealth(3+p,13:37,y_l,e_l)./1000,'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
-h(y_l)=plot(26:2:80,mean_wealth(3+p,1:28,y_l,e_l)./1000,'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
+h(y_l)=plot(26:2:80,mean_wealth(4+p,1:28,h_l,y_l,e_l)./1000,'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
 hold on
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
-if e_l==1
-    title('dropout')
+if p==1
+    if e_l==1
+    title('HSD')
 %     ylim([0 150])
-elseif e_l==2
-    title('highschool')
+    elseif e_l==2
+    title('HSG')
 %     ylim([0 600])
-else
-    title('college')
+    else
+    title('CG')
 %     ylim([0 1000])
+    end
 end
-ylim([0 2000])
+
+if p==1
+    ylim([0 500])
+elseif p==2
+    ylim([0 1000])
+else
+    ylim([0 2000])
+end
+
+% ylim([0 2000])
 if e_l==1
     if p==1
         ylabel('P25')
+
     elseif p==2
         ylabel('P50')
+
     elseif p==3
         ylabel('P75')
+
     elseif p==4
         ylabel('Mean')
     end 
@@ -393,34 +501,90 @@ print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\wealth_moments
 end
 end
 print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\wealth_moments','-depsc')
-print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\wealth_moments','-depsc')
+print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\wealth_moments','-depsc')
+print('C:\Users\jbueren\Dropbox\habits\Draft\figures\wealth_moments','-depsc')
+
+
+%% difference in median wealth across health states
+for p=1:3
+colors = {  [0.4660    0.6740    0.1880]   [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+pattern = { '--'  '-'  ':' '-.' '-'};
+lw=[1.5 1.5 2.5]
+FS=11
+figure(3)
+set(3,'position',[950    150    750    750])
+for e_l=1:3
+subplot(3,3,(p-1)*3+e_l)
+for y_l=1:3
+h(y_l)=plot(26:2:80,(mean_wealth(4+p,1:28,1,y_l,e_l)-mean_wealth(4+p,1:28,2,y_l,e_l))./1000,'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
+hold on
+set(gca,'FontName','Times New Roman','FontSize',FS);
+end
+if e_l==1
+    title('dropout')
+elseif e_l==2
+    title('highschool')
+else
+    title('college')
+
+end
+ylim([0 600])
+if e_l==1
+    if p==1
+        ylabel('P25')
+    elseif p==2
+        ylabel('P50')
+    elseif p==3
+        ylabel('P75')
+    elseif p==4
+        ylabel('Mean')
+    end 
+end
+        
+end
+if p==1
+I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+legend('boxoff')
+I.FontSize=FS
+newPosition = [0.45 -0.02 0.1 0.1];
+newUnits = 'normalized';
+set(I,'Position', newPosition,'Units', newUnits);
+end
+grid off
+grid off
+set(gca,'FontName','Times New Roman','FontSize',FS);
+set(gcf,'color','w')
+
+end
+
 
 
 
 
 %% Labor force participation by educ and health status
 
-clear all
+% clear all
 close all
 cd('C:\Users\jbueren\Google Drive\endo_health\metric_model\Results')
-
+types_y=2
 fileID=fopen('labor_force_participation.txt');
 participation=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-participation=reshape(participation{1},5,37,2,3,5);
-
+participation=reshape(participation{1},5,37,2,3,types_y);
+participation(5,:,1,1,1)
 colors = {  [0.4660    0.6740    0.1880]   [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = { '--'  '-'  ':' '-.' '-'};
 lw=[1.5 1.5 2.5 1.5 2.5]
 FS=11
+
 figure(2)
 set(2,'position',[150    150    750    350])
 y_l=1
-c_l=3
+
 for e_l=1:3
 subplot(1,3,e_l)
 for h_l=1:2
-h(h_l)=plot(25:2:65,participation(5,1:21,h_l,e_l,c_l),'Color',colors{h_l},'linewidth',lw(h_l),'linestyle',pattern{h_l})
+h(h_l)=plot(25:2:65,participation(5,1:21,h_l,e_l,y_l),'Color',colors{h_l},'linewidth',lw(h_l),'linestyle',pattern{h_l})
 hold on
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
@@ -448,65 +612,30 @@ set(gcf,'color','w')
 print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\labor_force_h','-depsc')
 print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\labor_force_h','-depsc')
 
-figure(3)
-set(3,'position',[150    150    750    350])
-y_l=1
-c_l=3
-h_l=1
-for e_l=1:3
-subplot(1,3,e_l)
-for c_l=3:5
-h(c_l)=plot(25:2:65,participation(5,1:21,h_l,e_l,c_l),'Color',colors{c_l},'linewidth',lw(c_l),'linestyle',pattern{c_l})
-hold on
-set(gca,'FontName','Times New Roman','FontSize',FS);
-end
-if e_l==1
-    title('dropout')
-elseif e_l==2
-    title('highschool')
-else
-    title('college')
-end
-ylim([0.4 1])
-xlim([22 68])
-xticks(25:5:65)
-end
-I=legend('cohort 1950','cohort 1970','cohort 1990','Location','northwest','orientation','horizontal')
-legend('boxoff')
-I.FontSize=FS
-newPosition = [0.45 -0.02 0.1 0.1];
-newUnits = 'normalized';
-set(I,'Position', newPosition,'Units', newUnits);
-grid off
-grid off
-set(gca,'FontName','Times New Roman','FontSize',FS);
-set(gcf,'color','w')
-print('C:\Users\jbueren\Dropbox\habits\Slides\v1\figures\labor_force_c','-depsc')
-print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\labor_force_c','-depsc')
-
 %% Labor force participation by educ and health status & previous labor force
 
 clear all
 % close all
 cd('C:\Users\jbueren\Google Drive\endo_health\metric_model\Results')
-
+types_y=2
 fileID=fopen('labor_force_participation_dynamic.txt');
 participation=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-participation=reshape(participation{1},5,37,2,3,5,2);
+participation=reshape(participation{1},5,37,2,3,types_y,2);
 
 colors = {  [0.4660    0.6740    0.1880]   [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = { '--'  '-'  ':' '-.' '-'};
 lw=[1.5 1.5 2.5 1.5 2.5]
 FS=11
-h_l=1
+
+y_l=1
 for f_l=1:2
 figure(f_l+3)
 set(f_l+3,'position',[150    150    750    350])
 for e_l=1:3
 subplot(1,3,e_l)
-for c_l=3:5
-h(c_l)=plot(26:2:60,participation(5,1:18,h_l,e_l,c_l,f_l),'Color',colors{c_l},'linewidth',lw(c_l),'linestyle',pattern{c_l})
+for h_l=1:2
+h(h_l)=plot(26:2:60,participation(5,1:18,h_l,e_l,y_l,f_l),'Color',colors{h_l},'linewidth',lw(h_l),'linestyle',pattern{h_l})
 hold on
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
@@ -520,7 +649,7 @@ end
 ylim([0 1])
 xticks(0:10:60)
 end
-I=legend('cohort 1950','cohort 1970','cohort 1990','Location','northwest','orientation','horizontal')
+I=legend('good health','bad health','Location','northwest','orientation','horizontal')
 legend('boxoff')
 I.FontSize=FS
 newPosition = [0.45 -0.02 0.1 0.1];
@@ -536,11 +665,11 @@ end
 
 clear all
 cd('C:\Users\jbueren\Google Drive\endo_health\metric_model\Results')
-
+types_y=2
 fileID=fopen('median_income.txt');
 mean_wealth=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-mean_wealth=reshape(mean_wealth{1},7,37,3,3,5);
+mean_wealth=reshape(mean_wealth{1},7,37,2,3,types_y);
 
 colors = {  [0.4660    0.6740    0.1880]   [0.9290    0.6940    0.1250]    [0.8500    0.3250    0.0980] [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = { '--'  '-'  ':' '-.' '-'};
@@ -548,10 +677,11 @@ lw=[1.5 1.5 2.5]
 FS=11
 figure(5)
 set(5,'position',[150    150    750    350])
+y_l=1
 for e_l=1:3
 subplot(1,3,e_l)
-for y_l=1:3
-h(y_l)=plot(26:2:64,mean_wealth(7,1:20,y_l,e_l,4)./1000,'Color',colors{y_l},'linewidth',lw(y_l),'linestyle',pattern{y_l})
+for h_l=1:2
+ plot(26:2:64,mean_wealth(7,1:20,h_l,e_l,y_l),'Color',colors{h_l},'linewidth',lw(h_l),'linestyle',pattern{h_l})
 hold on
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
@@ -562,17 +692,16 @@ elseif e_l==2
 else
     title('college')
 end
-ylim([0 200])
-% ylim([10 11.5])
+ylim([9.5 11.5])
 xticks(0:10:60)
 % yticks(0:25:150)
 end
-I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
-legend('boxoff')
-I.FontSize=FS
-newPosition = [0.45 -0.02 0.1 0.1];
-newUnits = 'normalized';
-set(I,'Position', newPosition,'Units', newUnits);
+% I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+% legend('boxoff')
+% I.FontSize=FS
+% newPosition = [0.45 -0.02 0.1 0.1];
+% newUnits = 'normalized';
+% set(I,'Position', newPosition,'Units', newUnits);
 grid off
 grid off
 set(gca,'FontName','Times New Roman','FontSize',FS);

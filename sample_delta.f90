@@ -44,8 +44,6 @@ subroutine sample_delta(delta,H,share_h,y,sample_k,weights,joint_yh)
                 delta_g(h_l,ge_l,e_l,y_l)=delta(h_l,ge_l,e_l,y_l)+u(h_l,y_l)
             end do
         end do
-        
-        
     end do; end do
     
     call delta_2_fraction(delta_g,fraction)

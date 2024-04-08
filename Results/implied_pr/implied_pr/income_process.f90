@@ -9,7 +9,7 @@ subroutine income_process(type_pr)
     real(DP),dimension(L_educ,cohorts,iterations)::s2_w
     real(DP),dimension(L_educ,cohorts,iterations)::s2_0
     real(DP),dimension(L_educ,cohorts,iterations)::rho
-    integer::it,e_l,y_l,g_l,c_l,s_l,g_l2
+    integer::it,e_l,y_l,g_l,c_l,s_l,g_l2,h_l
     real(DP),dimension(generations,types,L_educ,cohorts)::median_i,mean_i
     real(DP),dimension(indv,generations)::u_draw
     real(DP)::beta_var
@@ -31,9 +31,9 @@ subroutine income_process(type_pr)
         u_draw=-1.0d0 
         call sample_health_behavior(type_pr,y) 
     
-        beta_true(:,1)=(/8.84794,	-0.0323242,	-0.000509,	7.53E-06,	-0.2686783,	-0.1,	-0.2,	0.0719227,	0.155986/) 
-        beta_true(:,2)=(/9.84794,	-0.0323242,	-0.000509,	7.53E-06,	-0.2686783,	-0.1,	-0.2,	0.0719227,	0.155986/)
-        beta_true(:,3)=(/10.84794,	-0.0323242,	-0.000509,	7.53E-06,	-0.2686783,	-0.1,	-0.2,	0.0719227,	0.155986/) 
+        beta_true(:,1)=(/8.84794,	-0.0323242,	-0.000509,	7.53E-06,	-0.2686783,	-0.1/) 
+        beta_true(:,2)=(/9.84794,	-0.0323242,	-0.000509,	7.53E-06,	-0.2686783,	-0.1/)
+        beta_true(:,3)=(/10.84794,	-0.0323242,	-0.000509,	7.53E-06,	-0.2686783,	-0.1/) 
         s2_w_true=0.01d0 
         s2_0_true=0.25d0 
         s2_nu_true=0.02d0 
@@ -53,20 +53,20 @@ subroutine income_process(type_pr)
             !Sample health behavior type
             call sample_health_behavior(type_pr,y)  
     
-            !Sample parameters of mean wealth
+            !Sample parameters of mean income
             call sample_mean_p_income(y,s2_w(:,:,it),u_draw,beta_mean(:,:,it+1)) 
         
             !sample shocks
             call kalman_FS(s2_0(:,:,it),s2_nu(:,:,it),s2_w(:,:,it),beta_mean(:,:,it+1),y,rho(:,:,it),u_draw) 
         
             !sample s2_0 and s2_nu
-            call sample_rho_0_nu(u_draw,s2_nu(:,:,it),s2_0(:,:,it),rho(:,:,it),s2_0(:,:,it+1),s2_nu(:,:,it+1),rho(:,:,it+1)) !s2_nu(1,1,100:600)
+            call sample_rho_0_nu(u_draw,s2_nu(:,:,it),s2_0(:,:,it),rho(:,:,it),s2_0(:,:,it+1),s2_nu(:,:,it+1),rho(:,:,it+1))
 
             !sample s2_w    
             call sample_s2w(y,u_draw,beta_mean(:,:,it+1),s2_w(:,:,it+1)) 
             
         end do
-    
+
         beta_hat_s(:,:,s_l)=sum(beta_mean(:,:,burn:iterations),3)/dble(iterations-burn) !beta_mean(1,1,100:200)
         s2_nu_hat_s(:,:,s_l)=sum(s2_nu(:,:,burn:iterations),3)/dble(iterations-burn)
         s2_w_hat_s(:,:,s_l)=sum(s2_w(:,:,burn:iterations),3)/dble(iterations-burn) !s2_w(1,1,:)
@@ -108,18 +108,19 @@ subroutine income_process(type_pr)
                     write(9,*) s2_0_hat_s(1,1,s_l)
             close(9)
             open(unit=9,file=path//'metric_model\Results\montecarlo_rho.txt',access="append")
-                    write(9,*) rho_hat_s(1,1,s_l)
+                    write(9,*) rho_hat_s(1,1,s_l) !rho_hat_s(3,1,s_l)
             close(9)
         end if    
     end do
     
     
-    open(unit=9,file=path//'metric_model\Results\parameters_income.txt') !beta_mean(9,3,600)
+    open(unit=9,file=path//'metric_model\Results\parameters_income.txt') 
             write(9,*) sum(beta_mean(:,:,burn:iterations),3)/dble(iterations-burn+1),sum(s2_nu(:,:,burn:iterations),3)/dble(iterations-burn+1),sum(s2_w(:,:,burn:iterations),3)/dble(iterations-burn+1),sum(rho(:,:,burn:iterations),3)/dble(iterations-burn+1),sum(s2_0(:,:,burn:iterations),3)/dble(iterations-burn+1)
     close(9)
     
     open(unit=10,file=path//"metric_model\Results\median_income.txt")
-    do c_l=1,cohorts;do e_l=1,L_educ; do y_l=1,types;do g_l=1,generations
+    c_l=1
+    do y_l=1,types;do e_l=1,L_educ; do h_l=1,clusters;do g_l=1,generations
         beta_var=sum(s2_0(e_l,c_l,burn:iterations))/dble(iterations-burn+1)
         if (g_l>1) then
             do g_l2=2,g_l
@@ -127,9 +128,9 @@ subroutine income_process(type_pr)
             end do
         end if
         beta_var=beta_var+sum(s2_w(e_l,c_l,burn:iterations))/dble(iterations-burn+1)
-        print*,g_l,beta_var,(sum(rho(e_l,c_l,burn:iterations))/dble(iterations-burn+1))**2.0d0 !rho(1,1,100:it)
-        call quantile_income_hat(y_l,e_l,c_l,g_l,sum(beta_mean(:,:,burn:iterations),3)/dble(iterations-burn+1),beta_var,0.5d0,median_i(g_l,y_l,e_l,c_l),mean_i(g_l,y_l,e_l,c_l))
-        write(10,'(I3,I3,I3,I3,F15.2,F15.4,F15.4)') y_l,e_l,c_l,g_l,median_i(g_l,y_l,e_l,c_l),beta_var,mean_i(g_l,y_l,e_l,c_l)        
+        print*,g_l,beta_var,(sum(rho(e_l,c_l,burn:iterations))/dble(iterations-burn+1))**2.0d0 
+        call quantile_income_hat(y_l,e_l,h_l,g_l,sum(beta_mean(:,:,burn:iterations),3)/dble(iterations-burn+1),beta_var,0.5d0,median_i(g_l,y_l,e_l,c_l),mean_i(g_l,y_l,e_l,c_l))
+        write(10,'(I3,I3,I3,I3,F15.2,F15.4,F15.4)') y_l,e_l,h_l,g_l,median_i(g_l,y_l,e_l,c_l),beta_var,mean_i(g_l,y_l,e_l,c_l)        
     end do; end do; end do;end do
     close(10)
     

@@ -32,7 +32,7 @@ subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
             if (sample_k(i_l,first_age(i_l))/=-1) then
                 filtered_pr=weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:,birth_cohort(i_l)) 
             else
-                !Change this in the future (just one observation either way)
+                !just one observation either way
                 filtered_pr=weights(first_age(i_l),1,gender(i_l),educ(i_l),:,birth_cohort(i_l))
             end if
                 

@@ -1,25 +1,29 @@
 module mixtures_vars
     use global_var
     implicit none
-    integer,parameter::covariates_mix=4
+    integer,parameter::covariates_mix=4+cohorts-1
     real(DP),dimension(indv,generations)::data_wealth
+    real(DP),dimension(indv,generations)::data_income2
 end module
     
 
-subroutine estimate_mixture_wealth(type_pr)
+subroutine estimate_mixture_wealth(type_pr,sample_k)
     use global_var;use nrtype; use mixtures_vars
     implicit none
     double precision,dimension(indv,types),intent(in)::type_pr
+    integer,dimension(indv,generations),intent(in)::sample_k
     real(DP),dimension(generations,indv_HRS)::data_wealth_hrs
     real(DP),dimension(generations,indv_psid)::data_wealth_psid
-    real(DP),dimension(generations,types,L_educ)::pr_zero
-    real(DP),dimension(generations,types,L_educ,3)::quantile_w
-    real(DP),dimension(generations,types,L_educ)::mean_w,variance_w
+    real(DP),dimension(generations,types,L_educ,clusters,cohorts)::pr_zero
+    real(DP),dimension(clusters,generations,types,L_educ,3)::quantile_w
+    real(DP),dimension(generations,types,L_educ,clusters)::mean_w
+    real(DP),dimension(generations,types,L_educ)::variance_w
     real(DP),dimension(3)::quantiles=(/0.25d0,0.5d0,0.75d0/)
     real(DP),dimension(covariates_mix,types,L_educ)::beta_mean
     real(DP),dimension(types,L_educ)::beta_var
+    
     real(DP)::q,p
-    integer::e_l,g_l,y_l,p_l
+    integer::e_l,g_l,y_l,p_l,h_l,c_l
     character::pause_k
 
     
@@ -36,28 +40,28 @@ subroutine estimate_mixture_wealth(type_pr)
 
     pr_zero=-9.0d0
     quantile_w=-9.0d0
-    call pr_of_zero_wealth(type_pr,pr_zero)
-    call log_normal_dist(type_pr,beta_mean,beta_var)
+    call pr_of_zero_wealth(type_pr,sample_k,pr_zero)
+    call log_normal_dist(type_pr,sample_k,beta_mean,beta_var)
     
+    c_l=2
     do p_l=1,3
         p=quantiles(p_l)
-        do e_l=1,L_educ; do y_l=1,types;do g_l=1,generations
-            q=p-pr_zero(g_l,y_l,e_l)
-            call quantile_wealth_hat(y_l,e_l,g_l,beta_mean,beta_var,q,quantile_w(g_l,y_l,e_l,p_l),mean_w(g_l,y_l,e_l),variance_w(g_l,y_l,e_l))
-            if (pr_zero(g_l,y_l,e_l)>p) then 
-                quantile_w(g_l,y_l,e_l,p_l)=0.0d0                
+        do h_l=1,clusters;do e_l=1,L_educ; do y_l=1,types;do g_l=1,generations
+            q=p-pr_zero(g_l,y_l,e_l,h_l,c_l)
+            call quantile_wealth_hat(h_l,y_l,e_l,g_l,c_l,beta_mean,beta_var,q,quantile_w(h_l,g_l,y_l,e_l,p_l),mean_w(g_l,y_l,e_l,h_l),variance_w(g_l,y_l,e_l))
+            if (pr_zero(g_l,y_l,e_l,h_l,c_l)>p) then 
+                quantile_w(h_l,g_l,y_l,e_l,p_l)=0.0d0
             end if    
-        end do; end do; end do
+        end do; end do; end do;end do
     end do
     
     open(unit=10,file=path//"metric_model\Results\wealth_moments_data.txt")
-        do e_l=1,L_educ; do y_l=1,types;do g_l=1,generations
-            write(10,'(I3,I3,I3,<5>F14.1)') y_l,e_l,g_l,quantile_w(g_l,y_l,e_l,1),quantile_w(g_l,y_l,e_l,2),quantile_w(g_l,y_l,e_l,3),mean_w(g_l,y_l,e_l)*(1.0d0-pr_zero(g_l,y_l,e_l)),sqrt(variance_w(g_l,y_l,e_l))
-        end do; end do; end do
+        do e_l=1,L_educ; do y_l=1,types;do h_l=1,clusters;do g_l=1,generations
+            write(10,'(I3,I3,I3,I3,<5>F14.1)') y_l,e_l,h_l,g_l,quantile_w(h_l,g_l,y_l,e_l,1),quantile_w(h_l,g_l,y_l,e_l,2),quantile_w(h_l,g_l,y_l,e_l,3),mean_w(g_l,y_l,e_l,h_l)*(1.0d0-pr_zero(g_l,y_l,e_l,h_l,c_l)),sqrt(variance_w(g_l,y_l,e_l))
+        end do; end do; end do;end do
     close(10)
 
-      
 
-    pause
+    !pause
 
 end subroutine

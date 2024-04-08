@@ -31,7 +31,7 @@ subroutine simulate_income(y,beta_mean,s2_nu,s2_w,s2_0,rho,u_draw)
         y_d(y(i_l,1))=1.0d0
         cohort_d=0.0d0
         cohort_d(birth_cohort(i_l))=1.0d0
-        x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,g_l)-1),y_d(2:types),cohort_d(4:5)/)
+        x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,g_l)-1),dble(data_shlt(i_l,g_l)-1)*dble(age)/)
         if (g_l==first_age(i_l)) then
             var_ind=s2_0(educ(i_l),birth_cohort(i_l))
             if (g_l>1) then

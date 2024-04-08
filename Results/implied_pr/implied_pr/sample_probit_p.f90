@@ -1,10 +1,12 @@
-subroutine sample_probit_p(y,beta_w) 
+subroutine sample_probit_p(y,sample_k,beta_w) 
     use global_var;use nrtype; use mixtures_vars
     implicit none
     integer,dimension(indv,1),intent(in)::y
+    integer,dimension(indv,generations),intent(in)::sample_k
     real(DP),dimension(covariates_mix,types,L_educ),intent(inout)::beta_w
     integer::i_l,g_l,y_l,e_l,c_l,age
-    real(DP)::u,nw_star
+    real(DP)::u,nw_star,health_d
+    real(DP),dimension(cohorts)::cohort_d
     real(DP),dimension(covariates_mix,1)::x,z
     integer,dimension(types,L_educ)::counter_big_X
     real(DP),dimension(indv*10,types,L_educ,covariates_mix)::big_X
@@ -19,7 +21,10 @@ subroutine sample_probit_p(y,beta_w)
     counter_big_X=0
     do i_l=1,indv;do g_l=first_age(i_l),last_age(i_l)
         age=initial_age+(g_l-1)*2-70
-        x(1:4,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0/)     
+        health_d=dble(sample_k(i_l,g_l)-1)
+        cohort_d=0.0d0
+        cohort_d(birth_cohort(i_l))=1.0d0
+        x(1:covariates_mix,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,cohort_d(2:cohorts)/)     
         if (data_wealth(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<80) then
             counter_big_X(y(i_l,1),educ(i_l))=counter_big_X(y(i_l,1),educ(i_l))+1
             big_X(counter_big_X(y(i_l,1),educ(i_l)),y(i_l,1),educ(i_l),:)=x(:,1)
@@ -44,23 +49,22 @@ subroutine sample_probit_p(y,beta_w)
         call choldc(A,covariates_mix)
         beta_w(:,y_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X(1:counter_big_X(y_l,e_l),y_l,e_l,:)),big_Y(1:counter_big_X(y_l,e_l),y_l,e_l)))+matmul(A,z(:,1))
     end do;end do
-    
 end subroutine
-    
-subroutine sample_probit_p_income(y,beta_i) 
+
+subroutine sample_probit_p_income(y,sample_k,beta_i) 
     use global_var;use nrtype; use mixtures_vars_income
     implicit none
     integer,dimension(indv,1),intent(in)::y
+    integer,dimension(indv,generations),intent(in)::sample_k
     real(DP),dimension(covariates_mix,L_educ),intent(inout)::beta_i
     integer::i_l,g_l,y_l,e_l,c_l,age
-    real(DP)::u,i_star
+    real(DP)::u,nw_star,health_d
     real(DP),dimension(covariates_mix,1)::x,z
     integer,dimension(L_educ)::counter_big_X
     real(DP),dimension(indv*10,L_educ,covariates_mix)::big_X
     real(DP),dimension(indv*10,L_educ)::big_Y
     real(DP),dimension(covariates_mix,covariates_mix)::Sigma,inv_Sigma,A
     real(DP),dimension(types)::y_d
-    real(DP),dimension(cohorts)::cohort_d
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -70,20 +74,19 @@ subroutine sample_probit_p_income(y,beta_i)
     counter_big_X=0
     do i_l=indv_HRS+1,indv;do g_l=first_age(i_l),last_age(i_l)
         age=initial_age+(g_l-1)*2-70
+        health_d=dble(sample_k(i_l,g_l)-1)
         y_d=0.0d0
         y_d(y(i_l,1))=1.0d0
-        cohort_d=0.0d0
-        cohort_d(birth_cohort(i_l))=1.0d0
-        x(1:covariates_mix,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(data_shlt(i_l,g_l)-1),cohort_d(4:5)/)     
-        if (data_income(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<62) then
+        x(1:covariates_mix,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,health_d,health_d*dble(age)/)     
+        if (data_income(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<62) then 
             counter_big_X(educ(i_l))=counter_big_X(educ(i_l))+1
             big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)
-            if (data_income(i_l,g_l)<=520.0d0*7.25d0 ) then
-                call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_i(:,educ(i_l))),1.0_dp,0.0_dp,i_star)
-                big_Y(counter_big_X(educ(i_l)),educ(i_l))=i_star
+            if (data_income(i_l,g_l)<=520.0d0*7.25d0) then !data_income(i_l+1,:)
+                call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_i(:,educ(i_l))),1.0_dp,0.0_dp,nw_star)
+                big_Y(counter_big_X(educ(i_l)),educ(i_l))=nw_star
             else
-                call TRUNCATED_NORMAL_B_SAMPLE(sum(x(:,1)*beta_i(:,educ(i_l))),1.0_dp,0.0_dp,i_star)
-                big_Y(counter_big_X(educ(i_l)),educ(i_l))=i_star
+                call TRUNCATED_NORMAL_B_SAMPLE(sum(x(:,1)*beta_i(:,educ(i_l))),1.0_dp,0.0_dp,nw_star)
+                big_Y(counter_big_X(educ(i_l)),educ(i_l))=nw_star
             end if
         end if
     end do; end do
@@ -99,23 +102,21 @@ subroutine sample_probit_p_income(y,beta_i)
         call choldc(A,covariates_mix)
         beta_i(:,e_l)=matmul(inv_Sigma,matmul(transpose(big_X(1:counter_big_X(e_l),e_l,:)),big_Y(1:counter_big_X(e_l),e_l)))+matmul(A,z(:,1))
     end do
+    end subroutine  
     
-
-    end subroutine    
-    
-    subroutine sample_probit_p_income_dynamic(y,beta_i) 
+subroutine sample_probit_p_income_dynamic(y,sample_k,beta_i) 
     use global_var;use nrtype; use mixtures_vars_income
     implicit none
     integer,dimension(indv,1),intent(in)::y
+    integer,dimension(indv,generations),intent(in)::sample_k
     real(DP),dimension(covariates_mix_d,L_educ),intent(inout)::beta_i
-    integer::i_l,g_l,y_l,e_l,c_l,age,LF
-    real(DP)::u,i_star
+    integer::i_l,g_l,y_l,e_l,c_l,age
+    real(DP)::u,nw_star,health_d,LF
     real(DP),dimension(covariates_mix_d,1)::x,z
     integer,dimension(L_educ)::counter_big_X
     real(DP),dimension(indv*10,L_educ,covariates_mix_d)::big_X
     real(DP),dimension(indv*10,L_educ)::big_Y
     real(DP),dimension(covariates_mix_d,covariates_mix_d)::Sigma,inv_Sigma,A
-    real(DP),dimension(cohorts)::cohort_d
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -124,24 +125,27 @@ subroutine sample_probit_p_income(y,beta_i)
     
     counter_big_X=0
     do i_l=indv_HRS+1,indv;do g_l=first_age(i_l)+1,last_age(i_l)
-        if (data_income(i_l,g_l-1)/=-9.0d0 .and.data_income(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<62) then
+        if (data_income(i_l,g_l-1)/=-9.0d0 .and. data_income(i_l,g_l)/=-9.0d0 .and. gender(i_l)==1 .and. initial_age+(g_l-1)*2<62) then
             age=initial_age+(g_l-1)*2-70
             if (data_income(i_l,g_l-1)<=520.0d0*7.25d0) then
-                LF=0
+                LF=0.0d0
             else
-                LF=1
+                LF=1.0d0
             end if
-            cohort_d=0.0d0
-            cohort_d(birth_cohort(i_l))=1.0d0
-            x(1:covariates_mix_d,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(data_shlt(i_l,g_l)-1),dble(LF),cohort_d(4:5)/) 
+            health_d=dble(sample_k(i_l,g_l)-1)
+            x(1:covariates_mix_d,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,health_d,health_d*dble(age),LF,LF*dble(age)/)     
             counter_big_X(educ(i_l))=counter_big_X(educ(i_l))+1
             big_X(counter_big_X(educ(i_l)),educ(i_l),:)=x(:,1)
-            if (data_income(i_l,g_l)<=520.0d0*7.25d0 ) then
-                call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_i(:,educ(i_l))),1.0_dp,0.0_dp,i_star)
-                big_Y(counter_big_X(educ(i_l)),educ(i_l))=i_star
+            if (data_income(i_l,g_l)<=520.0d0*7.25d0) then
+                call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_i(:,educ(i_l))),1.0_dp,0.0_dp,nw_star)
+                big_Y(counter_big_X(educ(i_l)),educ(i_l))=nw_star
             else
-                call TRUNCATED_NORMAL_B_SAMPLE(sum(x(:,1)*beta_i(:,educ(i_l))),1.0_dp,0.0_dp,i_star)
-                big_Y(counter_big_X(educ(i_l)),educ(i_l))=i_star
+                call TRUNCATED_NORMAL_B_SAMPLE(sum(x(:,1)*beta_i(:,educ(i_l))),1.0_dp,0.0_dp,nw_star)
+                big_Y(counter_big_X(educ(i_l)),educ(i_l))=nw_star
+            end if
+            if (big_Y(counter_big_X(educ(i_l)),educ(i_l))>100.0 .or. big_Y(counter_big_X(educ(i_l)),educ(i_l))<-100.0)then
+                big_Y(counter_big_X(educ(i_l)),educ(i_l))=0.0d0
+                print*,'got here'
             end if
         end if
     end do; end do
@@ -151,18 +155,21 @@ subroutine sample_probit_p_income(y,beta_i)
         do c_l=1,covariates_mix_d
             z(c_l,1)=c4_normal_01(  )
         end do
-        Sigma=matmul(transpose(big_X(1:counter_big_X(e_l),e_l,:)),big_X(1:counter_big_X(e_l),e_l,:))
+1        Sigma=matmul(transpose(big_X(1:counter_big_X(e_l),e_l,:)),big_X(1:counter_big_X(e_l),e_l,:)) !big_X(1:counter_big_X(2,1),2,1,6)
         call inverse(Sigma,inv_Sigma,covariates_mix_d)
         A=inv_Sigma
         call choldc(A,covariates_mix_d)
         beta_i(:,e_l)=matmul(inv_Sigma,matmul(transpose(big_X(1:counter_big_X(e_l),e_l,:)),big_Y(1:counter_big_X(e_l),e_l)))+matmul(A,z(:,1))
+        if (isnan(sum(beta_i(:,e_l)))) then
+            print*,matmul(transpose(big_X(1:counter_big_X(e_l),e_l,:)),big_Y(1:counter_big_X(e_l),e_l))
+            print*,''
+            print*,matmul(inv_Sigma,matmul(transpose(big_X(1:counter_big_X(e_l),e_l,:)),big_Y(1:counter_big_X(e_l),e_l)))
+            print*,''
+            print*,matmul(A,z(:,1))
+            go to 1
+        end if
     end do
-    
-
-end subroutine    
-    
-
-    
+end subroutine   
     
 double precision function c4_normal_01 (  )
 !------------------------------------------------------------------------------------------------------------------------------------

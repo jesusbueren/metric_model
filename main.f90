@@ -22,10 +22,10 @@ program main
         call random_number(u)
         if (data_habits(i_l,3,first_age(i_l))==1) then !smoking
             if (u<0.8d0)then
-                y(i_l,1)=3
+                y(i_l,1)=types
             end if
         end if
-        if (data_habits(i_l,6,first_age(i_l))==1 .and. y(i_l,1)==-1) then !high bmi
+        if (data_habits(i_l,1,first_age(i_l))==0 .and. y(i_l,1)==-1) then !high bmi
             if (u<0.8d0)then
                 y(i_l,1)=2
             end if

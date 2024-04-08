@@ -20,11 +20,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
                                 weight=(/1.22172526747065,	0.480277222164629,	0.0677487889109621,	0.00268729149356246,	1.52808657104652E-05/),prod1,prod2
     integer::ind
     real(DP)::gender_d
-    interface
-        double precision function c4_normal_01( )
-            implicit none
-        end function c4_normal_01
-    end interface
+    
     
     H=-9.0d0
     !!$OMP PARALLEL  DEFAULT(PRIVATE) SHARED(H,beta)
@@ -75,6 +71,22 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     !No resurection
     H(clusters+1,1:clusters,:,:,:,:)=0.0_dp 
     H(clusters+1,clusters+1,:,:,:,:)=1.0_dp
+    
+    call H2LE(H,LE,joint_yh)
+    
+end subroutine
+
+subroutine H2LE(H,LE,joint_yh)
+use global_var; use nrtype
+    implicit none
+    real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts),intent(in)::joint_yh
+    real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ),intent(in)::H
+    real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(out)::LE
+    integer::e_l,c_l,c_l2,g_l,ge_l,it,d_l,t_l
+    double precision,dimension(clusters+1,generations)::p
+
+    integer::ind
+    real(DP)::gender_d
 
     !Compute LE in each health status at age 50
     LE=0.0d0
@@ -84,7 +96,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
         if (cohorts==5) then
             p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,3)/sum(joint_yh(1,:,ge_l,e_l,t_l,3))
         else
-            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,5)/sum(joint_yh(1,:,ge_l,e_l,t_l,5))
+            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,5)/sum(joint_yh(1,:,ge_l,e_l,t_l,5)) !p(1,:)
         end if
         if (isnan(sum(p)))then
             print*,'error in transitions: initial cond. Don t worry if it=1'
@@ -106,7 +118,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
             end if
             p(:,g_l)=matmul(transpose(H(:,:,g_l-1,t_l,ge_l,e_l)),p(:,g_l-1))    
         end do
-        LE(t_l,ge_l,e_l,clusters+1)=sum(LE(t_l,ge_l,e_l,1:clusters))
+        LE(t_l,ge_l,e_l,clusters+1)=sum(LE(t_l,ge_l,e_l,1:clusters)) ! LE(3,1,1,3)
     end do;end do;end do
 
 end subroutine

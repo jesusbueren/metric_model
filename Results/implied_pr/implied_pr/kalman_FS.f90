@@ -46,10 +46,10 @@ subroutine kalman_FS(s2_0_e,s2_nu_e,s2_w_e,beta_mean,y,rho_e,u_draw)
             y_d(y(i_l,1))=1.0d0
             cohort_d=0.0d0
             cohort_d(birth_cohort(i_l))=1.0d0
-            x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,t_l)-1),y_d(2:types),cohort_d(4:5)/)
+            x(1:covariates_mix_mean,1)=(/1.0_dp,dble(age),dble(age)**2.0d0,dble(age)**3.0d0,dble(data_shlt(i_l,t_l)-1),dble(data_shlt(i_l,t_l)-1)*dble(age)/)
 
             !Gain & Updating equations
-            if ( gender(i_l)==1 .and. initial_age+(t_l-1)*2<63 .and. data_income(i_l,t_l)>520.0d0*7.25d0 ) then !
+            if ( gender(i_l)==1 .and. initial_age+(t_l-1)*2<60 .and. data_income(i_l,t_l)>520.0d0*7.25d0 ) then !
                 xi_t1_t1(t_l)=xi_t1_t0(t_l)+(P_t1_t0(t_l)*((P_t1_t0(t_l)+s2_w)**-1.0d0))*(log(data_income(i_l,t_l))-sum(x(1:covariates_mix_mean,1)*beta_mean(:,educ(i_l)))-xi_t1_t0(t_l)) 
             else
                 K=0.0d0

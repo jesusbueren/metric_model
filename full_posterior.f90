@@ -34,6 +34,8 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     
     H=1/dble(clusters+1)
     
+    joint_yh=1.0d0/dble(clusters*types)
+    
     !Burn iterations (avoid saving results before iteration)
     burn=1000    
 
@@ -41,7 +43,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     !Save one in it2 iterations
     it2=10
     !call tick(calc)
-    do it=1,100000+burn
+    do it=1,30000+burn
         print*,it
         !Sample health transitions parameters
         call sample_beta_h(beta_h,y,sample_k)
