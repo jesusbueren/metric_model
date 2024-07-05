@@ -26,6 +26,7 @@
 	<Files>
 		<Filter Name="Header Files" Filter="fi;fd;h;inc">
 		<File RelativePath="..\..\..\charge_data.f90"/>
+		<File RelativePath=".\compute_pr_surv.f90"/>
 		<File RelativePath=".\estimate_mixture_income.f90"/>
 		<File RelativePath=".\estimate_mixture_wealth.f90"/>
 		<File RelativePath="..\..\..\global_var.f90"/>

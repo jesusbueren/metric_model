@@ -34,11 +34,11 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
             dummy_type_x_age(t_l-1)=dble(age)
         end if
         x(:,1)=[(/1.0_dp,dble(age)/),dummy_type,dummy_type_x_age]!,dble(age)**2.0d0
-        if (clusters==2) then
+        !if (clusters==2) then
             H(c_l,1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_h(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
             H(c_l,2,g_l,t_l,ge_l,e_l)=1.0d0-H(c_l,1,g_l,t_l,ge_l,e_l)
-        else
-            print*,'need to do smthg else'
+        !else
+            !print*,'need to do smthg else'
             !!By numerical integration
             !do c_l2=1,clusters
             !    h_star(c_l2)=sum(x(:,1)*beta_h(:,t_l,c_l,c_l2,ge_l,e_l))
@@ -54,7 +54,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
             !    end do
             !    H(c_l,c_l2,g_l,t_l,ge_l,e_l)=0.5d0/sqrt(pi)*sum(weight*(prod1+prod2))
             !end do   
-        end if
+        !end if
             
         H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*beta_d(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
 

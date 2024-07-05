@@ -25,13 +25,20 @@ program main
                 y(i_l,1)=types
             end if
         end if
-        if (data_habits(i_l,1,first_age(i_l))==0 .and. y(i_l,1)==-1) then !high bmi
+        if (types==4) then
+            if (data_habits(i_l,2,first_age(i_l))==1) then !drink
+                if (u<0.8d0)then
+                    y(i_l,1)=3
+                end if
+            end if
+        end if
+        if (data_habits(i_l,1,first_age(i_l))==1 .and. y(i_l,1)==-1) then  !cancer test
             if (u<0.8d0)then
-                y(i_l,1)=2
+                y(i_l,1)=1
             end if
         end if
         if (y(i_l,1)==-1) then
-            y(i_l,1)=1
+            y(i_l,1)=2
         end if
     end do
 
@@ -44,5 +51,7 @@ program main
     gamma=0.0d0
     delta=0.0d0
     call full_posterior(beta_h,beta_d,gamma,y,delta)
+    
+    pause
     
 end program

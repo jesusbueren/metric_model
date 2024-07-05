@@ -49,11 +49,18 @@ subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
                         if (i_l<=indv_HRS) then
                             filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))
                         else
-                            filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))) 
+                            !filtered_pr(e_l)=filtered_pr(e_l)*min(H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l)), 1.0d-8)/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))) 
+                            if (H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))==1.0d0) then
+                                filtered_pr(e_l)=0.0d0
+                            else
+                                filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l)))
+                            end if
                         end if
                     end if
                 if (isnan(sum(filtered_pr))) then
-                    print*,'pb sample_y'
+                    print*,'pb sample_y nan'
+                elseif (sum(filtered_pr)==0.0d0) then
+                    print*,'pb sample_y zero'
                 end if
                 end do
             end do
@@ -78,7 +85,7 @@ subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
                 else
                     ind=ind+1
                 end if 
-                if (ind>3) then
+                if (ind>types) then
                     print*,'here'
                 end if
             end do

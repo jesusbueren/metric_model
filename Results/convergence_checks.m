@@ -1,3 +1,80 @@
+%% Motivivating graphs HRS
+clear all
+cd('C:\Users\jbueren\Google Drive\endo_health\data')
+hrs=readtable('habits_pr_hrs.csv')
+psid=readtable('habits_pr_psid.csv')
+colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+pattern = {  '-'  ':' '--' '-.' '-'}
+variable_names = {'cancer_test', 'drunk', 'smoken','cholst','flusht','sport_time'}
+% New variable names HRS
+newVarNames = {'Cancer', 'Drinking', 'Smoking','Cholesterol','Flu Shot','Exercise'};
+hrs = renamevars(hrs, variable_names, newVarNames);
+
+% New variable names PSID
+variable_names_psid = {'drinksPerDay', 'nCigsDay'}
+newVarNames_psid = { 'Drinking', 'Smoking'};
+psid = renamevars(psid, variable_names_psid, newVarNames_psid);
+psid = renamevars(psid, 'birth', 'rabyear');
+FS=10
+figure(1)
+set(1,'position',[150    150    500    250])
+for e_l=[1 3]
+    for v_l=1:length(newVarNames)
+        var_name = newVarNames{v_l};
+        var_name2=strcat("N_",variable_names{v_l})
+        
+        
+        subplot(2,3,v_l)
+        for c_l=1:3
+            filtered_hrs = hrs(hrs.raeduc == e_l & hrs.rabyear == c_l &  hrs.(var_name2)>50, :)
+            plot(filtered_hrs.int_age, filtered_hrs.(var_name).*100,"color",colors{c_l},"LineWidth",2,'linestyle',pattern{e_l})
+            if v_l==2 || v_l==3
+                var_name2_psid=strcat("N_",variable_names_psid{v_l-1})
+                filtered_psid = psid(psid.raeduc == e_l & psid.rabyear == c_l &  psid.(var_name2_psid)>50, :)
+                if isempty(filtered_psid.(var_name))==0 
+                    plot(filtered_psid.int_age, filtered_psid.(var_name).*100,"color",colors{c_l},"LineWidth",2,'linestyle',pattern{e_l})
+                end
+            end
+            hold on
+            title(var_name,'FontWeight','normal')
+        end
+        
+%         ylim([0 100])
+    end
+end
+% legend([p(1,1) p(2,1) p(3,1) p(1,3) p(2,3) p(3,3)],'HSD: 1930','HSD: 1950','HSD: 1970','CG: 1930','CG: 1950','CG: 1970')
+        set(gcf,'color','w')
+        set(gca,'FontName','Times New Roman','FontSize',FS);
+
+%% Motivivating graphs PSID
+clear all
+cd('C:\Users\jbueren\Google Drive\endo_health\data')
+hrs=readtable('habits_pr_psid.csv')
+colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+pattern = {  '-'  ':' '--' '-.' '-'}
+variable_names = {'drinksPerDay', 'nCigsDay'}
+% New variable names
+newVarNames = { 'Drinking', 'Smoking'};
+hrs = renamevars(hrs, variable_names, newVarNames);
+hrs = renamevars(hrs, 'birth', 'rabyear');
+
+for e_l=[1 3]
+    for v_l=1:length(newVarNames)
+        var_name = newVarNames{v_l};
+        var_name2=strcat("N_",variable_names{v_l})
+        figure(1)
+        subplot(1,2,v_l)
+        for c_l=1:3
+            filtered_hrs = hrs(hrs.raeduc == e_l & hrs.rabyear == c_l &  hrs.(var_name2)>40, :)
+            plot(filtered_hrs.int_age, filtered_hrs.(var_name).*100,"color",colors{c_l},"LineWidth",2,'linestyle',pattern{e_l})
+            hold on
+            title(var_name,'FontWeight','normal')
+        end
+        ylim([0 100])
+    end
+end
+
+%% Metric model results
 clc
 clear all
 close all
@@ -6,6 +83,7 @@ clusters=2
 covariates_habits=4
 habits=6
 types=2
+types_s=num2str(types)
 educ=3
 genders=2
 variables_p=12
@@ -20,41 +98,42 @@ variables_H=(clusters+1)*(clusters+1)*generations*types*genders*educ
 
 cd('C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health')
 
-fileID=fopen('c_tr.txt');
+fileID=fopen(strcat('c_tr_',types_s,'.txt'));
 c_tr=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 c_tr=reshape(c_tr{1},covariates,clusters,genders,educ,size(c_tr{1},1)/(variables_tr));
 
 
-fileID=fopen('LE.txt');
-LE=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
+fileID=fopen(strcat('LE_',types_s,'.txt'));
+LE=textscan(fileID,'%20.8f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 LE=reshape(LE{1},types,genders,educ,clusters+1,size(LE{1},1)/(types*genders*educ*(clusters+1)));
 
 
-fileID=fopen('fraction_t.txt');
+fileID=fopen(strcat('fraction_t_',types_s,'.txt'));
 fraction_t=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 fraction_t=reshape(fraction_t{1},generations,genders,educ,types,cohorts,size(fraction_t{1},1)/(generations*educ*types*genders*cohorts));
 
-fileID=fopen('fraction_h.txt');
+fileID=fopen(strcat('fraction_h_',types_s,'.txt'));
 fraction_h=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 fraction_h=reshape(fraction_h{1},generations,clusters,genders,educ,types,size(fraction_h{1},1)/(generations*educ*types*genders*clusters));
 
 
-fileID=fopen('c_habits.txt');
+fileID=fopen(strcat('c_habits_',types_s,'.txt'));
 c_gma=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 c_gma=reshape(c_gma{1},covariates_habits,habits,types,size(c_gma{1},1)/(variables_gma));
 
-fileID=fopen('H.txt');
+fileID=fopen(strcat('H_',types_s,'.txt'));
 H=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 H=reshape(H{1},clusters+1,clusters+1,generations,types,genders,educ,size(H{1},1)/(variables_H));
 
 
 iterations=min([size(c_gma,4) size(c_tr,5)])
+[size(c_gma,4) size(c_tr,5) size(LE,5)]
 
 burn=1
 
@@ -113,10 +192,16 @@ alphas(1,1:12,:,:)=NaN;
 alphas(4,1:12,:,:)=NaN;
 alphas(5,1:12,:,:)=NaN;
 alphas(6,1:12,:,:)=NaN;
+if types==2
+    colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==3
+    colors = { [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250] [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==4
+    colors = { [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250]    [0   0.4470    0.7410] [0.8500    0.3250    0.0980] [0.4940    0.1840    0.5560]};
+end
 
-colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {  '-'  ':' '--' '-.' '-'};
-lw=[1.7 3.0 1.5 ]
+lw=[1.7 3.0 1.5 1.5 ]
     FS=8 %font size
 figure(10)
 set(10,'position',[150    150    500    250])
@@ -151,8 +236,13 @@ for h_l=[1 4 5 2 3 6]
     MS=25 %marker size
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
-
-I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+if types==2
+    I=legend('Protective','Detrimental','Location','northwest','orientation','horizontal')
+elseif types==3
+    I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+elseif types==4
+    I=legend('Protective','Detrimental 1','Detrimental 2','Harmful','Location','northwest','orientation','horizontal')
+end 
 legend('boxoff')
 I.FontSize=FS
 newPosition = [0.45 0.93 0.1 0.1];
@@ -161,8 +251,11 @@ newPosition = [0.45 0.93 0.1 0.1];
 grid off
 set(gca,'FontName','Times New Roman','FontSize',FS);
 
-print('C:\Users\jbueren\Dropbox\habits\Slides\v2\figures\health_behaviors','-depsc')
-print('C:\Users\jbueren\Dropbox\habits\Draft\metric_model\figures\health_behaviors','-depsc')
+print(strcat('C:\Users\jbueren\Dropbox\habits\Draft\figures\health_behaviors',types_s),'-depsc')
+
+figure(10)
+set(10,'position',[150    150    500    220])
+% print('C:\Users\jbueren\Dropbox\habits\Slides\2024_EUI_PhD\figures\health_behaviors','-depsc')
 
 
 
@@ -191,7 +284,7 @@ colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980] [0.9290 
 pattern = {  '-'  '--' ':' '-.' '-'};
 lw=[1.7 1.5 2.0]
 
-FS=9
+FS=7
 
 %select gender
 marker= {'o','s','d' }
@@ -212,11 +305,11 @@ for e_l=1:3
     yticks([0:0.25:1])
     xlim([5 95])
     if e_l==1
-        title('dropout')
+        title('HSD','FontWeight','Normal')
     elseif e_l==2
-        title('highschool')
+        title('HSG','FontWeight','Normal')
     elseif e_l==3
-        title('college')
+        title('CG','FontWeight','Normal')
     end
     set(gca,'FontName','Times New Roman','FontSize',FS);
 end
@@ -246,12 +339,15 @@ ylim([5 12])
 xlim([05 95])
 hold on
 xlabel('Birth Year')
-title('life expectancy gradient')
+title('LE gradient','FontWeight','Normal')
 set(gca,'FontName','Times New Roman','FontSize',FS);
-print('C:\Users\jbueren\Dropbox\habits\Slides\v2\figures\share_y_cohorts','-depsc')
+print('C:\Users\jbueren\Dropbox\habits\Draft\figures\share_y_cohorts','-depsc')
+set(6,'position',[150    150    500    220])
+print('C:\Users\jbueren\Dropbox\habits\Slides\2024_EUI_PhD\figures\share_y_cohorts','-depsc')
 %% Plot weights across age for a given cohort
 ge_l=1
 e_l=1
+c_l=4
 FS=10
 colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]   [0.9290    0.6940    0.1250]  [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {  '-'  '--' ':' '-.' '-'};
@@ -268,7 +364,7 @@ ge_l=1
 for e_l=1:3
     subplot(1,3,e_l)
     for p_l=1:types 
-        h(p_l)=errorbar(26:4:100,squeeze(mean(fraction_t(1:2:end,ge_l,e_l,p_l,3,burn:end),6)).*100,2.*squeeze(std(fraction_t(1:2:end,ge_l,e_l,p_l,3,burn:end),0,6)).*100,...
+        h(p_l)=errorbar(26:4:100,squeeze(mean(fraction_t(1:2:end,ge_l,e_l,p_l,c_l,burn:end),6)).*100,2.*squeeze(std(fraction_t(1:2:end,ge_l,e_l,p_l,c_l,burn:end),0,6)).*100,...
             marker{p_l},'MarkerSize',6,'MarkerFaceColor',colors{p_l})
         h(p_l).Color = colors{p_l}
         hold on
@@ -444,13 +540,13 @@ set(gca,'FontName','Times New Roman','FontSize',FS);
 end
 if p==1
     if e_l==1
-    title('HSD')
+    title('HSD',"FontWeight","normal")
 %     ylim([0 150])
     elseif e_l==2
-    title('HSG')
+    title('HSG',"FontWeight","normal")
 %     ylim([0 600])
     else
-    title('CG')
+    title('CG',"FontWeight","normal")
 %     ylim([0 1000])
     end
 end

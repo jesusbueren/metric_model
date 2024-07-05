@@ -26,9 +26,9 @@ subroutine sample_delta(delta,H,share_h,y,sample_k,weights,joint_yh)
     !Compute likelihood of weights
     log_likeli=0.0d0
     do i_l=1,indv
-        if (sample_k(i_l,first_age(i_l))>=1 .and. sample_k(i_l,first_age(i_l))<=2) then
+        if (sample_k(i_l,first_age(i_l))>=1 .and. sample_k(i_l,first_age(i_l))<=2 .and. race(i_l)==1) then
             log_likeli(gender(i_l),educ(i_l))=log_likeli(gender(i_l),educ(i_l))+log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
-        else
+        elseif ( race(i_l)==1) then
             log_likeli(gender(i_l),educ(i_l))=log_likeli(gender(i_l),educ(i_l))+log(weights(first_age(i_l),1,gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
         end if
     end do
@@ -52,9 +52,9 @@ subroutine sample_delta(delta,H,share_h,y,sample_k,weights,joint_yh)
     !Compute likelihood of proposal
     log_likeli_g=0.0d0
     do i_l=1,indv
-        if (sample_k(i_l,first_age(i_l))>=1 .and. sample_k(i_l,first_age(i_l))<=2) then
+        if (sample_k(i_l,first_age(i_l))>=1 .and. sample_k(i_l,first_age(i_l))<=2 .and. race(i_l)==1) then
             log_likeli_g(gender(i_l),educ(i_l))=log_likeli_g(gender(i_l),educ(i_l))+log(weights_g(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
-        else
+        elseif ( race(i_l)==1) then
             log_likeli_g(gender(i_l),educ(i_l))=log_likeli_g(gender(i_l),educ(i_l))+log(weights_g(first_age(i_l),1,gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
         end if
     end do
@@ -113,8 +113,9 @@ subroutine delta_2_fraction(delta,fraction)
                     prod2=prod2*0.5d0*(1.0d0+erf(( sqrt(2.0d0*xs)-(y_star(y_l2)-y_star(y_l)))/sqrt(2.0d0)))
                 end if
             end do
-            fraction(h_l,ge_l,e_l,y_l,co_l)=0.5d0/sqrt(pi)*sum(weight*(prod1+prod2))
+            fraction(h_l,ge_l,e_l,y_l,co_l)=max(0.5d0/sqrt(pi)*sum(weight*(prod1+prod2)),1.0d-8)
         end do 
+        fraction(h_l,ge_l,e_l,:,co_l)=fraction(h_l,ge_l,e_l,:,co_l)/sum(fraction(h_l,ge_l,e_l,:,co_l))
     end do;end do;end do;end do
     
     

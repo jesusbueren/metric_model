@@ -35,6 +35,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     H=1/dble(clusters+1)
     
     joint_yh=1.0d0/dble(clusters*types)
+    weights=1.0d0/dble(types)
     
     !Burn iterations (avoid saving results before iteration)
     burn=1000    
@@ -46,9 +47,9 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     do it=1,30000+burn
         print*,it
         !Sample health transitions parameters
-        call sample_beta_h(beta_h,y,sample_k)
+        call sample_beta_h(beta_h,y,sample_k,weights)
         !Sample survival parameters
-        call sample_beta_d(beta_d,y,sample_k)
+        call sample_beta_d(beta_d,y,sample_k,weights)
         !Sample health behavior parameters
         call sample_gamma_y(gamma,y,sample_k) 
         !Compute transitions and life expectancies
@@ -64,7 +65,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
                     aux(:,h_l,:,:,:,:)=sum(joint_yh,2) 
                 end do
                 call save_results(beta_h,beta_d,gamma,LE,sum(joint_yh,2),joint_yh/aux,H,it-burn)
-                it2=0
+                it2=1
             else
                 it2=it2+1
             end if

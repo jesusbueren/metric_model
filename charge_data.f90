@@ -9,6 +9,7 @@ subroutine charge_data()
     
     integer::i_l,g_l,index
     
+    write(types_s, '(I1)') types
     
     open(unit=10,file=path//"data\ages_all.csv")
         read(10,*) ages(:,1:indv_HRS)
@@ -52,6 +53,7 @@ subroutine charge_data()
     open(unit=10,file=path//"data\birth_psid.csv")
         read(10,*) birth_cohort(indv_HRS+1:indv) 
     close(10)
+    
 
     race=1
     

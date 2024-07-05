@@ -12,49 +12,49 @@ subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,fraction_h,H,it)
     
 
     if (it==1) then
-        open(unit=9,file=path_s//'c_tr.txt')
+        open(unit=9,file=path_s//'c_tr_'//types_s//'.txt')
             write(9,'(F20.8)') beta_h
         close(9)
-        open(unit=9,file=path_s//'c_tr_d.txt')
-            write(9,'(F20.8)') beta_d
-        close(9)
-        open(unit=9,file=path_s//'c_habits.txt')
-            write(9,'(F20.8)') gamma
-        close(9)
-        open(unit=9,file=path_s//'LE.txt')
-            write(9,'(F6.3)') LE
-        close(9)
-        open(unit=9,file=path_s//'fraction_t.txt')
-            write(9,'(F7.4)') fraction_t
-        close(9)
-        open(unit=9,file=path_s//'H.txt')
-            write(9,'(F7.4)') H
-        close(9)
-        open(unit=9,file=path_s//'fraction_h.txt')
-            write(9,'(F7.4)') fraction_h(:,:,:,:,:,3)
-        close(9)
+        open(unit=10,file=path_s//'c_tr_d_'//types_s//'.txt')
+            write(10,'(F20.8)') beta_d
+        close(10)
+        open(unit=11,file=path_s//'c_habits_'//types_s//'.txt')
+            write(11,'(F20.8)') gamma
+        close(11)
+        open(unit=12,file=path_s//'LE_'//types_s//'.txt')
+            write(12,'(F6.3)') LE
+        close(12)
+        open(unit=13,file=path_s//'fraction_t_'//types_s//'.txt')
+            write(13,'(F7.4)') fraction_t
+        close(13)
+        open(unit=14,file=path_s//'H_'//types_s//'.txt')
+            write(14,'(F7.4)') H
+        close(14)
+        open(unit=15,file=path_s//'fraction_h_'//types_s//'.txt')
+            write(15,'(F7.4)') fraction_h(:,:,:,:,:,3)
+        close(15)
     else
-        open(unit=9,file=path_s//'c_tr.txt',access='append')
+        open(unit=9,file=path_s//'c_tr_'//types_s//'.txt',access='append')
             write(9,'(F20.8)') beta_h
         close(9)
-        open(unit=9,file=path_s//'c_tr_d.txt',access='append')
-            write(9,'(F20.8)') beta_d
-        close(9)
-        open(unit=9,file=path_s//'c_habits.txt',access='append')
-            write(9,'(F20.8)') gamma
-        close(9)
-        open(unit=9,file=path_s//'LE.txt',access='append')
-            write(9,'(F6.3)') LE
-        close(9)
-        open(unit=9,file=path_s//'fraction_t.txt',access='append')
-            write(9,'(F7.4)') fraction_t
-        close(9)
-        open(unit=9,file=path_s//'H.txt',access='append')
-            write(9,'(F7.4)') H
-        close(9)
-        open(unit=9,file=path_s//'fraction_h.txt',access='append')
-            write(9,'(F7.4)') fraction_h(:,:,:,:,:,3)
-        close(9)
+        open(unit=10,file=path_s//'c_tr_d_'//types_s//'.txt',access='append')
+            write(10,'(F20.8)') beta_d
+        close(10)
+        open(unit=11,file=path_s//'c_habits_'//types_s//'.txt',access='append')
+            write(11,'(F20.8)') gamma
+        close(11)
+        open(unit=12,file=path_s//'LE_'//types_s//'.txt',access='append')
+            write(12,'(F6.3)') LE
+        close(12)
+        open(unit=13,file=path_s//'fraction_t_'//types_s//'.txt',access='append')
+            write(13,'(F7.4)') fraction_t
+        close(13)
+        open(unit=14,file=path_s//'H_'//types_s//'.txt',access='append')
+            write(14,'(F7.4)') H
+        close(14)
+        open(unit=15,file=path_s//'fraction_h_'//types_s//'.txt',access='append')
+            write(15,'(F7.4)') fraction_h(:,:,:,:,:,3)
+        close(15)
     end if
         
 end subroutine

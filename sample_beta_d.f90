@@ -1,10 +1,11 @@
   
-subroutine sample_beta_d(beta_d,type_i,sample_k)
+subroutine sample_beta_d(beta_d,type_i,sample_k,weights)
     use global_var; use nrtype
     implicit none
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_d
     integer,dimension(indv,1),intent(in)::type_i
     integer,dimension(indv,generations),intent(in)::sample_k
+    real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts),intent(in)::weights
     integer::h_l,c_l,g_l,ge_l,age,ge_d,it,i_l,health_d,d_l,e_l
     real(DP)::d_star
     real(DP)::gender_d
@@ -33,21 +34,24 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
                 dummy_type_x_age(type_i(i_l,1)-1)=dble(age)
             end if
             x(:,1)=[(/1.0_dp,dble(age)/),dummy_type,dummy_type_x_age]!,dble(age)**2.0d0
-            if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. race(i_l)==1) then
+            if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. race(i_l)==1 .and. sample_k(i_l,first_age(i_l))/=-1) then
                 counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1
-                big_X_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)
+                big_X_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)*sqrt(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),type_i(i_l,1),birth_cohort(i_l)))
                 if (sample_k(i_l,g_l+1)==clusters+1 ) then
                     call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))),1.0_dp,0.0_dp,d_star)
                 elseif (sample_k(i_l,g_l+1)<clusters+1  ) then
                     call TRUNCATED_NORMAL_B_SAMPLE(sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))),1.0_dp,0.0_dp,d_star)
                 end if
-                if (d_star>100 .or. d_star<-100) then
+                if (d_star>1000 .or. d_star<-1000) then
                     print*,d_star
                     print*,x(:,1)
                     print*,beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))
+                    print*,sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l)))
+                    print*,sample_k(i_l,g_l+1)
+                    print*,'error sample d?'
                     read*,pause_k
                 end if
-                big_Y_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l))=d_star
+                big_Y_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l))=d_star*sqrt(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),type_i(i_l,1),birth_cohort(i_l)))
             end if
             
     end do; end do
@@ -59,10 +63,16 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
         if (counter_big_X_d(h_l,ge_l,e_l)>1) then
             beta_d(:,h_l,ge_l,e_l)=0.0d0
             Sigma=matmul(transpose(big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:))
+            !ensure positive variance
+            do i_l=1,covariates
+                Sigma(i_l,i_l)=max(Sigma(i_l,i_l),1.0d0)
+            end do
+            !print*,Sigma(4,4)
             call inverse(Sigma,inv_Sigma,covariates)
             A=inv_Sigma
             call choldc(A,covariates)
             beta_d(:,h_l,ge_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_Y_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l)))+matmul(A,z(:,1))
+            !print*,beta_d(4,h_l,ge_l,e_l),counter_big_X_d(h_l,ge_l,e_l)
             if (isnan(sum(beta_d(:,h_l,ge_l,e_l)))) then
                 print*,'pb beta_d'
             end if

@@ -42,9 +42,12 @@ program main
     end do;end do
     close(9)
     
-    call estimate_mixture_wealth(type_pr,sample_k)
+    !call estimate_mixture_wealth(type_pr,sample_k)
     !pause
     !For estimating the mixture on income I cannot take independent samples across edu x health behavior: too small sample
-    call estimate_mixture_income(type_pr,sample_k)
+    !call estimate_mixture_income(type_pr,sample_k)
+    
+    !Compute pr of surviving at different ages 
+    call compute_pr_surv(type_pr,sample_k)
     
 end program
