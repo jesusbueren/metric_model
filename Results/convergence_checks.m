@@ -79,7 +79,7 @@ clc
 clear all
 close all
 
-types=4 % select the number of health behavior groups
+types=2 % select the number of health behavior groups
 clusters=2
 covariates_habits=4
 habits=6
@@ -133,7 +133,7 @@ H=reshape(H{1},clusters+1,clusters+1,generations,types,genders,educ,size(H{1},1)
 
 
 iterations=min([size(c_gma,4) size(c_tr,5)])
-[size(c_gma,4) size(c_tr,5) size(LE,5)]
+[size(c_gma,4) size(c_tr,5) size(LE,5) size(fraction_t,6)]
 
 burn=1
 
@@ -143,7 +143,7 @@ burn=1
 
 for c_l=1:2
 ge_l=1
-e_l=1
+e_l=3
 
 figure(c_l)
 for cov_l=1:covariates
@@ -335,7 +335,7 @@ h2=errorbar(10:20:90,LE_v,sd2_LE_v,...
             marker{1},'MarkerSize',3,'MarkerFaceColor',colors{4},'LineStyle','-')
 h2.Color = colors{4}
 xticks([10:20:90])
-ylim([5 12])
+% ylim([5 12])
 xlim([05 95])
 hold on
 xlabel('Birth Year')

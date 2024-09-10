@@ -60,18 +60,23 @@ subroutine charge_data()
     
     data_shlt(1:indv_HRS,:)=reshape(data_shlt_hrs,(/indv_HRS,generations/),order=(/2,1/)) 
     data_shlt(indv_HRS+1:indv,:)=reshape(data_shlt_psid,(/indv_psid,generations/),order=(/2,1/))
-    
+    obs_shlt=0
     do i_l=1,indv
         do g_l=1,generations 
             if (data_shlt(i_l,g_l)>=1 .and. data_shlt(i_l,g_l)<=3) then
                 data_shlt(i_l,g_l)=1
+                obs_shlt(i_l,g_l)=1
             elseif (data_shlt(i_l,g_l)>=4 .and. data_shlt(i_l,g_l)<=5) then
                 data_shlt(i_l,g_l)=2
+                obs_shlt(i_l,g_l)=1
             elseif (data_shlt(i_l,g_l)>=6) then
                 data_shlt(i_l,g_l)=3
+                obs_shlt(i_l,g_l)=1 
             end if                
         end do    
     end do
+    
+    
     
     
     do i_l=1,indv
@@ -100,6 +105,8 @@ subroutine charge_data()
             college(i_l)=1
         end if
     end do
+    
+
     
     !compute  average health and average age
     h_bar=0

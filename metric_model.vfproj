@@ -35,6 +35,7 @@
 		<File RelativePath=".\sample_beta_h.f90"/>
 		<File RelativePath=".\sample_delta.f90"/>
 		<File RelativePath=".\sample_gamma_y.f90"/>
+		<File RelativePath=".\sample_health.f90"/>
 		<File RelativePath=".\sample_y.f90"/>
 		<File RelativePath=".\save_results.f90"/>
 		<File RelativePath=".\sim_lives.f90"/>
