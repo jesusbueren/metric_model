@@ -24,7 +24,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k,weights)
     do i_l=1,indv;do g_l=first_age(i_l),last_age(i_l)-1
         x=-9.0d0
         age=initial_age+(g_l-1)*2-70
-        dummy_type=0.0d0    
+        dummy_type=0.0d0
         dummy_type_x_age=0.0d0
         if (type_i(i_l,1)>1)then
             dummy_type(type_i(i_l,1)-1)=1.0d0
@@ -34,7 +34,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k,weights)
         
         if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. sample_k(i_l,g_l+1)<clusters+1 .and. race(i_l)==1 .and. sample_k(i_l,first_age(i_l))/=-1) then 
             counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1 
-            big_X_h(counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)
+            big_X_h(counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)*sqrt(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),type_i(i_l,1),birth_cohort(i_l)))
             !Sample latent h
             if (sample_k(i_l,g_l+1)==1) then
                 call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_h(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))),1.0d0,0.0d0,h_star1)
@@ -50,7 +50,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k,weights)
                 print*,i_l,sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,gender(i_l),educ(i_l)
                 pause
             end if
-            big_Y_h(counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l))=h_star1
+            big_Y_h(counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l))=sqrt(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),type_i(i_l,1),birth_cohort(i_l)))*h_star1
         end if
     end do;end do
     

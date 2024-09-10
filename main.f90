@@ -50,9 +50,9 @@ program main
     beta_d=0.0d0
     gamma=0.0d0
     delta=0.0d0
-    call full_posterior(beta_h,beta_d,gamma,y,delta)
+    !call full_posterior(beta_h,beta_d,gamma,y,delta)
     
-    !call simulate_model()
+    call simulate_model()
     
     pause
     

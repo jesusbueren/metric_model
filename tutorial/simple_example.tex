@@ -140,12 +140,12 @@ For subsequent periods, the distribution of the unobserved health status is give
 Now we want to sample the latent health state at period $\hat{h}_{t-1}$, the period before we observe a given health state $h_t$. We can do it by sampling from the following distribution:
 
 \begin{align*}
-    p(\hat{h}_{t-1}|h_t,y)=\dfrac{p(h_t|\hat{h}_{t-1},y)p(\hat{h}_{t-1}|y)}{\sum_{h_t}p(h_t|\hat{h}_{t-1},y)p(\hat{h}_{t-1}|y)}
+    p(\hat{h}_{t-1}|h_t,y)=\dfrac{p(h_t|\hat{h}_{t-1},y)p(\hat{h}_{t-1}|y)}{p(h_t|y)}
 \end{align*}
 
-In order to sample for $\hat{h}_{t-2}$ we can sample from the following smoothed distribution:
+In order to sample for $\hat{h}_{t-2}$ we can sample from the following distribution:
 \begin{align*}
-    p(\hat{h}_{t-2}|h_t,\hat{h}_{t-1},y)=p(\hat{h}_{t-2}|\hat{h}_{t-1},y)=\dfrac{p(\hat{h}_{t-1}|\hat{h}_{t-2},y)p(\hat{h}_{t-2}|y)}{\sum_{h_{t-1}}p(\hat{h}_{t-1}|\hat{h}_{t-2},y)p(\hat{h}_{t-2}|y)}
+    p(\hat{h}_{t-2}|h_t,\hat{h}_{t-1},y)=p(\hat{h}_{t-2}|\hat{h}_{t-1},y)=\dfrac{p(\hat{h}_{t-2}|\hat{h}_{t-1},y)}{p(\hat{h}_{t-1}|y)}
 \end{align*}
 and continue iteratively until we reach the first period.
 \end{document}

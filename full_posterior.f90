@@ -56,10 +56,8 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
         call transitions(beta_h,beta_d,H,LE,joint_yh) 
         !Sample pr of type at initial age
         call sample_delta(delta,H,share_h,y,sample_k,weights,joint_yh)
-        !sample latent health
-        call sample_health(H,joint_yh,y,sample_k)
         !sample type
-        call sample_y(gamma,y,sample_k,H,joint_yh,type_pr)        
+        call sample_y(gamma,y,sample_k,H,weights,type_pr)
 
         if (it>burn) then
             if (it2==10) then

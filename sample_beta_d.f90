@@ -36,7 +36,7 @@ subroutine sample_beta_d(beta_d,type_i,sample_k,weights)
             x(:,1)=[(/1.0_dp,dble(age)/),dummy_type,dummy_type_x_age]!,dble(age)**2.0d0
             if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. race(i_l)==1 .and. sample_k(i_l,first_age(i_l))/=-1) then
                 counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1
-                big_X_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)
+                big_X_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)*sqrt(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),type_i(i_l,1),birth_cohort(i_l)))
                 if (sample_k(i_l,g_l+1)==clusters+1 ) then
                     call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))),1.0_dp,0.0_dp,d_star)
                 elseif (sample_k(i_l,g_l+1)<clusters+1  ) then
@@ -51,7 +51,7 @@ subroutine sample_beta_d(beta_d,type_i,sample_k,weights)
                     print*,'error sample d?'
                     read*,pause_k
                 end if
-                big_Y_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l))=d_star
+                big_Y_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l))=d_star*sqrt(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),type_i(i_l,1),birth_cohort(i_l)))
             end if
             
     end do; end do

@@ -1,4 +1,4 @@
-subroutine sample_y(gamma,y,sample_k,H,joint_yh,type_pr)
+subroutine sample_y(gamma,y,sample_k,H,weights,type_pr)
     use nrtype; use global_var
     implicit none
     integer,dimension(indv,1),intent(inout)::y
@@ -12,7 +12,7 @@ subroutine sample_y(gamma,y,sample_k,H,joint_yh,type_pr)
     real(dp)::d,p,u,log_likeli
     real(DP),dimension(habits,generations,types,clusters)::alphas
     real(DP),dimension(types)::pr,filtered_pr,selection
-    real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts),intent(in)::joint_yh
+    real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts),intent(in)::weights
     real(DP),dimension(indv,types),intent(out)::type_pr
 
     
@@ -29,11 +29,14 @@ subroutine sample_y(gamma,y,sample_k,H,joint_yh,type_pr)
     do i_l=1,indv;
         if (race(i_l)==1) then
             pr=1.0d0
-
-            filtered_pr=joint_yh(1,sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:,birth_cohort(i_l)) 
-
+            if (sample_k(i_l,first_age(i_l))/=-1) then
+                filtered_pr=weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:,birth_cohort(i_l)) 
+            else
+                !just one observation either way
+                filtered_pr=weights(first_age(i_l),1,gender(i_l),educ(i_l),:,birth_cohort(i_l))
+            end if
                 
-            do g_l=1,last_age(i_l)-1
+            do g_l=first_age(i_l),last_age(i_l)-1
                 do h_l=1,habits; do e_l=1,types
                     if (data_habits(i_l,h_l,g_l)==1 .and. sample_k(i_l,g_l)/=-1 ) then 
                         pr(e_l)=pr(e_l)*alphas(h_l,g_l,e_l,sample_k(i_l,g_l))
