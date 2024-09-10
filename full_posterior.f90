@@ -64,7 +64,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
                 do h_l=1,clusters
                     aux(:,h_l,:,:,:,:)=sum(joint_yh,2) 
                 end do
-                call save_results(beta_h,beta_d,gamma,LE,sum(joint_yh,2),joint_yh/aux,H,it-burn)
+                call save_results(beta_h,beta_d,gamma,delta,LE,sum(joint_yh,2),joint_yh/aux,H,it-burn)
                 it2=1
             else
                 it2=it2+1
@@ -73,7 +73,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
         end if
     end do
     
-    open(unit=9,file=path_s//'implied_probilities.txt')
+    open(unit=9,file=path_s//'implied_probilities_'//types_s//'.txt')
         write(9,'(F20.8)') type_pr_av
     close(9)
     

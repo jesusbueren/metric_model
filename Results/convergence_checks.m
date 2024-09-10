@@ -79,10 +79,10 @@ clc
 clear all
 close all
 
+types=4 % select the number of health behavior groups
 clusters=2
 covariates_habits=4
 habits=6
-types=2
 types_s=num2str(types)
 educ=3
 genders=2
@@ -261,7 +261,7 @@ set(10,'position',[150    150    500    220])
 
 %% Plot Life expectancy for the different groups
 c_l=4
-for ge_l=1:genders
+for ge_l=1:1 %genders
 for e_l=1:educ
     if ge_l==1 && e_l==1
         table=[ squeeze(mean(fraction_t(12,ge_l,e_l,:,c_l,burn:end),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)]

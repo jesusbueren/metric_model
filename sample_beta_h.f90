@@ -9,7 +9,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k,weights)
     integer::h_l,c_l,g_l,ge_l,age,ge_d,it,i_l,health_d,d_l,t_l,e_l
     real(DP)::h_star1
     real(DP),dimension(covariates,1)::z
-    real(DP),dimension(covariates,covariates)::Sigma,inv_Sigma,A,Sigma_aux
+    real(DP),dimension(covariates,covariates)::Sigma,inv_Sigma,A,Sigma_aux,B_0
     real(DP),dimension(indv*g_max,clusters,L_gender,L_educ,covariates)::big_X_h
     real(DP),dimension(indv*g_max,clusters,L_gender,L_educ)::big_Y_h
     integer,dimension(clusters,L_gender,L_educ)::counter_big_X_h
@@ -61,11 +61,13 @@ subroutine sample_beta_h(beta_h,type_i,sample_k,weights)
             do c_l=1,covariates
                 z(c_l,1)=c4_normal_01(  )
             end do
-            Sigma=matmul(transpose(big_X_h(1:counter_big_X_h(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_X_h(1:counter_big_X_h(h_l,ge_l,e_l),h_l,ge_l,e_l,:))
-            !ensure positive variance
+            !Prior
+            B_0=0.0d0
             do i_l=1,covariates
-                Sigma(i_l,i_l)=max(Sigma(i_l,i_l),1.0d0)
+                B_0(i_l,i_l)=10.0d0
             end do
+            Sigma=B_0+matmul(transpose(big_X_h(1:counter_big_X_h(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_X_h(1:counter_big_X_h(h_l,ge_l,e_l),h_l,ge_l,e_l,:))
+            
             Sigma_aux=Sigma
             call inverse(Sigma,inv_Sigma,covariates)
             A=inv_Sigma

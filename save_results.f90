@@ -1,9 +1,10 @@
-subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,fraction_h,H,it)
+subroutine save_results(beta_h,beta_d,gamma,delta,LE,fraction_t,fraction_h,H,it)
     use global_var; use nrtype
     implicit none
     real(dp),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_d
     real(dp),dimension(covariates_habits,habits,types),intent(in)::gamma
+    real(DP),dimension(covariates_mixture,L_gender,L_educ,types),intent(in)::delta
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(in)::LE
     integer,intent(in)::it
     real(DP),dimension(generations,L_gender,L_educ,types,cohorts),intent(in)::fraction_t
@@ -33,6 +34,9 @@ subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,fraction_h,H,it)
         open(unit=15,file=path_s//'fraction_h_'//types_s//'.txt')
             write(15,'(F7.4)') fraction_h(:,:,:,:,:,3)
         close(15)
+        open(unit=16,file=path_s//'delta_'//types_s//'.txt')
+            write(16,'(F20.8)') delta
+        close(16)
     else
         open(unit=9,file=path_s//'c_tr_'//types_s//'.txt',access='append')
             write(9,'(F20.8)') beta_h
@@ -55,6 +59,9 @@ subroutine save_results(beta_h,beta_d,gamma,LE,fraction_t,fraction_h,H,it)
         open(unit=15,file=path_s//'fraction_h_'//types_s//'.txt',access='append')
             write(15,'(F7.4)') fraction_h(:,:,:,:,:,3)
         close(15)
+        open(unit=16,file=path_s//'delta_'//types_s//'.txt',access='append')
+            write(16,'(F20.8)') delta
+        close(16)
     end if
         
 end subroutine
