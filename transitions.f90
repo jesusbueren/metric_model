@@ -71,8 +71,9 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     !No resurection
     H(clusters+1,1:clusters,:,:,:,:)=0.0_dp 
     H(clusters+1,clusters+1,:,:,:,:)=1.0_dp
-    
-    call H2LE(H,LE,joint_yh)
+    if (compute_LE==1) then
+        call H2LE(H,LE,joint_yh)
+    end if
     
 end subroutine
 

@@ -9,40 +9,40 @@
 \maketitle
 
 \section{Basic Setup}
-Imagine we have panel data for $N$ individuals and $T$ time periods. Imagine that individuals are heterogeneous along a lifestyle ($y_i$) which we assume is fixed along time. We want to model the distribution of $y$ as a mixture of $N_y$ components. For each individual $i$, we observe her health status $h_{it}$. Health outcomes vary with $y$ and $t$. However, there are some periods for which do not observe the individual's health status. We denote the unobserved health status of individual $i$ at period $t$ as $\hat{h}_{i,t}$ The likelihood of the history of $h_{it}$ and $\hat{h}_it$ is given by:
+Imagine we have panel data for $N$ individuals and $T$ time periods. Imagine that individuals are heterogeneous along a lifestyle ($y_i$) which we assume is fixed along time. We want to model the distribution of $y$ as a mixture of $N_y$ components. For each individual $i$, we observe her health status $h_{it}$. Health dynamics vary with $y$ and $t$. The likelihood of the history of $h_{it}$ and $\hat{h}_it$ is given by:
 \begin{equation}
-    p(\bm{h}_i^T,\bm{\hat{h}}_i^T)=\sum_{y=1}^{N_y} p(\bm{h}_i^T,\bm{\hat{h}}_i^T|y,\theta_y)w_y
+    p(\bm{h}_i^T)=\sum_{y=1}^{N_y} p(\bm{h}_i^T|y,\theta_y)w_y
 \end{equation}
 
 $\theta$ is the vector of parameters that determine the distribution of $h_{it}$ given $y$. $w_y$ is the share of individuals with lifestyle $y$.
 
 We can derive the complete data likelihood for the model as:
 \begin{align}
-    p(\bm{h}^T,\bm{\hat{h}}_i^T,\bm{y}|\bm{\theta},\bm{w})=&\prod_{i=1}^N\prod_{y=1}^{N_y}\Big[p(\bm{h}_i^t,\bm{\hat{h}}_i^T|y,\theta_y)w_y\Big]^{I(y_i=y)}\\
-=&\underbrace{\Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} p(\bm{h}_i^t,\bm{\hat{h}}_i^T|y,\theta_y)\Big]}_{p(\bm{h}^t|\bm{y},\bm{\theta})} \underbrace{\Big[\prod_{y=1}^{N_y} w_y^{\sum I(y_i=y)}\Big]}_{p(\bm{y}|\bm{w})}
+    p(\bm{h}^T,\bm{y}|\bm{\theta},\bm{w})=&\prod_{i=1}^N\prod_{y=1}^{N_y}\Big[p(\bm{h}_i^t|y,\theta_y)w_y\Big]^{I(y_i=y)}\\
+=&\underbrace{\Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} p(\bm{h}_i^t|y,\theta_y)\Big]}_{p(\bm{h}^t|\bm{y},\bm{\theta})} \underbrace{\Big[\prod_{y=1}^{N_y} w_y^{\sum I(y_i=y)}\Big]}_{p(\bm{y}|\bm{w})}
 \end{align}
 
 \section{Joint Posterior Distribution}
 
-We aim to recover the posterior distribution of the parameters $\bm{\theta}$, $\bm{w}$, and the latent variables $\bm{y}$ and $\bm{\hat{h}}_i^T$ given the data $\bm{h}^t$ which is given by:
+We aim to recover the posterior distribution of the parameters $\bm{\theta}$, $\bm{w}$, and the latent variables $\bm{y}$ given the data $\bm{h}^t$ which is given by:
 
 \begin{align}
-    p(\bm{\hat{h}}_i^T,\bm{\theta},\bm{w},\bm{y}|\bm{h}^T)\,\,\propto\,\,& p(\bm{h}^T,\bm{\hat{h}}_i^T|\bm{y},\bm{\theta},\bm{w})p(\bm{y}|\bm{\theta},\bm{w})p(\bm{\theta})p(\bm{w})\\
-    \propto\,\,& \Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} p(\bm{h}_i^t,\bm{\hat{h}}_i^T|y,\theta_y)\Big] \Big[\prod_{y=1}^{N_y} w_y^{\sum I(y_i=y)}\Big] p(\bm{\theta})p(\bm{w})
+    p(\bm{\theta},\bm{w},\bm{y}|\bm{h}^T)\,\,\propto\,\,& p(\bm{h}^T|\bm{y},\bm{\theta},\bm{w})p(\bm{y}|\bm{\theta},\bm{w})p(\bm{\theta})p(\bm{w})\\
+    \propto\,\,& \Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} p(\bm{h}_i^t|y,\theta_y)\Big] \Big[\prod_{y=1}^{N_y} w_y^{\sum I(y_i=y)}\Big] p(\bm{\theta})p(\bm{w})
 \end{align}
 
-In order to derive an MCMC algorithm to sample from the posterior distribution, we need to derive the full conditional distributions of the parameters and the latent variables: $p(\bm{\theta}|\bm{h}^T,\bm{\hat{h}}^T,\bm{w},\bm{y})$, $p(\bm{w}|\bm{h}^T,\bm{\hat{h}}^T,\bm{\theta},\bm{y})$, $p(\bm{y}|\bm{h}^T,\bm{\hat{h}}^T,\bm{\theta},\bm{w})$ and $p(\bm{\hat{h}}^T|\bm{h}^T,\bm{y},\bm{\theta},\bm{w})$.
+In order to derive an MCMC algorithm to sample from the posterior distribution, we need to derive the full conditional distributions of the parameters and the latent variables: $p(\bm{\theta}|\bm{h}^T,\bm{w},\bm{y})$, $p(\bm{w}|\bm{h}^T,\bm{\theta},\bm{y})$, and $p(\bm{y}|\bm{h}^T\bm{\theta},\bm{w})$.
 
 \subsection{Full Conditional Distribution of the Weights}
 
 \begin{align}
-    p(\bm{w}|\bm{h}^T,\bm{\hat{h}}^T,\bm{\theta},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y} w_y^{\sum I(y_i=y)}\Big]  p(\bm{w})
+    p(\bm{w}|\bm{h}^T,\bm{\theta},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y} w_y^{\sum I(y_i=y)}\Big]  p(\bm{w})
 \end{align}
 
 Using a Dirichlet prior for the weights, we can derive the full conditional distribution of the weights as:
 
 \begin{align}
-    p(\bm{w}|\bm{h}^T,\bm{\hat{h}}^T,\bm{\theta},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y} w_y^{\sum I(y_i=y)+ a_{y}-1}\Big],\,\,\, p(\bm{w})\sim Dir(a_1,\ldots,a_{N_y}),
+    p(\bm{w}|\bm{h}^T,\bm{\theta},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y} w_y^{\sum I(y_i=y)+ a_{y}-1}\Big],\,\,\, p(\bm{w})\sim Dir(a_1,\ldots,a_{N_y}),
 \end{align}
 where $a_1,\dots,a_y$ are the hyperparameters of the Dirichlet prior. Therefore the full conditional distribution of the weights is a Dirichlet distribution with parameters $a_1+\sum I(y_i=1),\ldots,a_{N_y}+\sum I(y_i=N_y)$.
 
@@ -50,14 +50,14 @@ where $a_1,\dots,a_y$ are the hyperparameters of the Dirichlet prior. Therefore 
 
 The full conditional distribution of the latent variables is given by:
 \begin{align}
-    p(y_i=\hat{y}|\bm{h}^T,\bm{\hat{h}}^T,\bm{\theta},\bm{w})\propto\,\,& p(\bm{h}_i^T,\bm{\hat{h}}^T|\hat{y},\theta_{\hat{y}}) w_{\hat{y}}\\
-    p(y_i=\hat{y}|\bm{h}^T,\bm{\hat{h}}^T,\bm{\theta},\bm{w})=\,\,& \dfrac{p(\bm{h}_i^T,\bm{\hat{h}}^T|\hat{y},\theta_{\hat{y}}) w_{\hat{y}}}{\sum_{y=1}^{N_y} p(\bm{h}_i^T,\bm{\hat{h}}^T|y,\theta_{y}) w_{y}}
+    p(y_i=\hat{y}|\bm{h}^T,\bm{\theta},\bm{w})\propto\,\,& p(\bm{h}_i^T|\hat{y},\theta_{\hat{y}}) w_{\hat{y}}\\
+    p(y_i=\hat{y}|\bm{h}^T,\bm{\theta},\bm{w})=\,\,& \dfrac{p(\bm{h}_i^T|\hat{y},\theta_{\hat{y}}) w_{\hat{y}}}{\sum_{y=1}^{N_y} p(\bm{h}_i^T,|y,\theta_{y}) w_{y}}
 \end{align}
 \subsection{Full Conditional Distribution of the Parameters of Health Outcomes}
 
 The full conditional distribution of the parameters of the health outcomes is given by:
 \begin{align}
-    p(\bm{\theta}|\bm{h}^T,\bm{\hat{h}}^T,\bm{w},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} p(\bm{h}_i^T,\bm{\hat{h}}^T|y,\theta_y)\Big] p(\bm{\theta})
+    p(\bm{\theta}|\bm{h}^T,\bm{w},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} p(\bm{h}_i^T|y,\theta_y)\Big] p(\bm{\theta})
 \end{align}
 Now let's write a model for the health outcomes. Let's assume that the health outcomes. Let's assume that health can be either good or bad: $h_{it}\in\lbrace h_g,h_b\rbrace$. Now let's assume that conditional on $h_{it}$ and $y_i$, $h_{i,t+1}$ follows a probit model. Let's write it down as a latent variable model:
 \begin{align}
@@ -71,8 +71,8 @@ Let's denote $\theta^0_{y,h}$ the probability of observing health outcome $h$ at
 
  We can separate the full conditional distribution of the parameters of the health outcomes as:
  \begin{align}
-    p(\tilde{\bm{\theta}}|\bm{h}^T,\bm{\hat{h}}^T,\bm{w},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} \prod_{t=1}^T p(h_{i,t}|h_{i,t-1},y,\tilde{\bm{\theta}}_y)\Big] p(\tilde{\bm{\theta}}) \label{post_theta12}\\
-    p(\bm{\theta}^0|\bm{h}^T,\bm{\hat{h}}^T,\bm{w},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} \theta^0_{y,h}\Big] p(\bm{\theta}^0) \label{post_theta0},
+    p(\tilde{\bm{\theta}}|\bm{h}^T,\bm{w},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} \prod_{t=1}^T p(h_{i,t}|h_{i,t-1},y,\tilde{\bm{\theta}}_y)\Big] p(\tilde{\bm{\theta}}) \label{post_theta12}\\
+    p(\bm{\theta}^0|\bm{h}^T,\bm{w},\bm{y})\propto\,\,& \Big[\prod_{y=1}^{N_y}\prod_{\lbrace i: y_i=y \rbrace} \theta^0_{y,h}\Big] p(\bm{\theta}^0) \label{post_theta0},
  \end{align}
  where equation \ref{post_theta12} is the full conditional distribution of the parameters of the probit model for health transitions given the initial health and equation \ref{post_theta0} is the full conditional distribution of the parameters of the initial health status.
 \subsubsection{Full Conditional Distribution of the Parameters of the Probit Model for Health Transitions}
@@ -83,11 +83,11 @@ For getting a closed form solution for the full conditional distribution of the 
 
 Using data augmentation, we can derive the full conditional distribution of the parameters of the probit model for health transitions using the following Gibbs sampler:
 \begin{align}
-    p(\tilde{\bm{\theta}}_y|\bm{h}^{*,T},\bm{h}^T,\bm{\hat{h}}^T,\bm{w},y) \,\, \forall \,\, y\in \lbrace 1,\dots,N_y\rbrace \label{step1} \\
-    p(\bm{h}^{*,T}|\bm{h}^T,\bm{\hat{h}}^T,\bm{w},\bm{y},\theta^1_y,\theta^2_y) \,\, \forall \,\,  y\in \lbrace 1,\dots,N_y\rbrace \label{step2}
+    p(\tilde{\bm{\theta}}_y|\bm{h}^{*,T},\bm{h}^T,\bm{w},y) \,\, \forall \,\, y\in \lbrace 1,\dots,N_y\rbrace \label{step1} \\
+    p(\bm{h}^{*,T}|\bm{h}^T,\bm{w},\bm{y},\theta^1_y,\theta^2_y) \,\, \forall \,\,  y\in \lbrace 1,\dots,N_y\rbrace \label{step2}
 \end{align}
 
-Note that in equation (\ref{step1}) given $\bm{h}^{*,T}$, $\bm{h}^T$ neither $,\bm{\hat{h}}^T$ do not provide any additional information. Thus:
+Note that in equation (\ref{step1}) given $\bm{h}^{*,T}$, $\bm{h}^T$ does not provide any additional information. Thus:
 
 \begin{align*}
     p(\tilde{\bm{\theta}}_y|\bm{h}^{*,T},\bm{h}^T,\bm{w},y) = p(\tilde{\bm{\theta}}_y|\bm{h}^{*,T},y)
@@ -106,7 +106,7 @@ where,
     \bar{V}_{y}=(V_y^{-1}+\bm{X}_{y,t}'\bm{X}_{y,t})^{-1} \\
     \bar{\mu}_{y}=\bar{V}_{y}(V_y^{-1}\mu_y+\bm{X}_{y,t}'\bm{h}^{*,T})
 \end{align*}
-we can complete the Gibbs sampler by sampling from the full conditional distribution of the augmented data $\bm{h}^{*,T}$ given the parameters of the probit model for health transitions and $\bm{h}^T$ and $\bm{\hat{h}}^T$ .
+we can complete the Gibbs algorithm by sampling from the full conditional distribution of the augmented data $\bm{h}^{*,T}$ given the parameters of the probit model for health transitions and $\bm{h}^T$.
 We can do this by sampling from the truncated normal distribution:
 \begin{align*}
     &p(h_{i,t+1}^{*}|h_{i,t},w,y,\tilde{\theta}_y) \sim TN(x'_{i,t}\tilde{\bm{\theta}}_y,1,0^+) \,\,\, \text{if} \,\,\, h_{i,t}=h_g\\
@@ -123,30 +123,5 @@ using a Dirichlet prior for the parameters of the initial health status, we can 
 \end{align*}
 where $p(\theta^0_{y,h})\sim Dir(b_{y,gh},b_{y,bh}) \,\,\forall\,\, y$
 
-\subsection{Full Conditional Distribution of the Unobserved Health Status}
-
-In order to sample a path of latent health states from its conditional distribution given the observed health states, we can use the filter-smoother algorithm.
-
-In the first period, the distribution of the unobserved health status is given by:
-\begin{align*}
-    p(\hat{h}_0|y)=\theta^0_{y,h}
-\end{align*}
-
-For subsequent periods, the distribution of the unobserved health status is given by:
-\begin{align*}
-    p(\hat{h}_t|y)=\sum_{\hat{h}_{t-1}}p(\hat{h}_t|y,\hat{h}_{t-1})p(\hat{h}_t|\hat{h}_{t-1},y)
-\end{align*}
-
-Now we want to sample the latent health state at period $\hat{h}_{t-1}$, the period before we observe a given health state $h_t$. We can do it by sampling from the following distribution:
-
-\begin{align*}
-    p(\hat{h}_{t-1}|h_t,y)=\dfrac{p(h_t|\hat{h}_{t-1},y)p(\hat{h}_{t-1}|y)}{p(h_t|y)}
-\end{align*}
-
-In order to sample for $\hat{h}_{t-2}$ we can sample from the following distribution:
-\begin{align*}
-    p(\hat{h}_{t-2}|h_t,\hat{h}_{t-1},y)=p(\hat{h}_{t-2}|\hat{h}_{t-1},y)=\dfrac{p(\hat{h}_{t-2}|\hat{h}_{t-1},y)}{p(\hat{h}_{t-1}|y)}
-\end{align*}
-and continue iteratively until we reach the first period.
 \end{document}
 

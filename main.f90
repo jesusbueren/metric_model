@@ -4,7 +4,7 @@ program main
     integer,dimension(1)::seed=456
     real(DP),dimension(covariates,clusters,L_gender,L_educ)::beta_h
     real(DP),dimension(covariates,clusters,L_gender,L_educ)::beta_d
-    real(DP),dimension(covariates_habits,habits,types)::gamma
+    real(DP),dimension(covariates_habits,habits_nomed,types)::gamma
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types)::delta
     integer,dimension(indv,1)::y
     integer::i_l
@@ -50,9 +50,9 @@ program main
     beta_d=0.0d0
     gamma=0.0d0
     delta=0.0d0
-    !call full_posterior(beta_h,beta_d,gamma,y,delta)
+    call full_posterior(beta_h,beta_d,gamma,y,delta)
     
-    call simulate_model()
+   call simulate_model()
     
     pause
     

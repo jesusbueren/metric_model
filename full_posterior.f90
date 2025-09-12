@@ -3,7 +3,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     implicit none
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types),intent(inout)::delta
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_h
-    real(DP),dimension(covariates_habits,habits,types),intent(inout)::gamma
+    real(DP),dimension(covariates_habits,habits_nomed,types),intent(inout)::gamma
     integer,dimension(indv,1),intent(inout)::y
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_d
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H,H_g 
@@ -15,6 +15,8 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts)::weights,joint_yh,aux
     real(DP),dimension(clusters,L_gender,L_educ)::share_h
     real(DP),dimension(indv,types)::type_pr,type_pr_av
+    real(DP),dimension(covariates,covariates,clusters,L_gender,L_educ)::sigma_h,sigma_d
+    real(DP),dimension(covariates,clusters,L_gender,L_educ)::beta_h_mean,beta_d_mean
     !Timer
     integer::calc
     real::calctime
@@ -38,21 +40,33 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     weights=1.0d0/dble(types)
     
     !Burn iterations (avoid saving results before iteration)
-    burn=1000    
+    burn=100    
 
     type_pr_av=0.0d0
     !Save one in it2 iterations
     it2=10
-    !call tick(calc)
+    beta_h_mean=-9.0d0
+    sigma_h=-9.0d0
+    beta_d_mean=-9.0d0
+    sigma_d=-9.0d0
     do it=1,30000+burn
         print*,it
         !Sample health transitions parameters
-        call sample_beta_h(beta_h,y,sample_k,weights)
+        if (it>50) then
+            call sample_beta_h_MH(beta_h,beta_d,share_h,H,y,sample_k,weights,joint_yh,beta_h_mean,sigma_h)
+        else
+            call sample_beta_h(beta_h,y,sample_k,weights)
+        end if
         !Sample survival parameters
-        call sample_beta_d(beta_d,y,sample_k,weights)
+        if (it>50) then
+            call sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,beta_d_mean,sigma_d)
+        else
+            call sample_beta_d(beta_d,y,sample_k,weights)
+        end if
         !Sample health behavior parameters
         call sample_gamma_y(gamma,y,sample_k) 
         !Compute transitions and life expectancies
+        compute_LE=1
         call transitions(beta_h,beta_d,H,LE,joint_yh) 
         !Sample pr of type at initial age
         call sample_delta(delta,H,share_h,y,sample_k,weights,joint_yh)

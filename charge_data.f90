@@ -5,6 +5,7 @@ subroutine charge_data()
     integer,dimension(indv_psid*habits*generations)::data_vec_habits_psid
     integer,dimension(2,indv)::ages
     integer,dimension(generations,indv_HRS)::data_shlt_hrs
+    integer,dimension(generations,indv_HRS)::data_ins_hrs
     integer,dimension(generations,indv_psid)::data_shlt_psid
     
     integer::i_l,g_l,index
@@ -37,6 +38,9 @@ subroutine charge_data()
     close(10)
     open(unit=10,file=path//"Data\shlt.csv")
         read(10,*) data_shlt_hrs
+    close(10)
+    open(unit=10,file=path//"Data\insurance_hrs.csv")
+        read(10,*) data_ins_hrs 
     close(10)
     open(unit=10,file=path//"Data\shlt_psid.csv")
         read(10,*) data_shlt_psid

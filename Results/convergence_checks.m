@@ -79,7 +79,7 @@ clc
 clear all
 close all
 
-types=4 % select the number of health behavior groups
+types=2 % select the number of health behavior groups
 clusters=2
 covariates_habits=4
 habits=6
@@ -135,17 +135,24 @@ H=reshape(H{1},clusters+1,clusters+1,generations,types,genders,educ,size(H{1},1)
 iterations=min([size(c_gma,4) size(c_tr,5)])
 [size(c_gma,4) size(c_tr,5) size(LE,5)]
 
+
 burn=1
+if types==4
+    burn=2000
+elseif types==3
+    burn=1000 %400
+end 
 
 
 
 %% Histogram from distribution of variables governing transitions
 
+for e_l=1:3
 for c_l=1:2
 ge_l=1
-e_l=1
 
-figure(c_l)
+
+figure('units','normalized','outerposition',[0 0 1 1])
 for cov_l=1:covariates
 subplot(2,covariates,cov_l)
 plot(squeeze(c_tr(cov_l,c_l,ge_l,e_l,burn:iterations)))
@@ -156,11 +163,12 @@ hist(squeeze(c_tr(cov_l,c_l,ge_l,e_l,burn:iterations)))
 
 end
 end
+end
 
 
 %% Histogram from distribution of variables governing habits
 
-h_l=6 %habits
+h_l=2 %habits
 for y_l=1:types
 figure(y_l)
 for cov_l=1:covariates_habits
@@ -174,34 +182,47 @@ end
 
 
 %%
-max=1
-alphas=zeros(habits,generations,types,max);
-ini=iterations-1
-for it=0:max-1
-for e_l=1:types
-    for h_l=1:habits; for g_l=1:generations
-        clear x;
-        age=initial_age+(g_l-1)*2-70;
-        x(:,1)=[1,age,age^2-1,0];
-        alphas(h_l,g_l,e_l,it+1)=(1-normcdf(0,sum(x(:,1).*c_gma(:,h_l,e_l,it+ini+1)),1))*100;
-    end ;end 
-end 
+close all
+max = 1;
+alphas = zeros(habits, generations, types, max);
+ini = iterations - 1;
+bh = 0; % bad health dummy
+
+ages = initial_age + (0:generations-1) * 2 - 70;  % Precomputar edades
+x = [ones(generations, 1), ages', (ages.^2 - 1)', bh * ones(generations, 1)]; % Matriz de regresores
+
+for it = burn:iterations
+    it_l = it - burn + 1;
+    for e_l = 1:types
+        for h_l = 1:habits
+            c_vec = squeeze(c_gma(:, h_l, e_l, it));  % Extraer coeficientes de una vez
+            alphas(h_l, :, e_l, it_l) = (1 - normcdf(0, x * c_vec, 1)) * 100;
+        end
+    end
 end
 
-alphas(1,1:12,:,:)=NaN;
-alphas(4,1:12,:,:)=NaN;
-alphas(5,1:12,:,:)=NaN;
+ini_v=[20,1,1,20,20,13];
+alphas(1,1:19,:,:)=NaN;
+alphas(4,1:19,:,:)=NaN;
+alphas(5,1:19,:,:)=NaN;
 alphas(6,1:12,:,:)=NaN;
 if types==2
     colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 elseif types==3
     colors = { [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250] [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 elseif types==4
-    colors = { [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250]    [0   0.4470    0.7410] [0.8500    0.3250    0.0980] [0.4940    0.1840    0.5560]};
+    colors = { [0.4660    0.6740    0.1880]     [0   0.4470    0.7410]   [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980] [0.4940    0.1840    0.5560]};
 end
 
-pattern = {  '-'  ':' '--' '-.' '-'};
-lw=[1.7 3.0 1.5 1.5 ]
+if types==2
+    pattern = {  '-'  ':'};
+elseif types==3
+    pattern = {  '-'   '--' ':'};
+elseif types==4
+    pattern = {  '-'   '--' '-.' ':'};
+end
+
+lw=[1.2 1.5 1.5 1.5 ] %[1.7 2.0 1.5 1.5 ]
     FS=8 %font size
 figure(10)
 set(10,'position',[150    150    500    250])
@@ -210,7 +231,15 @@ for h_l=[1 4 5 2 3 6]
     ind=ind+1
     f(h_l)=subplot(2,3,ind)
     for p_l=1:types 
-        h(p_l)=plot(26:2:98,squeeze(mean(alphas(h_l,:,p_l,:),4)),'Color',colors{p_l},'linewidth',lw(p_l),'linestyle',pattern{p_l})
+        mean_val = squeeze(mean(alphas(h_l,:,p_l,:),4));
+        lower_bound = squeeze(prctile(alphas(h_l,:,p_l,:), 2.5, 4));
+        upper_bound = squeeze(prctile(alphas(h_l,:,p_l,:), 97.5, 4));
+        x_vals = 26:2:98;
+        fill([x_vals(ini_v(h_l):end), fliplr(x_vals(ini_v(h_l):end))], [lower_bound(ini_v(h_l):end), fliplr(upper_bound(ini_v(h_l):end))], ...
+            colors{p_l}, 'FaceAlpha', 0.2, 'EdgeColor', 'none');
+        hold on
+        h(p_l) = plot(x_vals, mean_val, 'Color', colors{p_l}, ...
+            'linewidth', lw(p_l), 'linestyle', pattern{p_l});
         hold on
     end
 
@@ -227,21 +256,25 @@ for h_l=[1 4 5 2 3 6]
     elseif h_l==6
         title('Exercise','FontWeight','normal','fontsize',FS)
     end 
-    yticks([0:25:100])
+    yticks(0:25:100)
     xlim([25 100])
-    xticks([25:10:100])
+    xticks(30:20:100)
     set(gcf,'color','w')
     ylim([-5,105])
+    if h_l==2
+        yticks(0:5:20)
+        ylim([-2,22])
+    end
     xlabel('Age')
     MS=25 %marker size
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
 if types==2
-    I=legend('Protective','Detrimental','Location','northwest','orientation','horizontal')
+    I=legend([h(1),h(2)],'Protective','Detrimental','Location','northwest','orientation','horizontal')
 elseif types==3
-    I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+    I=legend([h(1),h(2),h(3)],'Group 1','Group 2 ','Group 3','Location','northwest','orientation','horizontal')
 elseif types==4
-    I=legend('Protective','Detrimental 1','Detrimental 2','Harmful','Location','northwest','orientation','horizontal')
+    I=legend([h(1),h(2),h(3),h(4)],'Group 1','Group 2','Group 3','Group 4','Location','northwest','orientation','horizontal')
 end 
 legend('boxoff')
 I.FontSize=FS
@@ -250,8 +283,11 @@ newPosition = [0.45 0.93 0.1 0.1];
     set(I,'Position', newPosition,'Units', newUnits);
 grid off
 set(gca,'FontName','Times New Roman','FontSize',FS);
-
-print(strcat('C:\Users\jbueren\Dropbox\habits\Draft\figures\health_behaviors',types_s),'-depsc')
+if bh==0
+    print(strcat('C:\Users\jbueren\Dropbox\habits\Draft\figures\health_behaviors',types_s),'-depsc')
+else
+    print(strcat('C:\Users\jbueren\Dropbox\habits\Draft\figures\health_behaviors',types_s,'_bh'),'-depsc')
+end
 
 figure(10)
 set(10,'position',[150    150    500    220])
@@ -260,6 +296,13 @@ set(10,'position',[150    150    500    220])
 
 
 %% Plot Life expectancy for the different groups
+close all
+figure(1)
+for e_l=1:3
+    subplot(1,3,e_l)
+    plot(squeeze(LE(:,1,e_l,clusters+1,burn:end))')
+    ylim([19 36])
+end
 c_l=4
 for ge_l=1:1 %genders
 for e_l=1:educ
@@ -277,14 +320,13 @@ end
 
 
 %% Plot weights across cohorts
-ge_l=1
 e_l=1
-FS=10
+
 colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980] [0.9290    0.6940    0.1250]     [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {  '-'  '--' ':' '-.' '-'};
-lw=[1.7 1.5 2.0]
+lw=[1.7 1.5 2.0 1.5]
 
-FS=7
+FS=8
 
 %select gender
 marker= {'o','s','d' }
@@ -294,10 +336,16 @@ set(6,'position',[150    150    500    280])
 for e_l=1:3
     subplot(2,2,e_l)
     for p_l=1:types 
-        h(p_l)=errorbar(10:20:90,squeeze(mean(fraction_t(12,ge_l,e_l,p_l,:,burn:end),6)),2.*squeeze(std(fraction_t(12,ge_l,e_l,p_l,:,burn:end),0,6)),...
-            marker{p_l},'MarkerSize',3,'MarkerFaceColor',colors{p_l},'LineStyle','-')
-        h(p_l).Color = colors{p_l}
+        mean_val2=squeeze(mean(fraction_t(12,ge_l,e_l,p_l,:,burn:end), 6));
+        lower_bound2 = squeeze(prctile(fraction_t(12,ge_l,e_l,p_l,:,burn:end), 2.5, 6));
+        upper_bound2 = squeeze(prctile(fraction_t(12,ge_l,e_l,p_l,:,burn:end), 97.5, 6));
+        x_vals2=10:20:90;
+        h(p_l) = plot(x_vals2, mean_val2, 'Color', colors{p_l}, ...
+            'linewidth', lw(p_l), 'linestyle', pattern{p_l});
         hold on
+        fill([x_vals2, fliplr(x_vals2)], [lower_bound2', fliplr(upper_bound2')], ...
+            colors{p_l}, 'FaceAlpha', 0.2, 'EdgeColor', 'none');
+
         ylim([0 1])
     end  
     xlabel('Birth Year')
@@ -315,7 +363,7 @@ for e_l=1:3
 end
 hold off
 set(gcf,'color','w')
-I=legend('Protective','Detrimental','Harmful','Location','northwest','orientation','horizontal')
+I=legend([h(1),h(2)],'Protective','Detrimental','Location','northwest','orientation','horizontal')
 legend('boxoff')
 I.FontSize=FS+1
 newPosition = [0.45 0.94 0.1 0.07];
@@ -327,15 +375,20 @@ subplot(2,2,4)
 for c_l=1:cohorts
 LE_v(c_l)=mean(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
                sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))))
-sd2_LE_v(c_l)=2*std(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
-               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))));
+lower_bound2(c_l) = squeeze(prctile(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
+               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))), 2.5));
+        upper_bound2(c_l) = squeeze(prctile(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
+               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))), 97.5));
 end
 % h2=scatter(10:20:90,LE_v,10,"filled",'MarkerEdgeColor',[0 .5 .5],'MarkerFaceColor',[0 .7 .7], 'LineWidth',1.5) 
-h2=errorbar(10:20:90,LE_v,sd2_LE_v,...
-            marker{1},'MarkerSize',3,'MarkerFaceColor',colors{4},'LineStyle','-')
-h2.Color = colors{4}
+h2=plot(x_vals2, LE_v, 'Color', colors{4}, ...
+            'linewidth', lw(4));
+hold on
+fill([x_vals2, fliplr(x_vals2)], [lower_bound2', fliplr(upper_bound2')], ...
+            colors{4}, 'FaceAlpha', 0.2, 'EdgeColor', 'none');
 xticks([10:20:90])
-ylim([5 12])
+yticks([6:2:12])
+ ylim([5 12])
 xlim([05 95])
 hold on
 xlabel('Birth Year')
@@ -343,7 +396,7 @@ title('LE gradient','FontWeight','Normal')
 set(gca,'FontName','Times New Roman','FontSize',FS);
 print('C:\Users\jbueren\Dropbox\habits\Draft\figures\share_y_cohorts','-depsc')
 set(6,'position',[150    150    500    220])
-print('C:\Users\jbueren\Dropbox\habits\Slides\2024_EUI_PhD\figures\share_y_cohorts','-depsc')
+% print('C:\Users\jbueren\Dropbox\habits\Slides\2024_EUI_PhD\figures\share_y_cohorts','-depsc')
 %% Plot weights across age for a given cohort
 ge_l=1
 e_l=1
