@@ -1,9 +1,10 @@
-subroutine save_results(beta_h,beta_d,gamma,delta,LE,fraction_t,fraction_h,H,it)
+subroutine save_results(beta_h,beta_d,gamma,gamma_med,delta,LE,fraction_t,fraction_h,H,it)
     use global_var; use nrtype
     implicit none
     real(dp),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_d
-    real(dp),dimension(covariates_habits,habits,types),intent(in)::gamma
+    real(dp),dimension(covariates_habits,habits_nomed,types),intent(in)::gamma
+    real(dp),dimension(covariates_habits_med,habits_med,types),intent(in)::gamma_med
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types),intent(in)::delta
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(in)::LE
     integer,intent(in)::it
@@ -22,11 +23,14 @@ subroutine save_results(beta_h,beta_d,gamma,delta,LE,fraction_t,fraction_h,H,it)
         open(unit=11,file=path_s//'c_habits_'//types_s//'.txt')
             write(11,'(F20.8)') gamma
         close(11)
+        open(unit=11,file=path_s//'c_habits_med_'//types_s//'.txt')
+            write(11,'(F20.8)') gamma_med
+        close(11)
         open(unit=12,file=path_s//'LE_'//types_s//'.txt')
             write(12,'(F6.3)') LE
         close(12)
         open(unit=13,file=path_s//'fraction_t_'//types_s//'.txt')
-            write(13,'(F7.4)') fraction_t
+            write(13,'(F7.4)') fraction_t !fraction_t(1,1,1,1,1)
         close(13)
         open(unit=14,file=path_s//'H_'//types_s//'.txt')
             write(14,'(F7.4)') H
@@ -46,6 +50,9 @@ subroutine save_results(beta_h,beta_d,gamma,delta,LE,fraction_t,fraction_h,H,it)
         close(10)
         open(unit=11,file=path_s//'c_habits_'//types_s//'.txt',access='append')
             write(11,'(F20.8)') gamma
+        close(11)
+        open(unit=11,file=path_s//'c_habits_med_'//types_s//'.txt',access='append')
+            write(11,'(F20.8)') gamma_med
         close(11)
         open(unit=12,file=path_s//'LE_'//types_s//'.txt',access='append')
             write(12,'(F6.3)') LE

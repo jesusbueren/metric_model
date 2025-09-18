@@ -82,7 +82,9 @@ close all
 types=2 % select the number of health behavior groups
 clusters=2
 covariates_habits=4
-habits=6
+habits=3
+covariates_habits_med=5
+habits_med=3
 types_s=num2str(types)
 educ=3
 genders=2
@@ -94,9 +96,13 @@ cohorts=5
 covariates=2+(types-1)*2
 variables_tr=clusters*covariates*educ*genders
 variables_gma=covariates_habits*habits*types
-variables_H=(clusters+1)*(clusters+1)*generations*types*genders*educ
+variables_gma_med=covariates_habits_med*habits_med*types
 
-cd('C:\Users\jbueren\OneDrive - Istituto Universitario Europeo\endo_health')
+variables_H=(clusters+1)*(clusters+1)*generations*types*genders*educ
+covariates_mixture=2+cohorts-1
+variables_delta=covariates_mixture*genders*educ*types
+
+cd('C:\Users\Jesus Bueren\results_local\endo_health')
 
 fileID=fopen(strcat('c_tr_',types_s,'.txt'));
 c_tr=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
@@ -126,22 +132,41 @@ c_gma=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 c_gma=reshape(c_gma{1},covariates_habits,habits,types,size(c_gma{1},1)/(variables_gma));
 
+fileID=fopen(strcat('c_habits_med_',types_s,'.txt'));
+c_gma_med=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
+fclose(fileID);
+c_gma_med=reshape(c_gma_med{1},covariates_habits_med,habits,types,size(c_gma_med{1},1)/(variables_gma_med));
+
 fileID=fopen(strcat('H_',types_s,'.txt'));
 H=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 H=reshape(H{1},clusters+1,clusters+1,generations,types,genders,educ,size(H{1},1)/(variables_H));
+
+fileID=fopen(strcat('delta_',types_s,'.txt'));
+c_delta=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
+fclose(fileID);
+c_delta=reshape(c_delta{1},covariates_mixture,genders,educ,types,size(c_delta{1},1)/(variables_delta));
 
 
 iterations=min([size(c_gma,4) size(c_tr,5)])
 [size(c_gma,4) size(c_tr,5) size(LE,5)]
 
 
-burn=1
+burn=30
 if types==4
     burn=2000
 elseif types==3
     burn=1000 %400
 end 
+
+figure(1)
+subplot(1,2,1)
+plot(squeeze(c_delta(1,1,:,1,:))')
+subplot(1,2,2)
+plot(squeeze(c_delta(4,1,:,1,:))')
+
+figure(2)
+plot(squeeze(fraction_t(1,1,1,1,:,:))') %generations,genders,educ,types,cohorts
 
 
 
@@ -168,15 +193,15 @@ end
 
 %% Histogram from distribution of variables governing habits
 
-h_l=2 %habits
+h_l=3 %habits
 for y_l=1:types
 figure(y_l)
-for cov_l=1:covariates_habits
-subplot(2,covariates_habits,cov_l)
-plot(squeeze(c_gma(cov_l,h_l,y_l,burn:iterations)))
+for cov_l=1:covariates_habits_med
+subplot(2,covariates_habits_med,cov_l)
+plot(squeeze(c_gma_med(cov_l,h_l,y_l,burn:iterations)))
 grid on
-subplot(2,covariates_habits,cov_l+covariates_habits)
-hist(squeeze(c_gma(cov_l,h_l,y_l,burn:iterations)))
+subplot(2,covariates_habits_med,cov_l+covariates_habits_med)
+hist(squeeze(c_gma_med(cov_l,h_l,y_l,burn:iterations)))
 end
 end
 
@@ -184,28 +209,34 @@ end
 %%
 close all
 max = 1;
-alphas = zeros(habits, generations, types, max);
+alphas = zeros(6, generations, types, max);
 ini = iterations - 1;
 bh = 0; % bad health dummy
+ins=1; % insurance status dummy
 
 ages = initial_age + (0:generations-1) * 2 - 70;  % Precomputar edades
 x = [ones(generations, 1), ages', (ages.^2 - 1)', bh * ones(generations, 1)]; % Matriz de regresores
+x_med = [ones(generations, 1), ages', (ages.^2 - 1)', bh * ones(generations, 1), ins * ones(generations, 1)]; % Matriz de regresores
 
 for it = burn:iterations
     it_l = it - burn + 1;
     for e_l = 1:types
-        for h_l = 1:habits
+        for h_l = 1:3
+
             c_vec = squeeze(c_gma(:, h_l, e_l, it));  % Extraer coeficientes de una vez
             alphas(h_l, :, e_l, it_l) = (1 - normcdf(0, x * c_vec, 1)) * 100;
+
+            c_vec = squeeze(c_gma_med(:, h_l, e_l, it));  % Extraer coeficientes de una vez
+            alphas(h_l+3, :, e_l, it_l) = (1 - normcdf(0, x_med * c_vec, 1)) * 100;
+
         end
     end
 end
 
-ini_v=[20,1,1,20,20,13];
-alphas(1,1:19,:,:)=NaN;
-alphas(4,1:19,:,:)=NaN;
-alphas(5,1:19,:,:)=NaN;
-alphas(6,1:12,:,:)=NaN;
+ini_v(1:2)=1
+ini_v(3:6)=15
+alphas(3:6,1:14,:,:)=NaN;
+
 if types==2
     colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 elseif types==3
@@ -227,7 +258,7 @@ lw=[1.2 1.5 1.5 1.5 ] %[1.7 2.0 1.5 1.5 ]
 figure(10)
 set(10,'position',[150    150    500    250])
 ind=0
-for h_l=[1 4 5 2 3 6]
+for h_l=1:6
     ind=ind+1
     f(h_l)=subplot(2,3,ind)
     for p_l=1:types 
@@ -244,24 +275,24 @@ for h_l=[1 4 5 2 3 6]
     end
 
     if h_l==1
-    title('Cancer test','FontWeight','normal','fontsize',FS)
-    elseif h_l==2
         title('Drinking','FontWeight','normal','fontsize',FS)
+    elseif h_l==2
+        title('Smoking','FontWeight','normal','fontsize',FS)
     elseif h_l==3
-         title('Smoking','FontWeight','normal','fontsize',FS)
+        title('Exercise','FontWeight','normal','fontsize',FS) 
     elseif h_l==4
-        title('Cholesterol test','FontWeight','normal','fontsize',FS)
+        title('Cancer test','FontWeight','normal','fontsize',FS)
     elseif h_l==5
-        title('Flu shot','FontWeight','normal','fontsize',FS) 
+        title('Cholesterol test','FontWeight','normal','fontsize',FS)
     elseif h_l==6
-        title('Exercise','FontWeight','normal','fontsize',FS)
+        title('Flu shot','FontWeight','normal','fontsize',FS) 
     end 
     yticks(0:25:100)
     xlim([25 100])
     xticks(30:20:100)
     set(gcf,'color','w')
     ylim([-5,105])
-    if h_l==2
+    if h_l==1
         yticks(0:5:20)
         ylim([-2,22])
     end
@@ -269,6 +300,7 @@ for h_l=[1 4 5 2 3 6]
     MS=25 %marker size
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
+
 if types==2
     I=legend([h(1),h(2)],'Protective','Detrimental','Location','northwest','orientation','horizontal')
 elseif types==3
@@ -284,9 +316,9 @@ newPosition = [0.45 0.93 0.1 0.1];
 grid off
 set(gca,'FontName','Times New Roman','FontSize',FS);
 if bh==0
-    print(strcat('C:\Users\jbueren\Dropbox\habits\Draft\figures\health_behaviors',types_s),'-depsc')
+    print(strcat('C:\Users\Jesus Bueren\Dropbox\habits\Draft\figures\health_behaviors',types_s),'-depsc')
 else
-    print(strcat('C:\Users\jbueren\Dropbox\habits\Draft\figures\health_behaviors',types_s,'_bh'),'-depsc')
+    print(strcat('C:\Users\Jesus Bueren\Dropbox\habits\Draft\figures\health_behaviors',types_s,'_bh'),'-depsc')
 end
 
 figure(10)
@@ -400,7 +432,7 @@ set(6,'position',[150    150    500    220])
 %% Plot weights across age for a given cohort
 ge_l=1
 e_l=1
-c_l=4
+c_l=1
 FS=10
 colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]   [0.9290    0.6940    0.1250]  [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 pattern = {  '-'  '--' ':' '-.' '-'};

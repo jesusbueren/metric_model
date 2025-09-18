@@ -7,6 +7,7 @@ subroutine simulate_model()
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types,iterations)::delta_all
     real(dp),dimension(covariates,clusters,L_gender,L_educ)::beta_h,beta_d
     real(dp),dimension(covariates_habits,habits,types)::gamma
+    real(DP),dimension(covariates_habits_med,habits_med,types)::gamma_med
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types)::delta
     real(DP),dimension(clusters,L_gender,L_educ,types,cohorts)::fraction
     real(DP),dimension(clusters,L_gender,L_educ)::share_h
@@ -74,7 +75,7 @@ subroutine simulate_model()
         
         !Sample a type for each individual in the data
         y=1
-        call sample_y(gamma,y,sample_k,H,weights,type_pr)
+        call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
         
         !Compute artificial set of behaviors for individuals for all indv in the HRS
         data_habits_sim=-9

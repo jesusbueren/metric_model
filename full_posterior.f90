@@ -1,9 +1,10 @@
-subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
+subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
     use global_var; use nrtype
     implicit none
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types),intent(inout)::delta
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_h
     real(DP),dimension(covariates_habits,habits_nomed,types),intent(inout)::gamma
+    real(DP),dimension(covariates_habits_med,habits_med,types),intent(inout)::gamma_med
     integer,dimension(indv,1),intent(inout)::y
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_d
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H,H_g 
@@ -17,6 +18,10 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     real(DP),dimension(indv,types)::type_pr,type_pr_av
     real(DP),dimension(covariates,covariates,clusters,L_gender,L_educ)::sigma_h,sigma_d
     real(DP),dimension(covariates,clusters,L_gender,L_educ)::beta_h_mean,beta_d_mean
+    real(DP),dimension(covariates_mixture,L_gender,L_educ,types)::mean_delta
+    integer,dimension(L_gender,L_educ,types)::acc_delta
+    real(DP),dimension(covariates_mixture,covariates_mixture,L_gender,L_educ,types)::cov_delta
+    real(DP),dimension(L_gender,L_educ)::shrinkage
     !Timer
     integer::calc
     real::calctime
@@ -38,9 +43,12 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     
     joint_yh=1.0d0/dble(clusters*types)
     weights=1.0d0/dble(types)
-    
+    mean_delta=0.0d0
+    cov_delta=0.0d0
+    acc_delta=0
+    shrinkage=1.0d0
     !Burn iterations (avoid saving results before iteration)
-    burn=100    
+    burn=0    
 
     type_pr_av=0.0d0
     !Save one in it2 iterations
@@ -49,7 +57,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
     sigma_h=-9.0d0
     beta_d_mean=-9.0d0
     sigma_d=-9.0d0
-    do it=1,30000+burn
+    do it=1,100000+burn
         print*,it
         !Sample health transitions parameters
         if (it>50) then
@@ -64,21 +72,25 @@ subroutine full_posterior(beta_h,beta_d,gamma,y,delta)
             call sample_beta_d(beta_d,y,sample_k,weights)
         end if
         !Sample health behavior parameters
+        !a) no med
         call sample_gamma_y(gamma,y,sample_k) 
+        !b) med
+        call sample_gamma_y_med(gamma_med,y,sample_k) 
         !Compute transitions and life expectancies
         compute_LE=1
         call transitions(beta_h,beta_d,H,LE,joint_yh) 
         !Sample pr of type at initial age
-        call sample_delta(delta,H,share_h,y,sample_k,weights,joint_yh)
+        call sample_delta(delta,mean_delta,cov_delta,H,share_h,y,sample_k,weights,joint_yh,it,acc_delta,shrinkage)
+        !weights(1,2,1,1,1,1) 
         !sample type
-        call sample_y(gamma,y,sample_k,H,weights,type_pr)
+        call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
 
         if (it>burn) then
             if (it2==10) then
                 do h_l=1,clusters
                     aux(:,h_l,:,:,:,:)=sum(joint_yh,2) 
                 end do
-                call save_results(beta_h,beta_d,gamma,delta,LE,sum(joint_yh,2),joint_yh/aux,H,it-burn)
+                call save_results(beta_h,beta_d,gamma,gamma_med,delta,LE,sum(joint_yh,2),joint_yh/aux,H,it-burn)
                 it2=1
             else
                 it2=it2+1
