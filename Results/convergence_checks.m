@@ -1,6 +1,6 @@
 %% Motivivating graphs HRS
 clear all
-cd('C:\Users\jbueren\Google Drive\endo_health\data')
+cd('G:\My Drive\endo_health\data')
 hrs=readtable('habits_pr_hrs.csv')
 psid=readtable('habits_pr_psid.csv')
 colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
@@ -93,18 +93,18 @@ generations=37
 initial_age=26
 cohorts=5
 
-covariates=2+(types-1)*2
+covariates=types*3
 variables_tr=clusters*covariates*educ*genders
 variables_gma=covariates_habits*habits*types
 variables_gma_med=covariates_habits_med*habits_med*types
 
 variables_H=(clusters+1)*(clusters+1)*generations*types*genders*educ
-covariates_mixture=2+cohorts-1
-variables_delta=covariates_mixture*genders*educ*types
+covariates_mixture=cohorts+1
+variables_delta=covariates_mixture*(types-1)*genders*educ
 
 cd('C:\Users\Jesus Bueren\results_local\endo_health')
 
-fileID=fopen(strcat('c_tr_',types_s,'.txt'));
+fileID=fopen(strcat('c_tr_d_',types_s,'.txt'));
 c_tr=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
 c_tr=reshape(c_tr{1},covariates,clusters,genders,educ,size(c_tr{1},1)/(variables_tr));
@@ -145,29 +145,31 @@ H=reshape(H{1},clusters+1,clusters+1,generations,types,genders,educ,size(H{1},1)
 fileID=fopen(strcat('delta_',types_s,'.txt'));
 c_delta=textscan(fileID,'%14.10f','TreatAsEmpty',{'**************'});
 fclose(fileID);
-c_delta=reshape(c_delta{1},covariates_mixture,genders,educ,types,size(c_delta{1},1)/(variables_delta));
+c_delta=reshape(c_delta{1},covariates_mixture*(types-1),genders,educ,size(c_delta{1},1)/(variables_delta));
 
 
-iterations=min([size(c_gma,4) size(c_tr,5)])
-[size(c_gma,4) size(c_tr,5) size(LE,5)]
+iterations=min([size(c_gma,4) size(c_tr,5) size(LE,5)])
 
 
-burn=30
-if types==4
-    burn=2000
-elseif types==3
-    burn=1000 %400
-end 
 
+burn=1
+e_l=2
 figure(1)
-subplot(1,2,1)
-plot(squeeze(c_delta(1,1,:,1,:))')
-subplot(1,2,2)
-plot(squeeze(c_delta(4,1,:,1,:))')
+for t_l=1:types-1
+for c_l=1:covariates_mixture
+subplot(types-1,covariates_mixture,c_l+(t_l-1)*covariates_mixture )
+plot(squeeze(c_delta(c_l,1,e_l,:)))
+end
+end
+
+
 
 figure(2)
-plot(squeeze(fraction_t(1,1,1,1,:,:))') %generations,genders,educ,types,cohorts
-
+for e_l=1:3
+subplot(1,3,e_l)
+plot(squeeze(fraction_t(:,1,e_l,:,3,end)))
+ylim([0 1])
+end
 
 
 %% Histogram from distribution of variables governing transitions
@@ -175,8 +177,6 @@ plot(squeeze(fraction_t(1,1,1,1,:,:))') %generations,genders,educ,types,cohorts
 for e_l=1:3
 for c_l=1:2
 ge_l=1
-
-
 figure('units','normalized','outerposition',[0 0 1 1])
 for cov_l=1:covariates
 subplot(2,covariates,cov_l)
@@ -185,7 +185,6 @@ grid on
 subplot(2,covariates,covariates+cov_l)
 hist(squeeze(c_tr(cov_l,c_l,ge_l,e_l,burn:iterations)))
 
-
 end
 end
 end
@@ -193,7 +192,7 @@ end
 
 %% Histogram from distribution of variables governing habits
 
-h_l=3 %habits
+h_l=1 %habits
 for y_l=1:types
 figure(y_l)
 for cov_l=1:covariates_habits_med
@@ -207,14 +206,14 @@ end
 
 
 %%
-close all
+% close all
 max = 1;
 alphas = zeros(6, generations, types, max);
 ini = iterations - 1;
 bh = 0; % bad health dummy
 ins=1; % insurance status dummy
 
-ages = initial_age + (0:generations-1) * 2 - 70;  % Precomputar edades
+ages = initial_age + (0:generations-1) * 2 ;  % Precomputar edades
 x = [ones(generations, 1), ages', (ages.^2 - 1)', bh * ones(generations, 1)]; % Matriz de regresores
 x_med = [ones(generations, 1), ages', (ages.^2 - 1)', bh * ones(generations, 1), ins * ones(generations, 1)]; % Matriz de regresores
 
@@ -300,7 +299,6 @@ for h_l=1:6
     MS=25 %marker size
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
-
 if types==2
     I=legend([h(1),h(2)],'Protective','Detrimental','Location','northwest','orientation','horizontal')
 elseif types==3
@@ -329,32 +327,75 @@ set(10,'position',[150    150    500    220])
 
 %% Plot Life expectancy for the different groups
 close all
+if types==2
+    colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==3
+    colors = { [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250] [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==4
+    colors = { [0.4660    0.6740    0.1880]     [0   0.4470    0.7410]   [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980] [0.4940    0.1840    0.5560]};
+end
+lw=[1.2 1.5 1.5 1.5 ] 
+
 figure(1)
 for e_l=1:3
     subplot(1,3,e_l)
-    plot(squeeze(LE(:,1,e_l,clusters+1,burn:end))')
-    ylim([19 36])
+    for p_l=1:types 
+        h(p_l)=plot(squeeze(LE(p_l,1,e_l,clusters+1,burn:iterations))', 'Color', colors{p_l}, ...
+            'linewidth', lw(p_l))
+        hold on
+    end
+    if e_l==1
+        if types==2
+            I=legend([h(1),h(2)],'Protective','Detrimental','Location','northwest','orientation','horizontal')
+        elseif types==3
+            I=legend([h(1),h(2),h(3)],'Group 1','Group 2', 'Group 3','Location','northwest','orientation','horizontal')
+        end
+    end
+    ylim([15 40])
 end
-c_l=4
+c_l=3
 for ge_l=1:1 %genders
 for e_l=1:educ
     if ge_l==1 && e_l==1
-        table=[ squeeze(mean(fraction_t(12,ge_l,e_l,:,c_l,burn:end),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)]
+        table=[ squeeze(mean(fraction_t(12,ge_l,e_l,:,c_l,burn:iterations),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:iterations),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:iterations),5)]
     else
         table=vertcat(table,...
-               [ squeeze(mean(fraction_t(12,ge_l,e_l,:,c_l,burn:end),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:end),5) mean(LE(:,ge_l,e_l,1,burn:end),5) mean(LE(:,ge_l,e_l,2,burn:end),5)])
+               [ squeeze(mean(fraction_t(12,ge_l,e_l,:,c_l,burn:iterations),6)) mean(LE(:,ge_l,e_l,clusters+1,burn:iterations),5) mean(LE(:,ge_l,e_l,1,burn:iterations),5) mean(LE(:,ge_l,e_l,2,burn:iterations),5)])
     end
     
 end
 end
 
+for e_l=1:educ
+    Av_LE(e_l,:)=sum(squeeze(fraction_t(12,ge_l,e_l,:,c_l,burn:iterations)).*squeeze(LE(:,1,e_l,clusters+1,burn:iterations)),1)
+    Av_LE_c(e_l,:)=sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:iterations)).*squeeze(LE(:,1,e_l,clusters+1,burn:iterations)),1)
+end
+
+figure(2)
+subplot(1,3,1)
+plot(Av_LE(3,:))
+hold on
+plot(Av_LE(1,:))
+plot(Av_LE_c(1,:))
+subplot(1,3,2)
+plot(squeeze(fraction_t(12,ge_l,1,1,c_l,burn:iterations)))
+hold on
+plot(squeeze(fraction_t(12,ge_l,3,1,c_l,burn:iterations)))
+subplot(1,3,3)
+plot((Av_LE_c(1,:)-Av_LE(1,:))./(Av_LE(3,:)-Av_LE(1,:)))
 
 
 
 %% Plot weights across cohorts
 e_l=1
 
-colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980] [0.9290    0.6940    0.1250]     [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+if types==2
+    colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==3
+    colors = { [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250] [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==4
+    colors = { [0.4660    0.6740    0.1880]     [0   0.4470    0.7410]   [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980] [0.4940    0.1840    0.5560]};
+end
 pattern = {  '-'  '--' ':' '-.' '-'};
 lw=[1.7 1.5 2.0 1.5]
 
@@ -368,9 +409,9 @@ set(6,'position',[150    150    500    280])
 for e_l=1:3
     subplot(2,2,e_l)
     for p_l=1:types 
-        mean_val2=squeeze(mean(fraction_t(12,ge_l,e_l,p_l,:,burn:end), 6));
-        lower_bound2 = squeeze(prctile(fraction_t(12,ge_l,e_l,p_l,:,burn:end), 2.5, 6));
-        upper_bound2 = squeeze(prctile(fraction_t(12,ge_l,e_l,p_l,:,burn:end), 97.5, 6));
+        mean_val2=squeeze(mean(fraction_t(12,ge_l,e_l,p_l,:,burn:iterations), 6));
+        lower_bound2 = squeeze(prctile(fraction_t(12,ge_l,e_l,p_l,:,burn:iterations), 2.5, 6));
+        upper_bound2 = squeeze(prctile(fraction_t(12,ge_l,e_l,p_l,:,burn:iterations), 97.5, 6));
         x_vals2=10:20:90;
         h(p_l) = plot(x_vals2, mean_val2, 'Color', colors{p_l}, ...
             'linewidth', lw(p_l), 'linestyle', pattern{p_l});
@@ -395,7 +436,14 @@ for e_l=1:3
 end
 hold off
 set(gcf,'color','w')
-I=legend([h(1),h(2)],'Protective','Detrimental','Location','northwest','orientation','horizontal')
+if types==2
+    I=legend([h(1),h(2)],'Protective','Detrimental','Location','northwest','orientation','horizontal')
+elseif types==3
+    I=legend([h(1),h(2),h(3)],'Group 1','Group 2', 'Group 3','Location','northwest','orientation','horizontal')
+elseif types==4
+    I=legend([h(1),h(2),h(3),h(4)],'Group 1','Group 2', 'Group 3', 'Group 4','Location','northwest','orientation','horizontal')
+end
+
 legend('boxoff')
 I.FontSize=FS+1
 newPosition = [0.45 0.94 0.1 0.07];
@@ -405,12 +453,12 @@ grid off
 set(gca,'FontName','Times New Roman','FontSize',FS);
 subplot(2,2,4)
 for c_l=1:cohorts
-LE_v(c_l)=mean(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
-               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))))
-lower_bound2(c_l) = squeeze(prctile(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
-               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))), 2.5));
-        upper_bound2(c_l) = squeeze(prctile(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:end)).*squeeze(LE(:,ge_l,3,clusters+1,burn:end)))-...
-               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:end)).*squeeze(LE(:,ge_l,1,clusters+1,burn:end))), 97.5));
+LE_v(c_l)=mean(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:iterations)).*squeeze(LE(:,ge_l,3,clusters+1,burn:iterations)))-...
+               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:iterations)).*squeeze(LE(:,ge_l,1,clusters+1,burn:iterations))))
+lower_bound2(c_l) = squeeze(prctile(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:iterations)).*squeeze(LE(:,ge_l,3,clusters+1,burn:iterations)))-...
+               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:iterations)).*squeeze(LE(:,ge_l,1,clusters+1,burn:iterations))), 2.5));
+        upper_bound2(c_l) = squeeze(prctile(sum(squeeze(fraction_t(12,ge_l,3,:,c_l,burn:iterations)).*squeeze(LE(:,ge_l,3,clusters+1,burn:iterations)))-...
+               sum(squeeze(fraction_t(12,ge_l,1,:,c_l,burn:iterations)).*squeeze(LE(:,ge_l,1,clusters+1,burn:iterations))), 97.5));
 end
 % h2=scatter(10:20:90,LE_v,10,"filled",'MarkerEdgeColor',[0 .5 .5],'MarkerFaceColor',[0 .7 .7], 'LineWidth',1.5) 
 h2=plot(x_vals2, LE_v, 'Color', colors{4}, ...
@@ -419,28 +467,34 @@ hold on
 fill([x_vals2, fliplr(x_vals2)], [lower_bound2', fliplr(upper_bound2')], ...
             colors{4}, 'FaceAlpha', 0.2, 'EdgeColor', 'none');
 xticks([10:20:90])
-yticks([6:2:12])
- ylim([5 12])
+% yticks([4:1:9])
+%  ylim([4 9])
 xlim([05 95])
 hold on
 xlabel('Birth Year')
 title('LE gradient','FontWeight','Normal')
 set(gca,'FontName','Times New Roman','FontSize',FS);
-print('C:\Users\jbueren\Dropbox\habits\Draft\figures\share_y_cohorts','-depsc')
+% print('C:\Users\jbueren\Dropbox\habits\Draft\figures\share_y_cohorts','-depsc')
 set(6,'position',[150    150    500    220])
 % print('C:\Users\jbueren\Dropbox\habits\Slides\2024_EUI_PhD\figures\share_y_cohorts','-depsc')
 %% Plot weights across age for a given cohort
 ge_l=1
 e_l=1
-c_l=1
+c_l=3
 FS=10
-colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]   [0.9290    0.6940    0.1250]  [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
-pattern = {  '-'  '--' ':' '-.' '-'};
-lw=[1.7 1.5 2.0]
+if types==2
+    colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==3
+    colors = { [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250] [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==4
+    colors = { [0.4660    0.6740    0.1880]     [0   0.4470    0.7410]   [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980] [0.4940    0.1840    0.5560]};
+end
+endpattern = {  '-'  '--' ':' '-.' '-'};
+lw=[1.7 1.5 2.0 1.5]
 
 
 %select gender
-marker= {'o','s','d' }
+marker= {'o','s','d','o' }
 ge_l=1
 figure(6)
 set(6,'position',[150    150    500    250])
@@ -449,7 +503,7 @@ ge_l=1
 for e_l=1:3
     subplot(1,3,e_l)
     for p_l=1:types 
-        h(p_l)=errorbar(26:4:100,squeeze(mean(fraction_t(1:2:end,ge_l,e_l,p_l,c_l,burn:end),6)).*100,2.*squeeze(std(fraction_t(1:2:end,ge_l,e_l,p_l,c_l,burn:end),0,6)).*100,...
+        h(p_l)=errorbar(26:4:100,squeeze(mean(fraction_t(1:2:end,ge_l,e_l,p_l,c_l,burn:iterations),6)).*100,2.*squeeze(std(fraction_t(1:2:end,ge_l,e_l,p_l,c_l,burn:iterations),0,6)).*100,...
             marker{p_l},'MarkerSize',6,'MarkerFaceColor',colors{p_l})
         h(p_l).Color = colors{p_l}
         hold on
@@ -482,17 +536,23 @@ end
 % grid off
 set(gca,'FontName','Times New Roman','FontSize',FS);
 
-print('C:\Users\jbueren\Dropbox\habits\Slides\v2\figures\share_y_age','-depsc')
+% print('C:\Users\jbueren\Dropbox\habits\Slides\v2\figures\share_y_age','-depsc')
 
 
 
 %% transition pr & fraction by h
 ge_l=1
 FS=11
-colors = { [0.4660    0.6740    0.1880] [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]      [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+if types==2
+    colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==3
+    colors = { [0.4660    0.6740    0.1880]     [0.9290    0.6940    0.1250] [0.8500    0.3250    0.0980]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
+elseif types==4
+    colors = { [0.4660    0.6740    0.1880]     [0   0.4470    0.7410]   [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980] [0.4940    0.1840    0.5560]};
+end
 pattern = {  '-'  '--' ':' '-.' '-'};
 lw=[1.7 1.5 2.0]
-marker= {'o','s','d' }
+marker= {'o','s','d','d' }
 
 h_str=["gh","bh"]
 h2_str=["gh","bh","D"]
@@ -509,6 +569,8 @@ for e_l=1:3
     for p_l=1:types 
         h(p_l)=errorbar(26:4:92,mean(squeeze(H(h_l,h_l2,1:2:34,p_l,ge_l,e_l,burn:end)),2),2.*std(squeeze(H(h_l,h_l2,1:2:34,p_l,ge_l,e_l,burn:end))'),...
             marker{p_l},'MarkerSize',6,'MarkerFaceColor',colors{p_l})
+%         h(p_l)=errorbar(26:4:92,mean(squeeze(H(h_l,h_l2,1:2:34,p_l,ge_l,e_l,end:end)),2),2.*std(squeeze(H(h_l,h_l2,1:2:34,p_l,ge_l,e_l,burn:end))'),...
+%             marker{p_l},'MarkerSize',6,'MarkerFaceColor',colors{p_l})
         h(p_l).Color = colors{p_l}
         hold on 
     end 
@@ -528,17 +590,18 @@ elseif h_l==1 && h_l2==3
 elseif h_l==2 && h_l2==1
    ylim([0 0.7]) 
 elseif h_l==2 && h_l2==2
-   ylim([0.2 0.8]) 
+   ylim([0.0 1]) 
 elseif h_l==2 && h_l2==3
    ylim([0 0.5]) 
 end
+% ylim([0 1])
 if e_l==1
 ylabel(strcat(h_str(h_l),'\rightarrow',h2_str(h_l2)))
 end
 yl=ylim
 xlim([22 96])
 xticks(30:10:90)
-yticks(yl(1):0.1:yl(2))
+yticks(yl(1):0.2:yl(2))
 set(gca,'FontName','Times New Roman','FontSize',FS);
 end
 set(gcf,'color','w')
@@ -556,7 +619,7 @@ newUnits = 'normalized';
 set(I,'Position', newPosition,'Units', newUnits);
 grid off
 
-print('C:\Users\jbueren\Dropbox\habits\Draft\figures\transitions_all','-depsc')
+% print('C:\Users\jbueren\Dropbox\habits\Draft\figures\transitions_all','-depsc')
 
 
 %%

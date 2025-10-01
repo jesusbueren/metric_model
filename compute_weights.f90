@@ -28,7 +28,7 @@ subroutine compute_weights(fraction_y,H,share_h,weights,joint_yh)
             joint_yh_new=0.0d0
             do y_l=1,types;do h_l=1,clusters
                 do h_l2=1,clusters
-                    joint_yh_new(h_l,y_l)=joint_yh_new(h_l,y_l)+H(h_l2,h_l,g_l-1,y_l,ge_l,e_l)*joint_yh(g_l-1,h_l2,ge_l,e_l,y_l,co_l) 
+                    joint_yh_new(h_l,y_l)=joint_yh_new(h_l,y_l)+H(h_l2,h_l,g_l-1,y_l,ge_l,e_l)*joint_yh(g_l-1,h_l2,ge_l,e_l,y_l,co_l)  
                 end do
             end do; end do
             joint_yh(g_l,:,ge_l,e_l,:,co_l)=joint_yh_new/sum(joint_yh_new)
@@ -36,6 +36,7 @@ subroutine compute_weights(fraction_y,H,share_h,weights,joint_yh)
                 weights(g_l,h_l,ge_l,e_l,y_l,co_l)=joint_yh(g_l,h_l,ge_l,e_l,y_l,co_l)/sum(joint_yh(g_l,h_l,ge_l,e_l,:,co_l)) 
                 if (isnan(weights(g_l,h_l,ge_l,e_l,y_l,co_l))) then
                     print*,'problem computing weights'
+                    pause
                 end if
             end do; end do
         end do

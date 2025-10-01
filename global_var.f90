@@ -38,7 +38,7 @@ module global_var
     integer,parameter::adls=12,habits=6,habits_nomed=3,habits_med=3,indv_HRS=37098,indv_PSID=8081,generations=37,initial_age=26,indv=indv_HRS+indv_PSID,L_gender=2,L_educ=3
     integer, dimension(habits_nomed) :: habits_vec = (/2,3,6/)
     integer, dimension(habits_med) :: habits_med_vec = (/1,4,5/)
-    integer,parameter::covariates=2+(types-1)*2,covariates_habits=4,covariates_habits_med=5,covariates_mixture=cohorts+1
+    integer,parameter::covariates=3*types,covariates_habits=4,covariates_habits_med=5,covariates_mixture=cohorts+1
     integer,parameter::g_max=10
     integer,dimension(indv,generations)::data_shlt
     integer,dimension(indv_HRS,generations)::data_ins_hrs
@@ -48,10 +48,11 @@ module global_var
     integer,dimension(indv,1)::y_true
     real(DP),dimension(clusters,L_gender,L_educ)::share_h_true
     real(DP),dimension(clusters,L_gender,L_educ,types,cohorts)::delta_true
-    integer::it_h=1,it_h2=1,acc_h=0,it_d=1,it_d2=1,acc_d=0
+    integer,dimension(clusters,L_gender,L_educ)::acc_h=0,acc_d=0
     character(*),parameter::path="G:\My Drive\endo_health\"  
     character(*),parameter::path_s="C:\Users\Jesus Bueren\results_local\endo_health\"
     character(*),parameter::path_s2="C:\Users\Jesus Bueren\Dropbox\habits\Draft\tables\cross_section050.txt"
     integer::compute_LE
+    logical, dimension(indv) :: sample_selection
 end module global_var
     

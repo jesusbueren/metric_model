@@ -2,10 +2,10 @@ subroutine simulate_model()
     use global_var; use nrtype
     implicit none
     integer,parameter:: iterations=2999
-    real(dp),dimension(covariates,clusters,L_gender,L_educ,iterations)::beta_h_all,beta_d_all
+    real(dp),dimension(covariates,types,clusters,L_gender,L_educ,iterations)::beta_h_all,beta_d_all
     real(dp),dimension(covariates_habits,habits,types,iterations)::gamma_all
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types,iterations)::delta_all
-    real(dp),dimension(covariates,clusters,L_gender,L_educ)::beta_h,beta_d
+    real(dp),dimension(covariates,types,clusters,L_gender,L_educ)::beta_h,beta_d
     real(dp),dimension(covariates_habits,habits,types)::gamma
     real(DP),dimension(covariates_habits_med,habits_med,types)::gamma_med
     real(DP),dimension(covariates_mixture,L_gender,L_educ,types)::delta
@@ -50,8 +50,8 @@ subroutine simulate_model()
             read(16,'(F20.8)') delta_all
         close(16)
         
-        beta_h=sum(beta_h_all(:,:,:,:,burn(types)+1:iterations),5)/dble(iterations-burn(types))
-        beta_d=sum(beta_d_all(:,:,:,:,burn(types)+1:iterations),5)/dble(iterations-burn(types))
+        beta_h=sum(beta_h_all(:,:,:,:,:,burn(types)+1:iterations),6)/dble(iterations-burn(types))
+        beta_d=sum(beta_d_all(:,:,:,:,:,burn(types)+1:iterations),6)/dble(iterations-burn(types))
         ! Given health and survival parameters compute health transitions
         joint_yh=1.0d0/dble(clusters*types) 
         call transitions(beta_h,beta_d,H,LE,joint_yh) 
@@ -67,7 +67,7 @@ subroutine simulate_model()
         !Compute pr of behaviors given type
         gamma=sum(gamma_all(:,:,:,burn(types)+1:iterations),4)/dble(iterations-burn(types))
         do e_l=1,types; do h_l=1,habits;do c_l=1,clusters; do g_l=1,generations
-            age=initial_age+(g_l-1)*2-70
+            age=initial_age+(g_l-1)*2
             health_d=dble(c_l-1)
             x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),health_d/)
             alphas(h_l,g_l,e_l,c_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*gamma(:,h_l,e_l))/sqrt(2.0_dp)))
@@ -83,7 +83,7 @@ subroutine simulate_model()
         do g_l=first_age(i_l),last_age(i_l);do h_l=1,habits
             if (sample_k(i_l,g_l)/=-1) then
                 health_d=dble(sample_k(i_l,g_l)-1)
-                age=initial_age+(g_l-1)*2-70
+                age=initial_age+(g_l-1)*2
                 x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),health_d/)
                 if ((data_habits(i_l,h_l,g_l)==1 .or. data_habits(i_l,h_l,g_l)==0) .and. race(i_l)==1) then
                     call RANDOM_NUMBER(u)

@@ -114,7 +114,7 @@ subroutine charge_data()
             if (data_shlt(i_l,g_l)>=1 .and. data_shlt(i_l,g_l)<=2) then
                 index=index+1
                 h_bar(i_l)=h_bar(i_l)+(data_shlt(i_l,g_l)-1) 
-                a_bar(i_l)=a_bar(i_l)+initial_age+(g_l-1)*2-70
+                a_bar(i_l)=a_bar(i_l)+initial_age+(g_l-1)*2
             end if
         end do
         h_bar(i_l)=h_bar(i_l)/dble(index)
@@ -140,5 +140,8 @@ subroutine charge_data()
             end if
         end do
     end if
+    
+    !Define sample selection: dummy equal 1 if selected
+    sample_selection=( birth_cohort>=1 )
     
 end subroutine

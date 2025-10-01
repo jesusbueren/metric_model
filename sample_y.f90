@@ -20,13 +20,13 @@ subroutine sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
 
     
     do e_l=1,types; do h_l=1,habits_nomed;do c_l=1,clusters; do g_l=1,generations
-            age=initial_age+(g_l-1)*2-70
+            age=initial_age+(g_l-1)*2
             health_d=dble(c_l-1)
             x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),health_d/)
             alphas(h_l,g_l,e_l,c_l)=1.0_dp-0.5_dp*(1.0_dp+erf(-sum(x(:,1)*gamma(:,h_l,e_l))/sqrt(2.0_dp))) 
     end do;end do; end do;end do
     do e_l=1,types; do h_l=1,habits_med;do c_l=1,clusters; do g_l=1,generations; do ins_l=1,2
-            age=initial_age+(g_l-1)*2-70
+            age=initial_age+(g_l-1)*2
             health_d=dble(c_l-1)
             ins_d=dble(ins_l-1)
             x_med(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),health_d,ins_d/)
@@ -64,7 +64,7 @@ subroutine sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
                     end do; end do
                 end if
                 do e_l=1,types
-                    if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then !sample_k(i_l,31) data_habits(i_l,:,29:31)
+                    if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then !sample_k(i_l,31) data_habits(i_l,:,29:31) sample_k(i_l,:) H(1,3,:,e_l,gender(i_l),educ(i_l))
                         if (i_l<=indv_HRS) then
                             filtered_pr(e_l)=filtered_pr(e_l)*H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))
                         else
