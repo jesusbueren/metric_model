@@ -9,7 +9,7 @@ subroutine fraction_h_e_g(sample_k,share_h)
     share_h=0.0d0
     do i_l=1,indv;
         g_l=first_age(i_l)
-        if (sample_k(i_l,g_l)>=1 .and. race(i_l)==1 .and. first_age(i_l)<5) then
+        if (sample_k(i_l,g_l)>=1 .and. race(i_l)==1 .and. first_age(i_l)<5 .and. sample_selection(i_l)) then
             share_h(sample_k(i_l,g_l),gender(i_l),educ(i_l))=share_h(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1.0d0
         end if
     end do

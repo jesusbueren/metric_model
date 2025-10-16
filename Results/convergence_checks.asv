@@ -165,10 +165,10 @@ end
 
 
 figure(2)
-c_l=3
-for e_l=1:3
-subplot(1,3,e_l)
-plot(squeeze(fraction_t(:,1,e_l,:,c_l,end)))
+e_l=3
+for c_l=1:3
+subplot(1,3,c_l)
+plot(squeeze(fraction_t(1,1,e_l,:,c_l,:))')
 ylim([0 1])
 end
 
@@ -193,26 +193,25 @@ end
 
 %% Histogram from distribution of variables governing habits
 
-h_l=2 %habits
+h_l=3 %habits
 for y_l=1:types
 figure(y_l)
 for cov_l=1:covariates_habits_med
 subplot(2,covariates_habits_med,cov_l)
-plot(squeeze(c_gma_med(cov_l,h_l,y_l,burn:iterations)))
+plot(squeeze(c_gma(cov_l,h_l,y_l,burn:iterations)))
 grid on
 subplot(2,covariates_habits_med,cov_l+covariates_habits_med)
-hist(squeeze(c_gma_med(cov_l,h_l,y_l,burn:iterations)))
+hist(squeeze(c_gma(cov_l,h_l,y_l,burn:iterations)))
 end
 end
 
 
 %%
 % close all
-
 max = 1;
 alphas = zeros(6, generations, types, max);
 ini = iterations - 1;
-bh = 0; % bad health dummy
+bh = 1; % bad health dummy
 ins=0; % insurance status dummy
 
 ages = initial_age + (0:generations-1) * 2 ;  % Precomputar edades

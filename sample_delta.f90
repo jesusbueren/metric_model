@@ -21,7 +21,6 @@ subroutine sample_delta(delta,mean_delta,cov_delta,H,share_h,y,sample_k,weights,
     real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts)::weights_g,joint_yh_g
     real(DP),dimension(clusters,L_gender,L_educ,types,cohorts)::fraction
     real(DP)::eps
-    real(DP),dimension(indv)::L_i_g,L_i
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -38,16 +37,10 @@ subroutine sample_delta(delta,mean_delta,cov_delta,H,share_h,y,sample_k,weights,
     
     !Compute likelihood of weights
     log_likeli=0.0d0
-    L_i=0.0d0
     do i_l=1,indv
         if (sample_selection(i_l)) then
             if (sample_k(i_l,first_age(i_l))>=1 .and. sample_k(i_l,first_age(i_l))<=2 ) then
                 log_likeli(gender(i_l),educ(i_l))=log_likeli(gender(i_l),educ(i_l))+log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l))) !weights_g(first_age(97),sample_k(97,first_age(97)),gender(97),educ(97),y(97,1),birth_cohort(97))
-            !else
-            !    log_likeli(gender(i_l),educ(i_l))=log_likeli(gender(i_l),educ(i_l))+log(weights(first_age(i_l),1,gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
-                if (gender(i_l)==1 .and. educ(i_l)==1 ) then
-                    L_i(i_l)=log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l))) ! L_i(1:1000)
-                end if
             end if
         end if
     end do
@@ -81,16 +74,11 @@ subroutine sample_delta(delta,mean_delta,cov_delta,H,share_h,y,sample_k,weights,
     
     !Compute likelihood of proposal
     log_likeli_g=0.0d0
-    L_i_g=0.0d0
     do i_l=1,indv
         if (sample_selection(i_l)) then
             if (sample_k(i_l,first_age(i_l))>=1 .and. sample_k(i_l,first_age(i_l))<=2) then
                 log_likeli_g(gender(i_l),educ(i_l))=log_likeli_g(gender(i_l),educ(i_l))+log(weights_g(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l))) 
-            !else
-            !    log_likeli_g(gender(i_l),educ(i_l))=log_likeli_g(gender(i_l),educ(i_l))+log(weights_g(first_age(i_l),1,gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
-                if (gender(i_l)==1 .and. educ(i_l)==1 ) then
-                    L_i_g(i_l)=log(weights_g(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l))) 
-                end if
+
             end if
         end if
     end do
@@ -127,7 +115,7 @@ subroutine sample_delta(delta,mean_delta,cov_delta,H,share_h,y,sample_k,weights,
         print*, ": cov = ", cov_delta(1,1,1,1)/dble(it), cov_delta(2,2,1,1)/dble(it), cov_delta(1,2,1,1)/dble(it)
         print*, ": shrinkage = ", shrinkage(1,1)
         print*,": delta = ",delta(1,1,1),delta_g(1,1,1)
-        print*,":  L= ",log_likeli(1,1),log_likeli_g(1,1),sum(L_i),sum(L_i_g)
+        print*,":  L= ",log_likeli(1,1),log_likeli_g(1,1)
         do e_l=1,L_educ;do ge_l=1,L_gender
             if (dble(acc_delta(ge_l,e_l))/100.0d0>0.6d0) then
                 shrinkage(ge_l,e_l)=shrinkage(ge_l,e_l)*2.0d0

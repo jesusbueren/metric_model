@@ -8,7 +8,7 @@ program main
     real(DP),dimension(covariates_habits_med,habits_med,types)::gamma_med
     real(DP),dimension(covariates_mixture*(types-1),L_gender,L_educ)::delta
     integer,dimension(indv,1)::y
-    integer::i_l
+    integer::i_l,g_l
     real(DP)::u
     
     call random_seed(PUT=seed)
@@ -19,61 +19,32 @@ program main
     !Original types are sampled with higher probability of smokers are type 3, if no exercise type 2 else type 1
     ! This is irrelevant for the estimation results but it ensures that the type 1 is always the protective, Type 2 detrimental and type 3 harmful
     y=-1
-    do i_l=1,indv
-        
-        if (data_habits(i_l,3,first_age(i_l))==1) then !smoking
+    do i_l=1,indv; ;do g_l=first_age(i_l),last_age(i_l)        
+        if (data_habits(i_l,3,g_l)==1) then !smoking !data_habits(i_l,3,:)
                 y(i_l,1)=types
+                exit
         end if
-        !if (data_habits(i_l,6,first_age(i_l))==1) then !Exercise
-        !    call random_number(u)
-        !    if (u<0.9d0)then
-        !        y(i_l,1)=2
-        !    else
-        !        y(i_l,1)=1
-        !    end if
-        !end if
-        !if (y(i_l,1)==-1 ) then
-        !    call random_number(u)
-        !    if (u<0.5d0)then
-        !        y(i_l,1)=2
-        !    else
-        !        y(i_l,1)=1
-        !    end if
-        !end if
-        !if (types>2 .and. y(i_l,1)==-1) then
-        !    if (data_habits(i_l,6,first_age(i_l))==0) then !Exercise
-        !        if (u<0.9d0)then
-        !            y(i_l,1)=2
-        !        end if
-        !    else
-        !        y(i_l,1)=types-1
-        !    end if
-        !end if
-        !if (types==4.and. y(i_l,1)==-1) then
-        !    if (data_habits(i_l,2,first_age(i_l))==1) then !Exercise
-        !        if (u<0.9d0)then
-        !            y(i_l,1)=3
-        !        end if
-        !    else
-        !        y(i_l,1)=2
-        !    end if
-        !end if
-        !
-        !if (data_habits(i_l,1,first_age(i_l))==1 .and. y(i_l,1)==-1) then  !cancer test
-        !    if (u<0.8d0)then
-        !        y(i_l,1)=1
-        !    end if
-        !end if
-        if (y(i_l,1)==-1 .and. types==2) then
+        if (data_habits(i_l,2,g_l)==1 .and. y(i_l,1)==-1 .and. types==4) then !drink
+            y(i_l,1)=types-1
+        end if
+        if (data_habits(i_l,6,g_l)==1 .and. y(i_l,1)==-1) then !exercise
             y(i_l,1)=1
         end if
-        !if (y(i_l,1)==-1 .and. types==3) then
-        !    y(i_l,1)=2
-        !end if
-        !if (y(i_l,1)==-1 .and. types==4) then
-        !    y(i_l,1)=3
-        !end if
+    end do;
+        if (y(i_l,1)==-1) then
+            y(i_l,1)=1
+        end if
     end do
+    
+    ! y=-1
+    !do i_l=1,indv; 
+    !    call random_number(u)
+    !    if (u<0.8d0) then
+    !        y(i_l,1)=1
+    !    else
+    !        y(i_l,1)=2
+    !    end if
+    !end do
 
     
     !Full posterior

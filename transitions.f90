@@ -1,8 +1,7 @@
 subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     use global_var; use nrtype
     implicit none
-    real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h
-    real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_d
+    real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h,beta_d
     real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts),intent(in)::joint_yh
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ),intent(out)::H
     real(DP),dimension(types,L_gender,L_educ,clusters+1),intent(out)::LE
@@ -15,39 +14,33 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     integer,dimension(clusters+1)::counter_h
     real(DP),dimension(clusters)::h_star
     double precision,dimension(clusters+1,generations)::p
-    real(DP),dimension(covariates/types,types)::x_d
+    real(DP),dimension(types)::x_d
     integer::ind
     real(DP)::gender_d
     
     
     H=-9.0d0
     !!$OMP PARALLEL  DEFAULT(PRIVATE) SHARED(H,beta)
-    !!$OMP  DO collapse(4)
+    !!$OMP  DO colla
     do t_l=1,types; do c_l=1,clusters; do g_l=generations,1,-1; do ge_l=1,L_gender;do e_l=1,L_educ
         x_d=0.0d0
-        age=initial_age+(g_l-1)*2-70
-        x_d(:,t_l)=[1.0_dp,dble(age),dble(age)**2.0d0]
-        x=reshape(x_d,[covariates,1])
+        age=initial_age+(g_l-1)*2
+        x_d(t_l)=1.0_dp
+        x_d=x_d*age
+        x(:,1)=[1.0d0,x_d]
 
-        
         H(c_l,1,g_l,t_l,ge_l,e_l)=0.5d0*(1.0_dp+erf(sum(x(:,1)*beta_h(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
         H(c_l,2,g_l,t_l,ge_l,e_l)=1.0d0-H(c_l,1,g_l,t_l,ge_l,e_l)
-        
             
-        if (age>=50) then
-            H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=0.5d0*(1.0d0+erf(sum(x(:,1)*beta_d(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
-        else
-            H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=1.0d-8
-        end if
+
+        H(c_l,clusters+1,g_l,t_l,ge_l,e_l)=0.5d0*(1.0d0+erf(sum(x(:,1)*beta_d(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
+
             
-        
-    
-        
         if (isnan(sum(H(c_l,:,g_l,t_l,ge_l,e_l)))) then
             print*,'error in transitions'
             pause
         end if
-        H(c_l,1:clusters,g_l,t_l,ge_l,e_l)=H(c_l,1:clusters,g_l,t_l,ge_l,e_l)*(1.0d0-H(c_l,clusters+1,g_l,t_l,ge_l,e_l))
+        H(c_l,1:clusters,g_l,t_l,ge_l,e_l)=max(H(c_l,1:clusters,g_l,t_l,ge_l,e_l)*(1.0d0-H(c_l,clusters+1,g_l,t_l,ge_l,e_l)),1.0d-12) !H(c_l,:,g_l,t_l,ge_l,e_l)
     end do; end do; end do; end do;end do
     !!$OMP END DO
     !!$OMP END PARALLEL !H(1,3,:,3,1,3)
@@ -81,7 +74,7 @@ use global_var; use nrtype
         if (cohorts==5) then
             p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,3)/sum(joint_yh(1,:,ge_l,e_l,t_l,3))
         else
-            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,5)/sum(joint_yh(1,:,ge_l,e_l,t_l,5)) !p(1,:)
+            p(1:clusters,1)=joint_yh(1,:,ge_l,e_l,t_l,1)/sum(joint_yh(1,:,ge_l,e_l,t_l,1)) 
         end if
         if (isnan(sum(p)))then
             print*,'error in transitions: initial cond. Don t worry if it=1'
@@ -90,7 +83,7 @@ use global_var; use nrtype
             if (g_l>12) then
                 if (g_l==13) then
                     p(3,g_l-1)=0.0d0
-                    p(:,g_l-1)=p(:,g_l-1)/sum(p(:,g_l-1)) 
+                    p(:,g_l-1)=p(:,g_l-1)/sum(p(:,g_l-1))
                 end if                    
                 do c_l=1,clusters;do c_l2=1,clusters
                     if (c_l==c_l2) then

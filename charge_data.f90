@@ -142,6 +142,6 @@ subroutine charge_data()
     end if
     
     !Define sample selection: dummy equal 1 if selected
-    sample_selection=( birth_cohort>=1 )
+    sample_selection=(birth_cohort>=1 .and. gender==1)
     
 end subroutine

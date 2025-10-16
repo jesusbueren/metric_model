@@ -1,8 +1,7 @@
 subroutine save_results(beta_h,beta_d,gamma,gamma_med,delta,LE,fraction_t,fraction_h,H,it)
     use global_var; use nrtype
     implicit none
-    real(dp),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h
-    real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_d
+    real(dp),dimension(covariates,clusters,L_gender,L_educ),intent(in)::beta_h,beta_d
     real(dp),dimension(covariates_habits,habits_nomed,types),intent(in)::gamma
     real(dp),dimension(covariates_habits_med,habits_med,types),intent(in)::gamma_med
     real(DP),dimension(covariates_mixture*(types-1),L_gender,L_educ),intent(in)::delta

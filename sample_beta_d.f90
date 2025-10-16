@@ -18,39 +18,51 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
             implicit none
         end function c4_normal_01
     end interface
-    real(DP),dimension(covariates/types,types)::x_d
+    real(DP),dimension(types)::x_d
     real(DP),dimension(covariates,1)::x
     character::pause_k
+    integer,dimension(types,clusters,L_gender,L_educ)::counter,counter_h2
+    real(DP),dimension(types,clusters,L_gender,L_educ)::pr_h2
 
      counter_big_X_d=0
-    do i_l=1,indv_HRS;do g_l=first_age(i_l),last_age(i_l)-1
-            x_d=0.0d0
-            age=initial_age+(g_l-1)*2-70
-            x_d(:,type_i(i_l,1))=[1.0_dp,dble(age),dble(age)**2.0d0]
-            x=reshape(x_d,[covariates,1])
+    do i_l=1,indv_HRS
+        if (sample_selection(i_l)) then
+            do g_l=first_age(i_l),last_age(i_l)-1
+                x_d=0.0d0
+                age=initial_age+(g_l-1)*2
+                x_d(type_i(i_l,1))=1.0_dp
+                x_d=x_d*age
+                x(:,1)=[1.0d0,x_d]
 
-            if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. sample_selection(i_l) .and. sample_k(i_l,first_age(i_l))/=-1) then
-                counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1
-                big_X_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)
-                if (sample_k(i_l,g_l+1)==clusters+1 ) then
-                    call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))),1.0_dp,0.0_dp,d_star)
-                elseif (sample_k(i_l,g_l+1)<clusters+1  ) then
-                    call TRUNCATED_NORMAL_B_SAMPLE(sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))),1.0_dp,0.0_dp,d_star)
+                if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. sample_selection(i_l) .and. sample_k(i_l,first_age(i_l))/=-1) then
+                    counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1
+                    big_X_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)
+                    if (sample_k(i_l,g_l+1)==clusters+1 ) then
+                        call TRUNCATED_NORMAL_A_SAMPLE(sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))),1.0_dp,0.0_dp,d_star)
+                    elseif (sample_k(i_l,g_l+1)<clusters+1  ) then
+                        call TRUNCATED_NORMAL_B_SAMPLE(sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))),1.0_dp,0.0_dp,d_star)
+                    end if
+                    if (d_star>1000 .or. d_star<-1000) then
+                        print*,d_star
+                        print*,x(:,1)
+                        print*,beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))
+                        print*,sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l)))
+                        print*,sample_k(i_l,g_l+1)
+                        print*,'error sample d?'
+                        read*,pause_k
+                    end if
+                    big_Y_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l))=d_star
+                    if (age>70 .and. age<80) then
+                        counter(type_i(i_l,1),sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter(type_i(i_l,1),sample_k(i_l,g_l),gender(i_l),educ(i_l))+1
+                        if (sample_k(i_l,g_l+1)==3) then
+                            counter_h2(type_i(i_l,1),sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_h2(type_i(i_l,1),sample_k(i_l,g_l),gender(i_l),educ(i_l))+1
+                        end if
+                    end if
                 end if
-                if (d_star>1000 .or. d_star<-1000) then
-                    print*,d_star
-                    print*,x(:,1)
-                    print*,beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l))
-                    print*,sum(x(:,1)*beta_d(:,sample_k(i_l,g_l),gender(i_l),educ(i_l)))
-                    print*,sample_k(i_l,g_l+1)
-                    print*,'error sample d?'
-                    read*,pause_k
-                end if
-                big_Y_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l))=d_star
-            end if
-            
-    end do; end do
-
+            end do
+        end if
+    end do
+    pr_h2=dble(counter_h2)/dble(counter) !pr_h2(:,1,1,1)
     do h_l=1,clusters;do e_l=1,L_educ;do ge_l=1,L_gender
         do c_l=1,covariates
             z(c_l,1)=c4_normal_01(  )
@@ -60,7 +72,7 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
             !Prior
             B_0=0.0d0
             do i_l=1,covariates
-                B_0(i_l,i_l)=10.0d0
+                B_0(i_l,i_l)=1.0d0
             end do
             Sigma=B_0+matmul(transpose(big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:))
             
@@ -69,9 +81,6 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
             A=inv_Sigma
             call choldc(A,covariates)
             beta_d(:,h_l,ge_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_Y_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l)))+matmul(A,z(:,1))
-            !if (beta_d(2,h_l,ge_l,e_l)<0.0d0)then
-            !    beta_d(2,h_l,ge_l,e_l)=0.0d0
-            !end if
 
             !print*,beta_d(4,h_l,ge_l,e_l),counter_big_X_d(h_l,ge_l,e_l)
             if (isnan(sum(beta_d(:,h_l,ge_l,e_l)))) then
@@ -107,13 +116,13 @@ real(DP):: L(n,n), U(n,n), b(n), d(n), x(n)
 real(DP) :: coeff
 integer :: i, j, k
 
-! step 0: initialization for matrices L and U and b
-! Fortran 90/95 aloows such operations on matrices
+ !step 0: initialization for matrices L and U and b
+ !Fortran 90/95 aloows such operations on matrices
 L=0.0d0
 U=0.0d0
 b=0.0d0
 
-! step 1: forward elimination
+ !step 1: forward elimination
 do k=1, n-1
    do i=k+1,n
       coeff=a(i,k)/a(k,k)
@@ -124,31 +133,31 @@ do k=1, n-1
    end do
 end do
 
-! Step 2: prepare L and U matrices 
-! L matrix is a matrix of the elimination coefficient
-! + the diagonal elements are 1.0
+ !Step 2: prepare L and U matrices 
+ !L matrix is a matrix of the elimination coefficient
+ !+ the diagonal elements are 1.0
 do i=1,n
   L(i,i) = 1.0d0
 end do
-! U matrix is the upper triangular part of A
+ !U matrix is the upper triangular part of A
 do j=1,n
   do i=1,j
     U(i,j) = a(i,j)
   end do
 end do
 
-! Step 3: compute columns of the inverse matrix C
+ !Step 3: compute columns of the inverse matrix C
 do k=1,n
   b(k)=1.0d0
   d(1) = b(1)
-! Step 3a: Solve Ld=b using the forward substitution
+ !Step 3a: Solve Ld=b using the forward substitution
   do i=2,n
     d(i)=b(i)
     do j=1,i-1
       d(i) = d(i) - L(i,j)*d(j)
     end do
   end do
-! Step 3b: Solve Ux=d using the back substitution
+ !Step 3b: Solve Ux=d using the back substitution
   x(n)=d(n)/U(n,n)
   do i = n-1,1,-1
     x(i) = d(i)
@@ -157,7 +166,7 @@ do k=1,n
     end do
     x(i) = x(i)/u(i,i)
   end do
-! Step 3c: fill the solutions x(n) into column k of C
+ !Step 3c: fill the solutions x(n) into column k of C
   do i=1,n
     c(i,k) = x(i)
   end do

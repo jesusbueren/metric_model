@@ -12,7 +12,7 @@ subroutine sample_gamma_y(gamma,type_i,sample_k)
     real(DP),dimension(indv*g_max,types,habits_nomed)::big_Y
     integer,dimension(types,habits)::counter_big_X
     real(DP),dimension(covariates_habits,1)::z
-    real(DP),dimension(covariates_habits,covariates_habits)::Sigma,inv_Sigma,A
+    real(DP),dimension(covariates_habits,covariates_habits)::Sigma,inv_Sigma,A,B_0
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -47,15 +47,19 @@ subroutine sample_gamma_y(gamma,type_i,sample_k)
     
     do e_l=1,types; do h_l=1,habits_nomed
         if (counter_big_X(e_l,h_l)>1)then
+            B_0=0.0d0
             do c_l=1,covariates_habits
                 z(c_l,1)=c4_normal_01(  )
+                B_0(c_l,c_l)=0.0d0
             end do
-            Sigma=matmul(transpose(big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:)),big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:))
+            Sigma=B_0+matmul(transpose(big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:)),big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:))
             call inverse(Sigma,inv_Sigma,covariates_habits)
             A=inv_Sigma
+
             call choldc(A,covariates_habits)
             gamma(:,h_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:)),big_Y(1:counter_big_X(e_l,h_l),e_l,h_l)))+matmul(A,z(:,1))
             if (isnan(sum(gamma(:,h_l,e_l)))) then
+                print*,'pr gamma y'
                 print*,counter_big_X(e_l,h_l),sigma
                 pause
             end if
@@ -78,7 +82,7 @@ subroutine sample_gamma_y_med(gamma_med,type_i,sample_k)
     real(DP),dimension(indv*g_max,types,habits_med)::big_Y
     integer,dimension(types,habits)::counter_big_X
     real(DP),dimension(covariates_habits_med,1)::z
-    real(DP),dimension(covariates_habits_med,covariates_habits_med)::Sigma,inv_Sigma,A
+    real(DP),dimension(covariates_habits_med,covariates_habits_med)::Sigma,inv_Sigma,A,B_0
     interface
         double precision function c4_normal_01( )
             implicit none
@@ -92,9 +96,10 @@ subroutine sample_gamma_y_med(gamma_med,type_i,sample_k)
             do g_l=first_age(i_l),last_age(i_l);do h_l=1,habits_med
                 if (sample_k(i_l,g_l)/=-1 .and. data_ins_hrs(i_l,g_l)/=-1) then
                     health_d=dble(sample_k(i_l,g_l)-1)
-                    ins_d=dble(data_ins_hrs(i_l,g_l)-1)
+                    ins_d=dble(data_ins_hrs(i_l,g_l)) !data_ins_hrs(i_l,:)
                     age=initial_age+(g_l-1)*2
                     x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),health_d,ins_d/)
+                    !x(:,1)=(/1.0_dp,dble(age),dble(age**2.0_dp-1.0_dp),health_d/)
                     if ((data_habits(i_l,habits_med_vec(h_l),g_l)==1 .or. data_habits(i_l,habits_med_vec(h_l),g_l)==0) ) then
                         counter_big_X(type_i(i_l,1),h_l)=counter_big_X(type_i(i_l,1),h_l)+1
                         big_X(counter_big_X(type_i(i_l,1),h_l),type_i(i_l,1),h_l,:)=x(:,1)
@@ -114,15 +119,18 @@ subroutine sample_gamma_y_med(gamma_med,type_i,sample_k)
     
     do e_l=1,types; do h_l=1,habits_med
         if (counter_big_X(e_l,h_l)>1)then
-            do c_l=1,covariates_habits_med
+            B_0=0.01d0
+            do c_l=1,covariates_habits
                 z(c_l,1)=c4_normal_01(  )
+                B_0(c_l,c_l)=0.0d0
             end do
-            Sigma=matmul(transpose(big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:)),big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:))
+            Sigma=B_0+matmul(transpose(big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:)),big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:)) !big_X(1:counter_big_X(e_l,h_l),e_l,h_l,5)
             call inverse(Sigma,inv_Sigma,covariates_habits_med)
             A=inv_Sigma
             call choldc(A,covariates_habits_med)
             gamma_med(:,h_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X(1:counter_big_X(e_l,h_l),e_l,h_l,:)),big_Y(1:counter_big_X(e_l,h_l),e_l,h_l)))+matmul(A,z(:,1))
             if (isnan(sum(gamma_med(:,h_l,e_l)))) then
+                print*,'pr gamma y med'
                 print*,counter_big_X(e_l,h_l),sigma
                 pause
             end if

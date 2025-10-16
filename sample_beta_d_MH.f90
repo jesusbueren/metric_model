@@ -23,30 +23,31 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     real(DP),dimension(covariates,clusters,L_gender,L_educ)::old_mean
     
     
-    call compute_Likelihood_d(H,y,sample_k,weights,log_L)
+    call compute_Likelihood_tr(H,y,sample_k,weights,log_L)
     
-    if (it==51) then
+    if (it==1) then
         beta_d_mean=0.0d0
         sigma_d=0.0d0
     end if
     old_mean=beta_d_mean
-    beta_d_mean=beta_d_mean+(beta_d-beta_d_mean)/dble(it-50)
+    beta_d_mean=beta_d_mean+(beta_d-beta_d_mean)/dble(it)
     
-    if (it>51) then
+    if (it>1) then
         do h_l=1,clusters; do ge_l=1,L_gender;do e_l=1,L_educ
             sigma_d(:,:,h_l,ge_l,e_l)=sigma_d(:,:,h_l,ge_l,e_l)+ &
                                       matmul(reshape(beta_d(:,h_l,ge_l,e_l)-old_mean(:,h_l,ge_l,e_l),[covariates,1]), reshape(beta_d(:,h_l,ge_l,e_l)-beta_d_mean(:,h_l,ge_l,e_l),[1,covariates])) 
         end do;end do;end do
     end if
     
-    var_pro=10.0d0
+    var_pro(1)=1.0d-3
+    var_pro(2:covariates)=1.0d-7
     sigma=0.0d0
     
-    if (it>=1000) then
-        if (it==1000) then
+    if (it>=5000) then
+        if (it==5000) then
             shrinkage_d=1.0d0
         end if
-        sigma=sigma_d/dble(it-1-50)*2.4**2.0d0/dble(covariates)
+        sigma=sigma_d/dble(it-1)*2.4**2.0d0/dble(covariates)
     else
         do c_l=1,covariates
             sigma(c_l,c_l,:,:,:)=var_pro(c_l)
@@ -65,11 +66,11 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     compute_LE=0
     call transitions(beta_h,beta_g,H_g,LE,joint_yh_g) 
     call compute_weights(weights(1,:,:,:,:,:),H_g,share_h,weights_g,joint_yh_g) 
-    call compute_Likelihood_d(H_g,y,sample_k,weights_g,log_L_new)
+    call compute_Likelihood_tr(H_g,y,sample_k,weights_g,log_L_new)
     
     do h_l=1,clusters; do ge_l=1,L_gender;do e_l=1,L_educ
-        log_L(h_l,ge_l,e_l)=log_L(h_l,ge_l,e_l)-1.0d0/(2.0d0*10.0d0)*sum(beta_d(:,h_l,ge_l,e_l)**2.0d0)
-        log_L_new(h_l,ge_l,e_l)=log_L_new(h_l,ge_l,e_l)-1.0d0/(2.0d0*10.0d0)*sum(beta_g(:,h_l,ge_l,e_l)**2.0d0)
+        log_L(h_l,ge_l,e_l)=log_L(h_l,ge_l,e_l)-1.0d0/(2.0d0*1.0d0)*sum(beta_d(:,h_l,ge_l,e_l)**2.0d0)
+        log_L_new(h_l,ge_l,e_l)=log_L_new(h_l,ge_l,e_l)-1.0d0/(2.0d0*1.0d0)*sum(beta_g(:,h_l,ge_l,e_l)**2.0d0)
         call RANDOM_NUMBER(u_mh)
         if (log(u_mh)<log_L_new(h_l,ge_l,e_l)-log_L(h_l,ge_l,e_l) .and. log_L(h_l,ge_l,e_l)/=0.0d0 ) then
             beta_d(:,h_l,ge_l,e_l)=beta_g(:,h_l,ge_l,e_l)
@@ -81,6 +82,7 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     call transitions(beta_h,beta_d,H,LE,joint_yh_g)
     call compute_weights(weights(1,:,:,:,:,:),H,share_h,weights,joint_yh) 
   
+
     if (mod(it,100) == 0) then
         print*,'acc rate d %',acc_d(1,1,1)
         do h_l=1,clusters; do ge_l=1,L_gender;do e_l=1,L_educ
@@ -95,7 +97,7 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     
     end subroutine
     
-    subroutine compute_Likelihood_d(H,y,sample_k,weights,log_L)
+    subroutine compute_Likelihood_tr(H,y,sample_k,weights,log_L)
     use nrtype;use global_var
     implicit none
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ),intent(in)::H
@@ -106,20 +108,21 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     integer::i_l,g_l
     
     log_L=0.0d0
-    do i_l=1,indv_HRS
+    do i_l=1,indv
         if (sample_selection(i_l)) then
             if (sample_k(i_l,first_age(i_l))>=1) then
                 log_L(sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l))=log_L(sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l))+log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
-            end if
-            do g_l=first_age(i_l),last_age(i_l)-1
-                if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then 
-                    if (sample_k(i_l,g_l+1)==clusters+1)then
-                        log_L(sample_k(i_l,g_l),gender(i_l),educ(i_l))=log_L(sample_k(i_l,g_l),gender(i_l),educ(i_l))+log(H(sample_k(i_l,g_l),clusters+1,g_l,y(i_l,1),gender(i_l),educ(i_l)))
-                    else
-                        log_L(sample_k(i_l,g_l),gender(i_l),educ(i_l))=log_L(sample_k(i_l,g_l),gender(i_l),educ(i_l))+log(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,y(i_l,1),gender(i_l),educ(i_l)))
+                do g_l=first_age(i_l),last_age(i_l)-1
+                    if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then 
+                        if (i_l<=indv_HRS) then
+                            log_L(sample_k(i_l,g_l),gender(i_l),educ(i_l))=log_L(sample_k(i_l,g_l),gender(i_l),educ(i_l))+log(H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,y(i_l,1),gender(i_l),educ(i_l)))
+                        else
+                            log_L(sample_k(i_l,g_l),gender(i_l),educ(i_l))=log_L(sample_k(i_l,g_l),gender(i_l),educ(i_l))+ &
+                                                        log(H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,y(i_l,1),gender(i_l),educ(i_l))/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,y(i_l,1),gender(i_l),educ(i_l))))
+                        end if
                     end if
-                end if
-            end do
+                end do
+            end if
         end if
     end do
     

@@ -35,10 +35,10 @@ module global_var
     !Define number of health clusters and health behavior types
     integer,parameter::clusters=2,types=2,cohorts=5 ! make cohort either 1 or 5
     character(len=1) :: types_s
-    integer,parameter::adls=12,habits=6,habits_nomed=3,habits_med=3,indv_HRS=37098,indv_PSID=8081,generations=37,initial_age=26,indv=indv_HRS+indv_PSID,L_gender=2,L_educ=3
+    integer,parameter::adls=12,habits=6,habits_nomed=3,habits_med=3,indv_HRS=37098,indv_PSID=8081,generations=37,initial_age=26,indv=indv_HRS+indv_PSID,L_gender=1,L_educ=3
     integer, dimension(habits_nomed) :: habits_vec = (/2,3,6/)
     integer, dimension(habits_med) :: habits_med_vec = (/1,4,5/)
-    integer,parameter::covariates=3*types,covariates_habits=4,covariates_habits_med=5,covariates_mixture=cohorts+1
+    integer,parameter::covariates=types+1,covariates_habits=4,covariates_habits_med=5,covariates_mixture=cohorts+1
     integer,parameter::g_max=10
     integer,dimension(indv,generations)::data_shlt
     integer,dimension(indv_HRS,generations)::data_ins_hrs

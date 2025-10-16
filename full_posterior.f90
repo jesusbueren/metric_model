@@ -62,33 +62,44 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
     do it=1,500000+burn
         print*,it
 
-        !Sample health transitions parameters
-        if (it>50) then
-            call sample_beta_h_MH(beta_h,beta_d,share_h,H,y,sample_k,weights,joint_yh,beta_h_mean,sigma_h,it,shrinkage_h) !beta_h(2,:,:,:,:) beta_d(2,:,:,:,:) beta_d(1,:,:,:,:) 
-        else
+        !Sample health transitions parameters: gh/bh
+        if (it<=2000) then
             call sample_beta_h(beta_h,y,sample_k)
-        end if
-        !Sample survival parameters
-        if (it>50) then
-            call sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,beta_d_mean,sigma_d,it,shrinkage_d)
         else
-            call sample_beta_d(beta_d,y,sample_k)
+            call sample_beta_h_MH(beta_h,beta_d,share_h,H,y,sample_k,weights,joint_yh,beta_h_mean,sigma_h,it-2000,shrinkage_h)
         end if
+        
+        !Sample health transitions parameters: survival
+        if (it<=2000) then
+            call sample_beta_d(beta_d,y,sample_k)
+        else
+            call sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,beta_d_mean,sigma_d,it-2000,shrinkage_h)
+        end if
+        
+
         !Sample health behavior parameters
         !a) no med
         call sample_gamma_y(gamma,y,sample_k) 
         !b) med
         call sample_gamma_y_med(gamma_med,y,sample_k) 
-        !Compute transitions and life expectancies
+        
+        !Compute transitions and life expectancies        
         compute_LE=1
         call transitions(beta_h,beta_d,H,LE,joint_yh) 
+            
 
         !Sample pr of type at initial age
         call sample_delta(delta,mean_delta,cov_delta,H,share_h,y,sample_k,weights,joint_yh,it,acc_delta,shrinkage)
         !weights(1,2,1,1,1,1) 
         !sample type
+        
+        
 
         call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
+
+
+
+
         
         if (it>burn) then
             if (mod(it,10) == 0) then
