@@ -72,7 +72,7 @@ subroutine sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
                             !filtered_pr(e_l)=filtered_pr(e_l)*min(H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l)), 1.0d-8)/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))) 
                             if (H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))==1.0d0) then
                                 filtered_pr(e_l)=filtered_pr(e_l)+log(1.0d-15)
-                                print*,'got here caution in sample y'
+                                !print*,'got here caution in sample y'
                             else
                                 filtered_pr(e_l)=filtered_pr(e_l)+log(H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))))
                             end if

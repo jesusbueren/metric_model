@@ -14,7 +14,7 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     integer,dimension(clusters+1)::counter_h
     real(DP),dimension(clusters)::h_star
     double precision,dimension(clusters+1,generations)::p
-    real(DP),dimension(types)::x_d
+    real(DP),dimension(covariates/types,types)::x_d
     integer::ind
     real(DP)::gender_d
     
@@ -23,11 +23,11 @@ subroutine transitions(beta_h,beta_d,H,LE,joint_yh)
     !!$OMP PARALLEL  DEFAULT(PRIVATE) SHARED(H,beta)
     !!$OMP  DO colla
     do t_l=1,types; do c_l=1,clusters; do g_l=generations,1,-1; do ge_l=1,L_gender;do e_l=1,L_educ
+        
         x_d=0.0d0
         age=initial_age+(g_l-1)*2
-        x_d(t_l)=1.0_dp
-        x_d=x_d*age
-        x(:,1)=[1.0d0,x_d]
+        x_d(:,t_l)=(/1.0_dp, dble(age)/)
+        x=reshape(x_d,(/covariates,1/))
 
         H(c_l,1,g_l,t_l,ge_l,e_l)=0.5d0*(1.0_dp+erf(sum(x(:,1)*beta_h(:,c_l,ge_l,e_l))/sqrt(2.0_dp)))
         H(c_l,2,g_l,t_l,ge_l,e_l)=1.0d0-H(c_l,1,g_l,t_l,ge_l,e_l)

@@ -14,7 +14,7 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     integer::i_l,g_l,h_l,c_l,e_l,ge_l,t_l
     real(DP),dimension(covariates,covariates,clusters,L_gender,L_educ)::sigma
     real(DP),dimension(covariates,covariates,clusters,L_gender,L_educ),intent(inout)::sigma_d
-    real(DP),dimension(covariates)::u,var_pro
+    real(DP),dimension(covariates)::u,var_pro,mu_0,var_0
     real(DP),dimension(covariates,clusters,L_gender,L_educ)::beta_g
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H_g
     real(DP),dimension(types,L_gender,L_educ,clusters+1)::LE
@@ -22,6 +22,15 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     real(DP)::u_MH
     real(DP),dimension(covariates,clusters,L_gender,L_educ)::old_mean
     
+    ! build prior mean and variance vectors for all stacked types
+    mu_0  = 0.0d0
+    var_0 = 0.0d0
+    do t_l = 1, types
+        mu_0(2*(t_l-1)+1)  = -4.5d0
+        mu_0(2*(t_l-1)+2)  = 0.05d0
+        var_0(2*(t_l-1)+1) = 1.0d0**2
+        var_0(2*(t_l-1)+2) = 0.02d0**2
+    end do
     
     call compute_Likelihood_tr(H,y,sample_k,weights,log_L)
     
@@ -39,8 +48,8 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
         end do;end do;end do
     end if
     
-    var_pro(1)=1.0d-3
-    var_pro(2:covariates)=1.0d-7
+    var_pro=reshape(spread((/1.0d-3,1.0d-7/), 2, types), (/ covariates /))
+
     sigma=0.0d0
     
     if (it>=5000) then
@@ -69,8 +78,8 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     call compute_Likelihood_tr(H_g,y,sample_k,weights_g,log_L_new)
     
     do h_l=1,clusters; do ge_l=1,L_gender;do e_l=1,L_educ
-        log_L(h_l,ge_l,e_l)=log_L(h_l,ge_l,e_l)-1.0d0/(2.0d0*1.0d0)*sum(beta_d(:,h_l,ge_l,e_l)**2.0d0)
-        log_L_new(h_l,ge_l,e_l)=log_L_new(h_l,ge_l,e_l)-1.0d0/(2.0d0*1.0d0)*sum(beta_g(:,h_l,ge_l,e_l)**2.0d0)
+        log_L(h_l,ge_l,e_l)=log_L(h_l,ge_l,e_l)-1.0d0/(2.0d0)*sum((beta_d(:,h_l,ge_l,e_l)-mu_0)**2.0d0/var_0)
+        log_L_new(h_l,ge_l,e_l)=log_L_new(h_l,ge_l,e_l)-1.0d0/(2.0d0)*sum((beta_g(:,h_l,ge_l,e_l)-mu_0)**2.0d0/var_0)
         call RANDOM_NUMBER(u_mh)
         if (log(u_mh)<log_L_new(h_l,ge_l,e_l)-log_L(h_l,ge_l,e_l) .and. log_L(h_l,ge_l,e_l)/=0.0d0 ) then
             beta_d(:,h_l,ge_l,e_l)=beta_g(:,h_l,ge_l,e_l)

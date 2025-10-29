@@ -79,7 +79,7 @@ clc
 clear all
 close all
 
-types=2 % select the number of health behavior groups
+types=4 % select the number of health behavior groups
 clusters=2
 covariates_habits=4
 habits=3
@@ -93,7 +93,7 @@ generations=37
 initial_age=26
 cohorts=5
 
-covariates=types+1
+covariates=types*2
 variables_tr=clusters*covariates*educ*genders
 variables_gma=covariates_habits*habits*types
 variables_gma_med=covariates_habits_med*habits_med*types
@@ -175,7 +175,7 @@ end
 
 %% Histogram from distribution of variables governing transitions
 
-for e_l=1:3
+for e_l=1:1
 for c_l=1:2
 ge_l=1
 figure('units','normalized','outerposition',[0 0 1 1])
@@ -353,7 +353,7 @@ for e_l=1:3
             I=legend([h(1),h(2),h(3)],'Group 1','Group 2', 'Group 3','Location','northwest','orientation','horizontal')
         end
     end
-    ylim([20 35])
+    ylim([18 40])
 end
 c_l=3
 for ge_l=1:1 %genders
@@ -546,6 +546,7 @@ set(gca,'FontName','Times New Roman','FontSize',FS);
 %% transition pr & fraction by h
 ge_l=1
 FS=11
+burn=iterations-100
 if types==2
     colors = { [0.4660    0.6740    0.1880]    [0.8500    0.3250    0.0980]  [0.9290    0.6940    0.1250]   [0   0.4470    0.7410] [0.4940    0.1840    0.5560]};
 elseif types==3
@@ -672,14 +673,14 @@ types=3
 clusters=2
 genders=1
 educ=3
-burn=1000
+burn=100
 generations=37
 cohorts=5
 FS=11
 colors = { [0.4660    0.6740    0.1880]     [0   0.4470    0.7410]   [0.9290    0.6940    0.1250]  [0.8500    0.3250    0.0980] [0.4940    0.1840    0.5560]};
 marker= {'o','s','d','o' };
 
-for types=3:4
+for types=2:4
     types_s=num2str(types)
     fileID=fopen(strcat('LE_',types_s,'.txt'));
     LE=textscan(fileID,'%20.8f','TreatAsEmpty',{'**************'});
@@ -691,7 +692,7 @@ for types=3:4
     fclose(fileID);
     fraction_t=reshape(fraction_t{1},generations,genders,educ,types,cohorts,size(fraction_t{1},1)/(generations*educ*types*genders*cohorts));
 
-
+    clear Av_LE Av_LE_c fraction_explained
     for e_l=1:educ
         Av_LE(e_l,:)=sum(squeeze(fraction_t(12,1,e_l,:,3,burn:end)).*squeeze(LE(:,1,e_l,clusters+1,burn:end)),1);
         Av_LE_c(e_l,:)=sum(squeeze(fraction_t(12,1,3,:,3,burn:end)).*squeeze(LE(:,1,e_l,clusters+1,burn:end)),1);
@@ -706,7 +707,7 @@ for types=3:4
 end
 
 xlabel('Number of Groups')
-ylim([0 0.5])
+ylim([0 1])
 xlim([1 5])
 xticks(2:1:4)
 set(gca,'FontName','Times New Roman','FontSize',FS);

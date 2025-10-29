@@ -39,8 +39,8 @@ subroutine sample_beta_h_MH(beta_h,beta_d,share_h,H,y,sample_k,weights,joint_yh,
         end do;end do;end do
     end if
     
-    var_proposal(1)=1.0d-3
-    var_proposal(2:covariates)=1.0d-7
+    var_proposal=reshape(spread((/1.0d-3,1.0d-7/), 2, types), (/ covariates /))
+
     sigma=0.0d0
     
     if (it>=5000) then
@@ -69,8 +69,8 @@ subroutine sample_beta_h_MH(beta_h,beta_d,share_h,H,y,sample_k,weights,joint_yh,
     call compute_Likelihood_tr(H_g,y,sample_k,weights_g,log_L_new)
     
     do h_l=1,clusters; do ge_l=1,L_gender;do e_l=1,L_educ
-        log_L(h_l,ge_l,e_l)=log_L(h_l,ge_l,e_l)-1.0d0/(2.0d0*10.0d0)*sum(beta_h(:,h_l,ge_l,e_l)**2.0d0)
-        log_L_new(h_l,ge_l,e_l)=log_L_new(h_l,ge_l,e_l)-1.0d0/(2.0d0*10.0d0)*sum(beta_g(:,h_l,ge_l,e_l)**2.0d0)
+        log_L(h_l,ge_l,e_l)=log_L(h_l,ge_l,e_l)-1.0d0/(2.0d0*100.0d0)*sum(beta_h(:,h_l,ge_l,e_l)**2.0d0)
+        log_L_new(h_l,ge_l,e_l)=log_L_new(h_l,ge_l,e_l)-1.0d0/(2.0d0*100.0d0)*sum(beta_g(:,h_l,ge_l,e_l)**2.0d0)
         call RANDOM_NUMBER(u_mh)
         if (log(u_mh)<log_L_new(h_l,ge_l,e_l)-log_L(h_l,ge_l,e_l) .and. log_L(h_l,ge_l,e_l)/=0.0d0 ) then
             beta_h(:,h_l,ge_l,e_l)=beta_g(:,h_l,ge_l,e_l)

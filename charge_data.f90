@@ -11,6 +11,7 @@ subroutine charge_data()
     integer::i_l,g_l,index
     
     write(types_s, '(I1)') types
+    write(types_s_1, '(I1)') types-1
     
     open(unit=10,file=path//"data\ages_all.csv")
         read(10,*) ages(:,1:indv_HRS)

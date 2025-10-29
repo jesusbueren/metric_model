@@ -8,7 +8,7 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
     integer::h_l,c_l,g_l,ge_l,age,ge_d,it,i_l,health_d,d_l,e_l,t_l
     real(DP)::d_star
     real(DP)::gender_d
-    real(DP),dimension(covariates,1)::z
+    real(DP),dimension(covariates,1)::z,mu_0
     real(DP),dimension(covariates,covariates)::Sigma,inv_Sigma,A,B_0
     real(DP),dimension(indv*g_max,clusters,L_gender,L_educ,covariates)::big_X_d
     real(DP),dimension(indv*g_max,clusters,L_gender,L_educ)::big_Y_d
@@ -18,7 +18,7 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
             implicit none
         end function c4_normal_01
     end interface
-    real(DP),dimension(types)::x_d
+    real(DP),dimension(covariates/types,types)::x_d
     real(DP),dimension(covariates,1)::x
     character::pause_k
     integer,dimension(types,clusters,L_gender,L_educ)::counter,counter_h2
@@ -30,10 +30,8 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
             do g_l=first_age(i_l),last_age(i_l)-1
                 x_d=0.0d0
                 age=initial_age+(g_l-1)*2
-                x_d(type_i(i_l,1))=1.0_dp
-                x_d=x_d*age
-                x(:,1)=[1.0d0,x_d]
-
+                x_d(:,type_i(i_l,1))=(/1.0_dp, dble(age)/)
+                x=reshape(x_d,(/covariates,1/))
                 if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. sample_selection(i_l) .and. sample_k(i_l,first_age(i_l))/=-1) then
                     counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1
                     big_X_d(counter_big_X_d(sample_k(i_l,g_l),gender(i_l),educ(i_l)),sample_k(i_l,g_l),gender(i_l),educ(i_l),:)=x(:,1)
@@ -70,17 +68,26 @@ subroutine sample_beta_d(beta_d,type_i,sample_k)
         if (counter_big_X_d(h_l,ge_l,e_l)>1) then
             beta_d(:,h_l,ge_l,e_l)=0.0d0
             !Prior
-            B_0=0.0d0
-            do i_l=1,covariates
-                B_0(i_l,i_l)=1.0d0
+            B_0 = 0.0d0
+            do i_l = 1, types
+                B_0(2*(i_l-1)+1, 2*(i_l-1)+1) = 1.0d0**2     ! variance of constant
+                B_0(2*(i_l-1)+2, 2*(i_l-1)+2) = 0.02d0**2    ! variance of age
             end do
+            
             Sigma=B_0+matmul(transpose(big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:))
             
             !print*,Sigma(4,4)
             call inverse(Sigma,inv_Sigma,covariates)
             A=inv_Sigma
             call choldc(A,covariates)
-            beta_d(:,h_l,ge_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_Y_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l)))+matmul(A,z(:,1))
+            
+            do i_l = 1, types
+                mu_0(2*(i_l-1)+1,1) = -4.5d0
+                mu_0(2*(i_l-1)+2,1) = 0.05d0
+            end do
+            
+            beta_d(:,h_l,ge_l,e_l)=matmul(inv_Sigma,matmul(transpose(big_X_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_Y_d(1:counter_big_X_d(h_l,ge_l,e_l),h_l,ge_l,e_l))+ &          
+                                    matmul(B_0, mu_0(:,1))) +matmul(A,z(:,1))
 
             !print*,beta_d(4,h_l,ge_l,e_l),counter_big_X_d(h_l,ge_l,e_l)
             if (isnan(sum(beta_d(:,h_l,ge_l,e_l)))) then

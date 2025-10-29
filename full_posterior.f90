@@ -59,21 +59,21 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
     sigma_h=-9.0d0
     beta_d_mean=-9.0d0
     sigma_d=-9.0d0
-    do it=1,500000+burn
+    do it=1,500000
         print*,it
 
         !Sample health transitions parameters: gh/bh
-        if (it<=2000) then
+        if (it<=1000) then
             call sample_beta_h(beta_h,y,sample_k)
         else
-            call sample_beta_h_MH(beta_h,beta_d,share_h,H,y,sample_k,weights,joint_yh,beta_h_mean,sigma_h,it-2000,shrinkage_h)
+            call sample_beta_h_MH(beta_h,beta_d,share_h,H,y,sample_k,weights,joint_yh,beta_h_mean,sigma_h,it-1000,shrinkage_h)
         end if
         
         !Sample health transitions parameters: survival
-        if (it<=2000) then
+        if (it<=1000) then
             call sample_beta_d(beta_d,y,sample_k)
         else
-            call sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,beta_d_mean,sigma_d,it-2000,shrinkage_h)
+            call sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,beta_d_mean,sigma_d,it-1000,shrinkage_h)
         end if
         
 
@@ -90,23 +90,19 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
 
         !Sample pr of type at initial age
         call sample_delta(delta,mean_delta,cov_delta,H,share_h,y,sample_k,weights,joint_yh,it,acc_delta,shrinkage)
-        !weights(1,2,1,1,1,1) 
+
         !sample type
-        
-        
-
-        call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
-
+        if (only_smoking==0 ) then
+            call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
+        end if
 
 
-
-        
         if (it>burn) then
-            if (mod(it,10) == 0) then
+            if (mod(it,100) == 0) then
                 do h_l=1,clusters
                     aux(:,h_l,:,:,:,:)=sum(joint_yh,2) 
                 end do
-                call save_results(beta_h,beta_d,gamma,gamma_med,delta,LE,sum(joint_yh,2),joint_yh/aux,H,it2) !H(2,3,:,2,1,3)
+                call save_results(beta_h,beta_d,gamma,gamma_med,delta,LE,sum(joint_yh,2),joint_yh/aux,H,it2) 
                 it2=it2+1
             end if
             type_pr_av=dble(it-burn-1)/dble(it-burn)*type_pr_av+1.0d0/dble(it-burn)*type_pr

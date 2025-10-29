@@ -4,7 +4,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_h
     integer,dimension(indv,1),intent(in)::type_i
     integer,dimension(indv,generations),intent(in)::sample_k
-    real(DP),dimension(types)::x_d
+    real(DP),dimension(covariates/types,types)::x_d
     real(DP),dimension(covariates,1)::x
     integer::h_l,c_l,g_l,ge_l,age,ge_d,it,i_l,health_d,d_l,t_l,e_l
     real(DP)::h_star1
@@ -29,9 +29,8 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
             do g_l=first_age(i_l),last_age(i_l)-1
                 x_d=0.0d0
                 age=initial_age+(g_l-1)*2
-                x_d(type_i(i_l,1))=1.0_dp
-                x_d=x_d*age
-                x(:,1)=[1.0d0,x_d]
+                x_d(:,type_i(i_l,1))=(/1.0_dp, dble(age)/)
+                x=reshape(x_d,(/covariates,1/))
         
                 if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1 .and. sample_k(i_l,g_l+1)<clusters+1 .and. sample_selection(i_l) .and. sample_k(i_l,first_age(i_l))/=-1) then 
                     counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l))=counter_big_X_h(sample_k(i_l,g_l),gender(i_l),educ(i_l))+1 
@@ -74,7 +73,7 @@ subroutine sample_beta_h(beta_h,type_i,sample_k)
             !Prior
             B_0=0.0d0
             do i_l=1,covariates
-                B_0(i_l,i_l)=1.0d0
+                B_0(i_l,i_l)=0.0d0
             end do
             Sigma=B_0+matmul(transpose(big_X_h(1:counter_big_X_h(h_l,ge_l,e_l),h_l,ge_l,e_l,:)),big_X_h(1:counter_big_X_h(h_l,ge_l,e_l),h_l,ge_l,e_l,:))
             

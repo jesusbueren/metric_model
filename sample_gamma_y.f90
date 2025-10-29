@@ -119,7 +119,7 @@ subroutine sample_gamma_y_med(gamma_med,type_i,sample_k)
     
     do e_l=1,types; do h_l=1,habits_med
         if (counter_big_X(e_l,h_l)>1)then
-            B_0=0.01d0
+            B_0=0.0d0
             do c_l=1,covariates_habits
                 z(c_l,1)=c4_normal_01(  )
                 B_0(c_l,c_l)=0.0d0
