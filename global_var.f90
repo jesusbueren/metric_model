@@ -33,7 +33,7 @@ module global_var
     use nrtype
     implicit none
     !Define number of health clusters and health behavior types
-    integer,parameter::clusters=2,types=4,cohorts=5,only_smoking=0 ! make cohort either 1 or 5
+    integer,parameter::clusters=2,types=3,cohorts=5,only_smoking=0 ! make cohort either 1 or 5
     character(len=1) :: types_s,types_s_1
     integer,parameter::adls=12,habits=6,habits_nomed=3,habits_med=3,indv_HRS=37098,indv_PSID=8081,generations=37,initial_age=26,indv=indv_HRS+indv_PSID,L_gender=1,L_educ=3
     integer, dimension(habits_nomed) :: habits_vec = (/2,3,6/)

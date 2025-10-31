@@ -1,4 +1,4 @@
-subroutine sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
+subroutine sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr,type_pr_z,type_pr_tr,type_pr_prior)
     use nrtype; use global_var
     implicit none
     integer,dimension(indv,1),intent(inout)::y
@@ -11,12 +11,12 @@ subroutine sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
     real(DP),dimension(covariates_habits_med,1)::x_med
     integer::h_l,c_l,g_l,e_d,age,ge_d,it,i_l,e_l,ind,changes,ins_l
     real(dp)::health_d,ins_d,maxlog
-    real(dp)::d,p,u,log_likeli
+    real(dp)::d,p,u
     real(DP),dimension(habits_nomed,generations,types,clusters)::alphas
     real(DP),dimension(habits_med,generations,types,clusters,2)::alphas_med
-    real(DP),dimension(types)::pr,filtered_pr,selection
+    real(DP),dimension(types)::pr,pr_z,filtered_pr,prior_pr,selection
     real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts),intent(in)::weights
-    real(DP),dimension(indv,types),intent(out)::type_pr
+    real(DP),dimension(indv,types),intent(out)::type_pr,type_pr_z,type_pr_tr,type_pr_prior
 
     
     do e_l=1,types; do h_l=1,habits_nomed;do c_l=1,clusters; do g_l=1,generations
@@ -35,41 +35,40 @@ subroutine sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
     end do;end do; end do;end do;end do
 
     changes=0
-    log_likeli=0
     
     do i_l=1,indv;
         if (sample_selection(i_l)) then
-            pr=0.0d0
+            pr_z=0.0d0
+            filtered_pr=0.0d0
             if (sample_k(i_l,first_age(i_l))/=-1) then
-                filtered_pr=log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:,birth_cohort(i_l)))
+                prior_pr=log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),:,birth_cohort(i_l)))
             else
                 !just one observation either way
-                filtered_pr=log(weights(first_age(i_l),1,gender(i_l),educ(i_l),:,birth_cohort(i_l)))
+                prior_pr=log(weights(first_age(i_l),1,gender(i_l),educ(i_l),:,birth_cohort(i_l)))
             end if
                 
             do g_l=first_age(i_l),last_age(i_l)-1
                 do h_l=1,habits_nomed; do e_l=1,types
-                    if (data_habits(i_l,habits_vec(h_l),g_l)==1 .and. sample_k(i_l,g_l)/=-1 ) then !data_habits(i_l,habits_vec(2),:)
-                        pr(e_l)=pr(e_l)+log(alphas(h_l,g_l,e_l,sample_k(i_l,g_l)))
+                    if (data_habits(i_l,habits_vec(h_l),g_l)==1 .and. sample_k(i_l,g_l)/=-1 ) then 
+                        pr_z(e_l)=pr_z(e_l)+log(alphas(h_l,g_l,e_l,sample_k(i_l,g_l)))
                     elseif (data_habits(i_l,habits_vec(h_l),g_l)==0 .and. sample_k(i_l,g_l)/=-1) then  
-                        pr(e_l)=pr(e_l)+log(1.0d0-alphas(h_l,g_l,e_l,sample_k(i_l,g_l)))
+                        pr_z(e_l)=pr_z(e_l)+log(1.0d0-alphas(h_l,g_l,e_l,sample_k(i_l,g_l)))
                     end if
                 end do; end do !data_habits(i_l,habits_med_vec(3),:)
                 if (i_l<=indv_HRS) then
                     do h_l=1,3; do e_l=1,types
-                        if (data_habits(i_l,habits_med_vec(h_l),g_l)==1 .and. sample_k(i_l,g_l)/=-1 .and. data_ins_hrs(i_l,g_l)/=-1) then  !alphas_med(h_l,g_l,:,sample_k(i_l,g_l),data_ins_hrs(i_l,g_l)+1)
-                            pr(e_l)=pr(e_l)+log(alphas_med(h_l,g_l,e_l,sample_k(i_l,g_l),data_ins_hrs(i_l,g_l)+1))
+                        if (data_habits(i_l,habits_med_vec(h_l),g_l)==1 .and. sample_k(i_l,g_l)/=-1 .and. data_ins_hrs(i_l,g_l)/=-1) then  
+                            pr_z(e_l)=pr_z(e_l)+log(alphas_med(h_l,g_l,e_l,sample_k(i_l,g_l),data_ins_hrs(i_l,g_l)+1))
                         elseif (data_habits(i_l,habits_med_vec(h_l),g_l)==0 .and. sample_k(i_l,g_l)/=-1 .and. data_ins_hrs(i_l,g_l)/=-1) then 
-                            pr(e_l)=pr(e_l)+log(1.0d0-alphas_med(h_l,g_l,e_l,sample_k(i_l,g_l),data_ins_hrs(i_l,g_l)+1))
+                            pr_z(e_l)=pr_z(e_l)+log(1.0d0-alphas_med(h_l,g_l,e_l,sample_k(i_l,g_l),data_ins_hrs(i_l,g_l)+1))
                         end if
                     end do; end do
                 end if
                 do e_l=1,types
-                    if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then !sample_k(i_l,31) data_habits(i_l,:,29:31) sample_k(i_l,:) H(1,3,:,e_l,gender(i_l),educ(i_l))
+                    if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then 
                         if (i_l<=indv_HRS) then
-                            filtered_pr(e_l)=filtered_pr(e_l)+log(H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))) !H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))
-                        else
-                            !filtered_pr(e_l)=filtered_pr(e_l)*min(H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l)), 1.0d-8)/(1.0d0-H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))) 
+                            filtered_pr(e_l)=filtered_pr(e_l)+log(H(sample_k(i_l,g_l),sample_k(i_l,g_l+1),g_l,e_l,gender(i_l),educ(i_l))) 
+                        else 
                             if (H(sample_k(i_l,g_l),clusters+1,g_l,e_l,gender(i_l),educ(i_l))==1.0d0) then
                                 filtered_pr(e_l)=filtered_pr(e_l)+log(1.0d-15)
                                 !print*,'got here caution in sample y'
@@ -85,18 +84,29 @@ subroutine sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
                     end if
                 end do
             end do
-
             
-            log_likeli=log_likeli+pr(y(i_l,1))
-            pr=pr+filtered_pr
+            pr=pr_z+filtered_pr+prior_pr
             maxlog = maxval(pr)
             pr = exp(pr - maxlog)
             pr=pr/sum(pr)
             type_pr(i_l,:)=pr
-            log_likeli=log_likeli+filtered_pr(y(i_l,1))
-            if (isnan(log_likeli))  then
-                print*,'problem sample y'
-            end if
+
+            pr_z=pr_z+prior_pr
+            maxlog = maxval(pr_z)
+            pr_z = exp(pr_z - maxlog)
+            pr_z=pr_z/sum(pr_z)
+            type_pr_z(i_l,:)=pr_z
+            
+            filtered_pr=filtered_pr+prior_pr
+            maxlog = maxval(filtered_pr)
+            filtered_pr = exp(filtered_pr - maxlog)
+            filtered_pr=filtered_pr/sum(filtered_pr)
+            type_pr_tr(i_l,:)=filtered_pr
+            
+            maxlog = maxval(prior_pr)
+            prior_pr = exp(prior_pr - maxlog)
+            prior_pr=prior_pr/sum(prior_pr)
+            type_pr_prior(i_l,:)=prior_pr
                 
             y_new(i_l,1)=-9
             call RANDOM_NUMBER(u)

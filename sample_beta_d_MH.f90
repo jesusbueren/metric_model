@@ -120,7 +120,9 @@ subroutine sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,
     do i_l=1,indv
         if (sample_selection(i_l)) then
             if (sample_k(i_l,first_age(i_l))>=1) then
-                log_L(sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l))=log_L(sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l))+log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
+                if (only_smoking==0) then
+                    log_L(sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l))=log_L(sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l))+log(weights(first_age(i_l),sample_k(i_l,first_age(i_l)),gender(i_l),educ(i_l),y(i_l,1),birth_cohort(i_l)))
+                end if
                 do g_l=first_age(i_l),last_age(i_l)-1
                     if (sample_k(i_l,g_l)>=1 .and. sample_k(i_l,g_l+1)>=1) then 
                         if (i_l<=indv_HRS) then

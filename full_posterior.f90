@@ -8,14 +8,15 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
     integer,dimension(indv,1),intent(inout)::y
     real(DP),dimension(covariates,clusters,L_gender,L_educ),intent(inout)::beta_d
     real(DP),dimension(clusters+1,clusters+1,generations,types,L_gender,L_educ)::H,H_g 
-    integer::it,burn,it2,h_l
+    integer::it,burn,it2,h_l,i_l
     integer,dimension(indv,generations)::sample_k
     real(DP)::u
     real(DP),dimension(indv,habits,generations)::y_star
     real(DP),dimension(types,L_gender,L_educ,clusters+1)::LE
     real(DP),dimension(generations,clusters,L_gender,L_educ,types,cohorts)::weights,joint_yh,aux
     real(DP),dimension(clusters,L_gender,L_educ)::share_h
-    real(DP),dimension(indv,types)::type_pr,type_pr_av
+    real(DP),dimension(indv,types)::type_pr,type_pr_z,type_pr_tr,type_pr_prior
+    real(DP),dimension(indv,types,4)::type_pr_av
     real(DP),dimension(covariates,covariates,clusters,L_gender,L_educ)::sigma_h,sigma_d
     real(DP),dimension(covariates,clusters,L_gender,L_educ)::beta_h_mean,beta_d_mean
     real(DP),dimension(covariates_mixture*(types-1),L_gender,L_educ)::mean_delta
@@ -23,6 +24,7 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
     real(DP),dimension(covariates_mixture*(types-1),covariates_mixture*(types-1),L_gender,L_educ)::cov_delta
     real(DP),dimension(L_gender,L_educ)::shrinkage
     real(DP),dimension(types,clusters,L_gender,L_educ)::shrinkage_h,shrinkage_d
+    character(len=20) :: suffix
     !Timer
     integer::calc
     real::calctime
@@ -32,8 +34,14 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
         end function tock
     end interface
     character::end_k
-
     character::continue_program
+    
+    
+    if (only_smoking==1) then
+        suffix = '_smoking.txt'
+    else
+        suffix = '.txt'
+    end if
     
     sample_k=data_shlt
     
@@ -63,14 +71,14 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
         print*,it
 
         !Sample health transitions parameters: gh/bh
-        if (it<=1000) then
+        if (it<=1000 .or. only_smoking==0) then
             call sample_beta_h(beta_h,y,sample_k)
         else
             call sample_beta_h_MH(beta_h,beta_d,share_h,H,y,sample_k,weights,joint_yh,beta_h_mean,sigma_h,it-1000,shrinkage_h)
         end if
         
         !Sample health transitions parameters: survival
-        if (it<=1000) then
+        if (it<=1000 .or. only_smoking==0) then
             call sample_beta_d(beta_d,y,sample_k)
         else
             call sample_beta_d_MH(beta_d,beta_h,share_h,H,y,sample_k,weights,joint_yh,beta_d_mean,sigma_d,it-1000,shrinkage_h)
@@ -92,8 +100,8 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
         call sample_delta(delta,mean_delta,cov_delta,H,share_h,y,sample_k,weights,joint_yh,it,acc_delta,shrinkage)
 
         !sample type
-        if (only_smoking==0 ) then
-            call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
+        if (only_smoking==0) then
+            call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr,type_pr_z,type_pr_tr,type_pr_prior)
         end if
 
 
@@ -102,16 +110,24 @@ subroutine full_posterior(beta_h,beta_d,gamma,gamma_med,y,delta)
                 do h_l=1,clusters
                     aux(:,h_l,:,:,:,:)=sum(joint_yh,2) 
                 end do
-                call save_results(beta_h,beta_d,gamma,gamma_med,delta,LE,sum(joint_yh,2),joint_yh/aux,H,it2) 
+                call save_results(beta_h,beta_d,gamma,gamma_med,delta,LE,sum(joint_yh,2),joint_yh/aux,H,it2,suffix) 
                 it2=it2+1
             end if
-            type_pr_av=dble(it-burn-1)/dble(it-burn)*type_pr_av+1.0d0/dble(it-burn)*type_pr
+            type_pr_av(:,:,1)=dble(it-burn-1)/dble(it-burn)*type_pr_av(:,:,1)+1.0d0/dble(it-burn)*type_pr
+            type_pr_av(:,:,2)=dble(it-burn-1)/dble(it-burn)*type_pr_av(:,:,2)+1.0d0/dble(it-burn)*type_pr_z
+            type_pr_av(:,:,3)=dble(it-burn-1)/dble(it-burn)*type_pr_av(:,:,3)+1.0d0/dble(it-burn)*type_pr_tr
+            type_pr_av(:,:,4)=dble(it-burn-1)/dble(it-burn)*type_pr_av(:,:,4)+1.0d0/dble(it-burn)*type_pr_prior
         end if
     end do
     
-    open(unit=9,file=path_s//'implied_probilities_'//types_s//'.txt')
-        write(9,'(F20.8)') type_pr_av
+    
+    open(unit=9,file=path_s//'implied_probilities_'//types_s//suffix)
+        do i_l=1,indv
+            write(9,'(I3,<types>F6.3,<types>F6.3,<types>F6.3,<types>F6.3)') merge(1, 0, sample_selection(i_l)),type_pr_av(i_l,:,1),type_pr_av(i_l,:,2),type_pr_av(i_l,:,3),type_pr_av(i_l,:,4)
+        end do
     close(9)
+    
+
     
 end subroutine
     

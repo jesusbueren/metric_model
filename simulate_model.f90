@@ -20,7 +20,7 @@ subroutine simulate_model()
     real(DP),dimension(covariates_habits,1)::x
     real(dp)::health_d,u
     integer,dimension(indv,1)::y
-    real(DP),dimension(indv,types)::type_pr
+    real(DP),dimension(indv,types)::type_pr,type_pr_z,type_pr_tr,type_pr_prior
     integer,dimension(indv_HRS,habits,generations)::data_habits_sim
     integer,dimension(1)::seed=456
     real(DP),dimension(habits,L_educ)::pr_h_e_sim,pr_h_e_data
@@ -75,7 +75,7 @@ subroutine simulate_model()
         
         !Sample a type for each individual in the data
         y=1
-        call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr)
+        call sample_y(gamma,gamma_med,y,sample_k,H,weights,type_pr,type_pr_z,type_pr_tr,type_pr_prior)
         
         !Compute artificial set of behaviors for individuals for all indv in the HRS
         data_habits_sim=-9
